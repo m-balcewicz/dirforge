@@ -8,10 +8,33 @@ PROG_NAME="dirforge"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
+# JSON output flag. When true with DRY_RUN, output machine-readable JSON plan.
+JSON_OUTPUT=false
+# Force flag. When true, overwrite existing projects without prompting.
+FORCE=false
+# Backup flag. When true, create timestamped backups before overwriting.
+BACKUP=false
+# Yes flag. When true, skip interactive prompts and proceed.
+YES=false
+
+# JSON plan accumulator (used when JSON_OUTPUT=true)
+JSON_DIRS=()
+JSON_FILES=()
+
+json_escape() {
+  # Escape string for JSON (basic escaping, remove trailing newline)
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
 
 do_mkdir_p() {
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: mkdir -p $*"
+    if [ "$JSON_OUTPUT" = true ]; then
+      for dir in "$@"; do
+        JSON_DIRS+=("$dir")
+      done
+    else
+      echo "DRY RUN: mkdir -p $*"
+    fi
   else
     mkdir -p "$@"
   fi
@@ -22,11 +45,18 @@ write_file() {
   local dest="$1"
   shift
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would write file: $dest"
-    # print a snippet of the content for visibility
-    awk '{ if (NR<=20) print "    " $0 }' || true
-    # consume stdin
-    cat >/dev/null
+    if [ "$JSON_OUTPUT" = true ]; then
+      # Capture file content for JSON
+      local content
+      content=$(cat)
+      JSON_FILES+=("$dest")
+    else
+      echo "DRY RUN: would write file: $dest"
+      # print a snippet of the content for visibility
+      awk '{ if (NR<=20) print "    " $0 }' || true
+      # consume stdin
+      cat >/dev/null
+    fi
   else
     mkdir -p "$(dirname "$dest")"
     cat > "$dest"
@@ -48,6 +78,46 @@ strip_year_prefix() {
   echo "$id" | sed -E 's/^[0-9]{4}_//'
 }
 
+backup_directory() {
+  local src="$1"
+  local timestamp
+  timestamp=$(date +%Y%m%d-%H%M%S)
+  local backup_dir="${src}.backup-${timestamp}"
+  
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create backup: $backup_dir"
+    fi
+  else
+    cp -R "$src" "$backup_dir"
+    echo "Created backup: $backup_dir"
+  fi
+}
+
+prompt_overwrite() {
+  local project_path="$1"
+  
+  # Skip prompt if --yes or --force is set
+  if [ "$YES" = true ] || [ "$FORCE" = true ]; then
+    return 0
+  fi
+  
+  echo "WARNING: Project already exists at $project_path" >&2
+  if [ "$BACKUP" = true ]; then
+    echo "A backup will be created before overwriting." >&2
+  fi
+  read -r -p "Overwrite existing project? [y/N] " response
+  case "$response" in
+    [yY][eE][sS]|[yY]) 
+      return 0
+      ;;
+    *)
+      echo "Operation cancelled." >&2
+      exit 1
+      ;;
+  esac
+}
+
 conda_env_exists() {
   local name="$1"
   if ! command -v conda >/dev/null 2>&1; then
@@ -61,7 +131,9 @@ create_conda_env() {
   local py_ver="$1"; shift
   local packages="$*"
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create conda environment: $env_name (python=$py_ver)"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create conda environment: $env_name (python=$py_ver)"
+    fi
     return 0
   fi
   if ! command -v conda >/dev/null 2>&1; then
@@ -124,12 +196,30 @@ init_research() {
 
   RESEARCH_ROOT="RESEARCH_WORLD/$PROJECT_ID"
   if [ -d "$RESEARCH_ROOT" ]; then
-    echo "Project '$PROJECT_ID' already exists at $RESEARCH_ROOT" >&2
-    exit 1
+    if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
+      echo "Project '$PROJECT_ID' already exists at $RESEARCH_ROOT" >&2
+      echo "Use --force to overwrite or --backup to create a backup before overwriting" >&2
+      exit 1
+    fi
+    
+    # Prompt for confirmation unless --yes is set
+    prompt_overwrite "$RESEARCH_ROOT"
+    
+    # Create backup if requested
+    if [ "$BACKUP" = true ]; then
+      backup_directory "$RESEARCH_ROOT"
+    fi
+    
+    # Remove existing directory
+    if [ "$DRY_RUN" = false ]; then
+      rm -rf "$RESEARCH_ROOT"
+    fi
   fi
   do_mkdir_p "$RESEARCH_ROOT"
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create directory: $RESEARCH_ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create directory: $RESEARCH_ROOT"
+    fi
   else
     echo "Created directory: $RESEARCH_ROOT"
   fi
@@ -138,6 +228,10 @@ init_research() {
   for d in 01_project_management 02_admin 03_design_protocols 04_data 05_data_analysis 06_data_outputs 07_publication 08_documentation; do
     do_mkdir_p "$RESEARCH_ROOT/$d"
   done
+
+  # Create .integrity directories (constitution v1.0.12)
+  do_mkdir_p "$RESEARCH_ROOT/.integrity/checksums"
+  do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
 
   # create files
   write_file "$RESEARCH_ROOT/README.md" <<'EOF'
@@ -153,22 +247,6 @@ contact: "<email@example.org>"
 license: "CC-BY-4.0"
 sync_policy: "iCloud: active, External: raw_data_on_nas"
 conda_env: "$CONDA_NAME"
-created: "$(date +%Y-%m-%d)"
-project_id: "$PROJECT_ID"
-EOF
-
-  write_file "$RESEARCH_ROOT/CONSTITUTION_CHECK.md" <<'EOF'
-- [ ] README.md
-- [ ] project.yaml
-- [ ] 04_data/ contains checksums and manifests if applicable
-EOF
-
-  # .gitignore for data_analysis
-  write_file "$RESEARCH_ROOT/05_data_analysis/.gitignore" <<'EOF'
-# ignore large data
-*.bin
-*.raw
-data/
 EOF
 
   # Conda
@@ -181,11 +259,15 @@ EOF
     export_environment_yml "$CONDA_NAME" "$RESEARCH_ROOT/05_data_analysis/environment.yml" "$py_ver" $base_pkgs
     echo "Activate with: conda activate $CONDA_NAME"
   else
-    echo "--no-conda specified: skipping conda creation"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "--no-conda specified: skipping conda creation"
+    fi
   fi
 
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create research project '$PROJECT_ID' in $RESEARCH_ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create research project '$PROJECT_ID' in $RESEARCH_ROOT"
+    fi
   else
     echo "Created research project '$PROJECT_ID' in $RESEARCH_ROOT"
   fi
@@ -207,23 +289,47 @@ init_lecture() {
     read -r -p "Lecture name: " name
   fi
   lecture_id=$(to_snake_case "$name")
-  echo "Lecture name converted to ID: $lecture_id"
+  if [ "$JSON_OUTPUT" = false ]; then
+    echo "Lecture name converted to ID: $lecture_id"
+  fi
 
   LECTURE_ROOT="LECTURE_WORLD/$lecture_id"
   if [ -d "$LECTURE_ROOT" ]; then
-    echo "Lecture '$lecture_id' already exists at $LECTURE_ROOT" >&2
-    exit 1
+    if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
+      echo "Lecture '$lecture_id' already exists at $LECTURE_ROOT" >&2
+      echo "Use --force to overwrite or --backup to create a backup before overwriting" >&2
+      exit 1
+    fi
+    
+    # Prompt for confirmation unless --yes is set
+    prompt_overwrite "$LECTURE_ROOT"
+    
+    # Create backup if requested
+    if [ "$BACKUP" = true ]; then
+      backup_directory "$LECTURE_ROOT"
+    fi
+    
+    # Remove existing directory
+    if [ "$DRY_RUN" = false ]; then
+      rm -rf "$LECTURE_ROOT"
+    fi
   fi
   do_mkdir_p "$LECTURE_ROOT"
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create directory: $LECTURE_ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create directory: $LECTURE_ROOT"
+    fi
   else
     echo "Created lecture directory: $LECTURE_ROOT"
   fi
 
-  for d in 00_admin 01_code 02_data/experimental_recordings 02_data/reference 03_slides 04_manuscript exercises/problems exercises/solutions exams grades; do
+  for d in 00_admin 01_code 02_data/experimental_recordings 02_data/reference 03_slides 04_manuscript 05_exercises/problems 05_exercises/solutions 05_exercises/submissions 05_exercises/graded 06_exams/problems 06_exams/solutions 06_exams/submissions 06_exams/graded 07_grades; do
     do_mkdir_p "$LECTURE_ROOT/$d"
   done
+
+  # Create .integrity directories (constitution v1.0.12)
+  do_mkdir_p "$LECTURE_ROOT/.integrity/checksums"
+  do_mkdir_p "$LECTURE_ROOT/.integrity/manifests"
 
   write_file "$LECTURE_ROOT/README.md" <<'EOF'
 # $name ($lecture_id)
@@ -245,12 +351,6 @@ project_id: "$lecture_id"
 created: "$(date +%Y-%m-%d)"
 EOF
 
-  write_file "$LECTURE_ROOT/CONSTITUTION_CHECK.md" <<'EOF'
-- [ ] README.md
-- [ ] project.yaml
-- [ ] 02_data/reference includes metadata files for third-party figures
-EOF
-
   # Conda
   if [ "$no_conda" = false ]; then
     local base_pkgs="numpy matplotlib pandas jupyter pyyaml scipy seaborn ipywidgets"
@@ -264,11 +364,15 @@ EOF
     echo "Conda environment created: $CONDA_NAME"
     echo "Activate with: conda activate $CONDA_NAME"
   else
-    echo "--no-conda specified: skipping conda creation"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "--no-conda specified: skipping conda creation"
+    fi
   fi
 
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create lecture project '$lecture_id' in $LECTURE_ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create lecture project '$lecture_id' in $LECTURE_ROOT"
+    fi
   else
     echo "Created lecture project '$lecture_id' in $LECTURE_ROOT"
   fi
@@ -308,7 +412,9 @@ EOF
   create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
   export_environment_yml "$CONDA_NAME" "$ROOT/environment.yml" "$py_ver" $base_pkgs
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create coding project at $ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create coding project at $ROOT"
+    fi
   else
     echo "Activate with: conda activate $CONDA_NAME"
     echo "Created coding project at $ROOT"
@@ -364,7 +470,9 @@ created: "$(date +%Y-%m-%d)"
 EOF
 
   if [ "$DRY_RUN" = true ]; then
-    echo "DRY RUN: would create journal manuscript: $JOURNAL_ROOT"
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create journal manuscript: $JOURNAL_ROOT"
+    fi
   else
     echo "Created journal manuscript: $JOURNAL_ROOT"
   fi
@@ -376,11 +484,41 @@ Usage: $PROG_NAME init <world> [options]
 
 World types: research, lecture, coding, journal, office, private
 
+Global options:
+  --dry-run, --preview    Preview changes without writing to filesystem
+  --json                  Output machine-readable JSON plan (requires --dry-run)
+
 Examples:
   $PROG_NAME init research --title "Thermal Model Analysis" --python 3.11
   $PROG_NAME init lecture --name "Digital Rock Physics"
   $PROG_NAME init coding --language python --project ml_toolkit
+  $PROG_NAME --dry-run --json init research --title "Test" | jq .
 EOF
+}
+
+output_json_plan() {
+  # Output accumulated dry-run plan as JSON
+  echo "{"
+  echo '  "dry_run": true,'
+  echo '  "directories": ['
+  local first=true
+  for dir in "${JSON_DIRS[@]}"; do
+    if [ "$first" = false ]; then echo ","; fi
+    printf '    "%s"' "$(json_escape "$dir")"
+    first=false
+  done
+  echo ""
+  echo '  ],'
+  echo '  "files": ['
+  first=true
+  for file in "${JSON_FILES[@]}"; do
+    if [ "$first" = false ]; then echo ","; fi
+    printf '    "%s"' "$(json_escape "$file")"
+    first=false
+  done
+  echo ""
+  echo '  ]'
+  echo "}"
 }
 
 main() {
@@ -390,9 +528,24 @@ main() {
     case "$1" in
       --dry-run|--preview)
         DRY_RUN=true; shift;;
+      --json)
+        JSON_OUTPUT=true; shift;;
+      --force)
+        FORCE=true; shift;;
+      --backup)
+        BACKUP=true; shift;;
+      --yes|-y)
+        YES=true; shift;;
       *) new_args+=("$1"); shift;;
     esac
   done
+  
+  # Validate JSON requires dry-run
+  if [ "$JSON_OUTPUT" = true ] && [ "$DRY_RUN" = false ]; then
+    echo "ERROR: --json requires --dry-run" >&2
+    exit 1
+  fi
+  
   # Restore positional params
   set -- "${new_args[@]}"
   if [ "$#" -lt 1 ]; then
@@ -430,6 +583,11 @@ main() {
           fi ;;
         *) echo "Unknown world: $world"; usage; exit 1;;
       esac
+      
+      # Output JSON plan if requested
+      if [ "$JSON_OUTPUT" = true ]; then
+        output_json_plan
+      fi
     ;;
     *) usage; exit 1;;
   esac
