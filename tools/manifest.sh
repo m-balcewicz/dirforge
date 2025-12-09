@@ -77,6 +77,17 @@ else
       errors=$((errors+1))
     fi
   done
+
+  for fk in "${forbidden_keywords[@]}"; do
+    if grep -E -qi "^\s*${fk}:" "$manifest_file"; then
+      echo "ERROR: forbidden key detected in manifest: $fk" >&2
+      errors=$((errors+1))
+    fi
+  done
+
+  checksum_val="$(grep -E -i '^\s*checksum:' "$manifest_file" | sed -E 's/^\s*checksum:\s*//i' | tr -d '"' || true)"
+fi
+
 # Check checksum file existence if it looks like a path
 if [ -n "$checksum_val" ] && [ "$checksum_val" != "null" ]; then
   # trim quotes/spaces
@@ -91,16 +102,6 @@ if [ -n "$checksum_val" ] && [ "$checksum_val" != "null" ]; then
         echo "WARNING: checksum file referenced but not found: $checksum_path" >&2
         warnings=$((warnings+1))
       fi
-    else
-      echo "Found checksum file: $checksum_path"
-    fi
-  fi
-fichecksum_val="$(echo "$checksum_val" | sed -E 's/^\s+|\s+$//g' | tr -d '"')"
-  if [[ "$checksum_val" == */* ]] || [[ "$checksum_val" == *.sha256 ]] || [[ "$checksum_val" == *.sha512 ]] || [[ "$checksum_val" == *.md5 ]]; then
-    checksum_path="$manifest_dir/$checksum_val"
-    if [ ! -f "$checksum_path" ]; then
-      echo "WARNING: checksum file referenced but not found: $checksum_path" >&2
-      warnings=$((warnings+1))
     else
       echo "Found checksum file: $checksum_path"
     fi
