@@ -41,7 +41,7 @@ warnings=0
 if command -v yq >/dev/null 2>&1; then
   # Use yq for accurate YAML handling
   for k in "${required_keys[@]}"; do
-    val="$(yq eval ".${k} // "null"" "$manifest_file")"
+    val="$(yq eval ".${k} // \"null\"" "$manifest_file")"
     if [ "$val" = "null" ] || [ -z "$val" ]; then
       echo "ERROR: missing required key: $k" >&2
       errors=$((errors+1))
@@ -85,13 +85,13 @@ else
     fi
   done
 
-  checksum_val="$(grep -E -i '^\s*checksum:' "$manifest_file" | sed -E 's/^\s*checksum:\s*//i' | tr -d '"' || true)"
+  checksum_val="$(grep -E -i '^\s*checksum:' "$manifest_file" | sed -E 's/^[[:space:]]*checksum:[[:space:]]*//i' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' | tr -d '"' || true)"
 fi
 
 # Check checksum file existence if it looks like a path
 if [ -n "$checksum_val" ] && [ "$checksum_val" != "null" ]; then
-  # trim quotes/spaces
-  checksum_val="$(echo "$checksum_val" | sed -E 's/^\s+|\s+$//g' | tr -d '"')"
+  # trim quotes/spaces (use POSIX character classes for portability)
+  checksum_val="$(echo "$checksum_val" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' | tr -d '"')"
   if [[ "$checksum_val" == */* ]] || [[ "$checksum_val" == *.sha256 ]] || [[ "$checksum_val" == *.sha512 ]] || [[ "$checksum_val" == *.md5 ]]; then
     checksum_path="$manifest_dir/$checksum_val"
     if [ ! -f "$checksum_path" ]; then
