@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple manifest validator for DirForge
+# Manifest validator for DirForge (constitution v1.0.12)
 # Preferred: uses `yq` for robust YAML parsing. Falls back to a lightweight
 # grep-based check when `yq` is not available (useful for CI or minimalist systems).
+# Validates checksums are referenced at `.integrity/checksums/` path.
 
 usage() {
-  echo "Usage: $0 <manifest.yaml>"
+  echo "Usage: $0 [--strict] <manifest.yaml>"
+  echo ""
+  echo "Options:"
+  echo "  --strict    Fail on warnings (e.g., missing checksum files)"
   exit 1
 }
+
+strict_mode=0
+if [ "$#" -ge 1 ] && [ "$1" = "--strict" ]; then
+  strict_mode=1
+  shift
+fi
 
 if [ "$#" -lt 1 ]; then
   usage
@@ -37,7 +47,17 @@ if command -v yq >/dev/null 2>&1; then
       errors=$((errors+1))
     fi
   done
-
+  checksum_val="$(yq eval '.checksum' "$manifest_file")"
+  
+  # Constitution v1.0.12: validate checksum path uses .integrity/checksums/
+  if [ -n "$checksum_val" ] && [ "$checksum_val" != "null" ]; then
+    if ! echo "$checksum_val" | grep -q '\.integrity/checksums/'; then
+      echo "ERROR: checksum path must use '.integrity/checksums/' directory (constitution v1.0.12)" >&2
+      echo "  Found: $checksum_val" >&2
+      echo "  Expected pattern: .integrity/checksums/<file>.sha256" >&2
+      errors=$((errors+1))
+    fi
+  fi
   # Collect all map keys recursively and check for forbidden keys
   all_keys="$(yq eval '.. | select(tag == "!!map") | keys | .[]' "$manifest_file" 2>/dev/null || true)"
   for fk in "${forbidden_keywords[@]}"; do
@@ -57,20 +77,25 @@ else
       errors=$((errors+1))
     fi
   done
-
-  checksum_val="$(grep -E -i '^\s*checksum:' "$manifest_file" | sed -E 's/^\s*checksum:\s*//I' | tr -d '"')"
-
-  # simple forbidden key detection
-  if grep -E -qi '\b(password|passphrase|secret|token|private_key|credentials|ssh_key)\b' "$manifest_file"; then
-    echo "ERROR: forbidden key detected in manifest (fallback)" >&2
-    errors=$((errors+1))
-  fi
-fi
-
 # Check checksum file existence if it looks like a path
 if [ -n "$checksum_val" ] && [ "$checksum_val" != "null" ]; then
   # trim quotes/spaces
   checksum_val="$(echo "$checksum_val" | sed -E 's/^\s+|\s+$//g' | tr -d '"')"
+  if [[ "$checksum_val" == */* ]] || [[ "$checksum_val" == *.sha256 ]] || [[ "$checksum_val" == *.sha512 ]] || [[ "$checksum_val" == *.md5 ]]; then
+    checksum_path="$manifest_dir/$checksum_val"
+    if [ ! -f "$checksum_path" ]; then
+      if [ "$strict_mode" -eq 1 ]; then
+        echo "ERROR: checksum file not found (strict mode): $checksum_path" >&2
+        errors=$((errors+1))
+      else
+        echo "WARNING: checksum file referenced but not found: $checksum_path" >&2
+        warnings=$((warnings+1))
+      fi
+    else
+      echo "Found checksum file: $checksum_path"
+    fi
+  fi
+fichecksum_val="$(echo "$checksum_val" | sed -E 's/^\s+|\s+$//g' | tr -d '"')"
   if [[ "$checksum_val" == */* ]] || [[ "$checksum_val" == *.sha256 ]] || [[ "$checksum_val" == *.sha512 ]] || [[ "$checksum_val" == *.md5 ]]; then
     checksum_path="$manifest_dir/$checksum_val"
     if [ ! -f "$checksum_path" ]; then
