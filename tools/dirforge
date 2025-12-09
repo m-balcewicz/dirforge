@@ -1,0 +1,438 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# dirforge - create standardized directory structures per DirForge Constitution
+# Minimal, portable bash CLI that implements `dirforge init <world-type>`
+
+PROG_NAME="dirforge"
+
+# Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
+DRY_RUN=false
+
+do_mkdir_p() {
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: mkdir -p $*"
+  else
+    mkdir -p "$@"
+  fi
+}
+
+write_file() {
+  # usage: write_file <dest> <<'EOF'...EOF
+  local dest="$1"
+  shift
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would write file: $dest"
+    # print a snippet of the content for visibility
+    awk '{ if (NR<=20) print "    " $0 }' || true
+    # consume stdin
+    cat >/dev/null
+  else
+    mkdir -p "$(dirname "$dest")"
+    cat > "$dest"
+  fi
+}
+
+to_snake_case() {
+  # Convert a string to lower_snake_case: transliterate, lowercase, replace non-alnum with _, trim
+  local s="$*"
+  # Use iconv if available for transliteration, else rely on sed
+  if command -v iconv >/dev/null 2>&1; then
+    s=$(printf "%s" "$s" | iconv -f utf8 -t ascii//TRANSLIT 2>/dev/null)
+  fi
+  printf "%s" "$s" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/_/g' | sed -E 's/^_+|_+$//g'
+}
+
+strip_year_prefix() {
+  local id="$1"
+  echo "$id" | sed -E 's/^[0-9]{4}_//'
+}
+
+conda_env_exists() {
+  local name="$1"
+  if ! command -v conda >/dev/null 2>&1; then
+    return 1
+  fi
+  conda info --envs 2>/dev/null | awk '{print $1}' | grep -xq "$name" || return 1
+}
+
+create_conda_env() {
+  local env_name="$1"; shift
+  local py_ver="$1"; shift
+  local packages="$*"
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create conda environment: $env_name (python=$py_ver)"
+    return 0
+  fi
+  if ! command -v conda >/dev/null 2>&1; then
+    echo "Conda not found in PATH — skipping env creation (or use --no-conda to suppress)." >&2
+    return 0
+  fi
+  if conda_env_exists "$env_name"; then
+    echo "Conda environment '$env_name' already exists - skipping creation."
+    return 0
+  fi
+  echo "Creating conda environment: $env_name"
+  conda create -n "$env_name" python="$py_ver" $packages -y
+}
+
+export_environment_yml() {
+  local env_name="$1"; shift
+  local dest="$1"; shift
+  local py_ver="$1"; shift
+  local packages="$*"
+  do_mkdir_p "$(dirname "$dest")"
+  write_file "$dest" <<EOF
+name: $env_name
+channels:
+  - defaults
+dependencies:
+  - python=$py_ver
+$(for p in $packages; do echo "  - $p"; done)
+EOF
+}
+
+init_research() {
+  local title="${TITLE:-}" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --title) shift; title="$1";;
+      --python) shift; py_ver="$1";;
+      --no-conda) no_conda=true;;
+      --conda-packages) shift; extra_pkgs="$1";;
+      *) echo "Unknown arg: $1"; exit 1;;
+    esac
+    shift
+  done
+  if [ -z "$title" ]; then
+    read -r -p "Project title: " title
+  fi
+  local id_raw
+  id_raw=$(to_snake_case "$title")
+  # prefix with year if not present
+  local year
+  year=$(date +%Y)
+  if [[ "$id_raw" =~ ^[0-9]{4}_ ]]; then
+    PROJECT_ID="$id_raw"
+  else
+    PROJECT_ID="${year}_$id_raw"
+  fi
+  # conda env name
+  local id_no_year
+  id_no_year=$(strip_year_prefix "$PROJECT_ID")
+  CONDA_NAME="research_${id_no_year}"
+
+  RESEARCH_ROOT="RESEARCH_WORLD/$PROJECT_ID"
+  if [ -d "$RESEARCH_ROOT" ]; then
+    echo "Project '$PROJECT_ID' already exists at $RESEARCH_ROOT" >&2
+    exit 1
+  fi
+  do_mkdir_p "$RESEARCH_ROOT"
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create directory: $RESEARCH_ROOT"
+  else
+    echo "Created directory: $RESEARCH_ROOT"
+  fi
+
+  # create numbered subfolders
+  for d in 01_project_management 02_admin 03_design_protocols 04_data 05_data_analysis 06_data_outputs 07_publication 08_documentation; do
+    do_mkdir_p "$RESEARCH_ROOT/$d"
+  done
+
+  # create files
+  write_file "$RESEARCH_ROOT/README.md" <<'EOF'
+# $PROJECT_ID
+
+Created: $(date --iso-8601=seconds)
+Conda env: $CONDA_NAME
+EOF
+
+  write_file "$RESEARCH_ROOT/project.yaml" <<'EOF'
+owner: "<owner name>"
+contact: "<email@example.org>"
+license: "CC-BY-4.0"
+sync_policy: "iCloud: active, External: raw_data_on_nas"
+conda_env: "$CONDA_NAME"
+created: "$(date +%Y-%m-%d)"
+project_id: "$PROJECT_ID"
+EOF
+
+  write_file "$RESEARCH_ROOT/CONSTITUTION_CHECK.md" <<'EOF'
+- [ ] README.md
+- [ ] project.yaml
+- [ ] 04_data/ contains checksums and manifests if applicable
+EOF
+
+  # .gitignore for data_analysis
+  write_file "$RESEARCH_ROOT/05_data_analysis/.gitignore" <<'EOF'
+# ignore large data
+*.bin
+*.raw
+data/
+EOF
+
+  # Conda
+  if [ "$no_conda" = false ]; then
+    local base_pkgs="numpy matplotlib pandas jupyter pyyaml"
+    if [ -n "$extra_pkgs" ]; then
+      base_pkgs="$base_pkgs $extra_pkgs"
+    fi
+    create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
+    export_environment_yml "$CONDA_NAME" "$RESEARCH_ROOT/05_data_analysis/environment.yml" "$py_ver" $base_pkgs
+    echo "Activate with: conda activate $CONDA_NAME"
+  else
+    echo "--no-conda specified: skipping conda creation"
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create research project '$PROJECT_ID' in $RESEARCH_ROOT"
+  else
+    echo "Created research project '$PROJECT_ID' in $RESEARCH_ROOT"
+  fi
+}
+
+init_lecture() {
+  local name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --name) shift; name="$1";;
+      --python) shift; py_ver="$1";;
+      --no-conda) no_conda=true;;
+      --conda-packages) shift; extra_pkgs="$1";;
+      *) echo "Unknown arg for lecture: $1"; exit 1;;
+    esac
+    shift
+  done
+  if [ -z "$name" ]; then
+    read -r -p "Lecture name: " name
+  fi
+  lecture_id=$(to_snake_case "$name")
+  echo "Lecture name converted to ID: $lecture_id"
+
+  LECTURE_ROOT="LECTURE_WORLD/$lecture_id"
+  if [ -d "$LECTURE_ROOT" ]; then
+    echo "Lecture '$lecture_id' already exists at $LECTURE_ROOT" >&2
+    exit 1
+  fi
+  do_mkdir_p "$LECTURE_ROOT"
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create directory: $LECTURE_ROOT"
+  else
+    echo "Created lecture directory: $LECTURE_ROOT"
+  fi
+
+  for d in 00_admin 01_code 02_data/experimental_recordings 02_data/reference 03_slides 04_manuscript exercises/problems exercises/solutions exams grades; do
+    do_mkdir_p "$LECTURE_ROOT/$d"
+  done
+
+  write_file "$LECTURE_ROOT/README.md" <<'EOF'
+# $name ($lecture_id)
+
+Created: $(date --iso-8601=seconds)
+Conda env: lecture_$lecture_id
+EOF
+
+  write_file "$LECTURE_ROOT/project.yaml" <<'EOF'
+course_code: "<COURSE_CODE>"
+title: "$name"
+term: "<TERM>"
+instructor:
+  name: "<Instructor Name>"
+  email: "<email@example.org>"
+sync_policy: "iCloud: slides/manuscript; External: raw_recordings_on_nas"
+conda_env: "lecture_$lecture_id"
+project_id: "$lecture_id"
+created: "$(date +%Y-%m-%d)"
+EOF
+
+  write_file "$LECTURE_ROOT/CONSTITUTION_CHECK.md" <<'EOF'
+- [ ] README.md
+- [ ] project.yaml
+- [ ] 02_data/reference includes metadata files for third-party figures
+EOF
+
+  # Conda
+  if [ "$no_conda" = false ]; then
+    local base_pkgs="numpy matplotlib pandas jupyter pyyaml scipy seaborn ipywidgets"
+    # beamer is not a python package, leave as note
+    if [ -n "$extra_pkgs" ]; then
+      base_pkgs="$base_pkgs $extra_pkgs"
+    fi
+    CONDA_NAME="lecture_$lecture_id"
+    create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
+    export_environment_yml "$CONDA_NAME" "$LECTURE_ROOT/01_code/environment.yml" "$py_ver" $base_pkgs
+    echo "Conda environment created: $CONDA_NAME"
+    echo "Activate with: conda activate $CONDA_NAME"
+  else
+    echo "--no-conda specified: skipping conda creation"
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create lecture project '$lecture_id' in $LECTURE_ROOT"
+  else
+    echo "Created lecture project '$lecture_id' in $LECTURE_ROOT"
+  fi
+}
+
+init_coding() {
+  local language="" project="" py_ver="${PY:-3.11}"
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --language) shift; language="$1";;
+      --project) shift; project="$1";;
+      --python) shift; py_ver="$1";;
+      *) echo "Unknown arg for coding: $1"; exit 1;;
+    esac
+    shift
+  done
+  if [ "$language" != "python" ]; then
+    echo "Only python language supported for coding init currently."; exit 1
+  fi
+  if [ -z "$project" ]; then
+    read -r -p "Project name: " project
+  fi
+  proj_id=$(to_snake_case "$project")
+  ROOT="CODING_WORLD/python/$proj_id"
+  if [ -d "$ROOT" ]; then
+    echo "Project exists: $ROOT"; exit 1
+  fi
+  do_mkdir_p "$ROOT/src" "$ROOT/tests" "$ROOT/docs"
+  write_file "$ROOT/README.md" <<'EOF'
+# $proj_id
+
+Created: $(date --iso-8601=seconds)
+EOF
+
+  CONDA_NAME="coding_$proj_id"
+  base_pkgs="numpy matplotlib pandas jupyter pyyaml"
+  create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
+  export_environment_yml "$CONDA_NAME" "$ROOT/environment.yml" "$py_ver" $base_pkgs
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create coding project at $ROOT"
+  else
+    echo "Activate with: conda activate $CONDA_NAME"
+    echo "Created coding project at $ROOT"
+  fi
+}
+
+init_journal() {
+  local journal_name="" id=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --journal) shift; journal_name="$1";;
+      --id) shift; id="$1";;
+      *) echo "Unknown arg for journal: $1"; exit 1;;
+    esac
+    shift
+  done
+  if [ -z "$journal_name" ]; then
+    read -r -p "Journal name: " journal_name
+  fi
+  if [ -z "$id" ]; then
+    read -r -p "Manuscript ID: " id
+  fi
+
+  # Convert to UPPER_SNAKE_CASE: transliterate, uppercase, replace non-alnum with underscore
+  local jtmp journal_u
+  if command -v iconv >/dev/null 2>&1; then
+    jtmp=$(printf "%s" "$journal_name" | iconv -f utf8 -t ascii//TRANSLIT 2>/dev/null)
+  else
+    jtmp="$journal_name"
+  fi
+  journal_u=$(printf "%s" "$jtmp" | tr '[:lower:]' '[:upper:]' | sed -E 's/[^A-Z0-9]+/_/g' | sed -E 's/^_+|_+$//g')
+
+  JOURNAL_ROOT="JOURNAL_WORLD/$journal_u/$id"
+  if [ -d "$JOURNAL_ROOT" ]; then
+    echo "Journal manuscript already exists at $JOURNAL_ROOT" >&2
+    exit 1
+  fi
+
+  do_mkdir_p "$JOURNAL_ROOT/manuscript" "$JOURNAL_ROOT/reviews" "$JOURNAL_ROOT/correspondence"
+
+  write_file "$JOURNAL_ROOT/README.md" <<'EOF'
+# $journal_u / $id
+
+Created: $(date --iso-8601=seconds)
+Journal: $journal_name
+Manuscript ID: $id
+EOF
+
+  write_file "$JOURNAL_ROOT/project.yaml" <<'EOF'
+journal_name: "$journal_u"
+manuscript_id: "$id"
+created: "$(date +%Y-%m-%d)"
+EOF
+
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create journal manuscript: $JOURNAL_ROOT"
+  else
+    echo "Created journal manuscript: $JOURNAL_ROOT"
+  fi
+}
+
+usage() {
+  cat <<EOF
+Usage: $PROG_NAME init <world> [options]
+
+World types: research, lecture, coding, journal, office, private
+
+Examples:
+  $PROG_NAME init research --title "Thermal Model Analysis" --python 3.11
+  $PROG_NAME init lecture --name "Digital Rock Physics"
+  $PROG_NAME init coding --language python --project ml_toolkit
+EOF
+}
+
+main() {
+  # Global flags: support --dry-run or --preview anywhere in the args
+  new_args=()
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --dry-run|--preview)
+        DRY_RUN=true; shift;;
+      *) new_args+=("$1"); shift;;
+    esac
+  done
+  # Restore positional params
+  set -- "${new_args[@]}"
+  if [ "$#" -lt 1 ]; then
+    usage; exit 1
+  fi
+  cmd="$1"; shift
+  case "$cmd" in
+    init)
+      world="$1"; shift || { echo "Missing world"; usage; exit 1; }
+      case "$world" in
+        research) init_research "$@" ;;
+        lecture) init_lecture "$@" ;;
+        coding) init_coding "$@" ;;
+        journal)
+          init_journal "$@" ;;
+        office)
+          echo "Creating OFFICE_WORLD standard folders..."
+          for d in 00_admin 01_finance 04_inventory_equipment 05_software_licenses 06_public_relations 90_archive; do
+            do_mkdir_p "OFFICE_WORLD/$d"
+          done
+          if [ "$DRY_RUN" = true ]; then
+            echo "DRY RUN: would create OFFICE_WORLD/"
+          else
+            echo "Created OFFICE_WORLD/"
+          fi ;;
+        private)
+          echo "Creating PRIVATE_WORLD standard folders..."
+          for d in 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
+            do_mkdir_p "PRIVATE_WORLD/$d"
+          done
+          if [ "$DRY_RUN" = true ]; then
+            echo "DRY RUN: would create PRIVATE_WORLD/"
+          else
+            echo "Created PRIVATE_WORLD/"
+          fi ;;
+        *) echo "Unknown world: $world"; usage; exit 1;;
+      esac
+    ;;
+    *) usage; exit 1;;
+  esac
+}
+
+main "$@"

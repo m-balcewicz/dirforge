@@ -1,0 +1,51 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor/IDE directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Development and infrastructure directories (local only)
+.github/
+.specify/
+report/
+specs/
+templates/
+tests/
+fixtures/
+
+# Test artifacts and temporary files
+tests/dirforge_test_workspace_*/
+*.bak
+*.tmp
+*.log
+
+# Build artifacts and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Credentials and secrets (should never be in repo)
+*.pem
+*.key
+*.secret
+*credentials*
+*.env
+.envrc
+
+# OS-specific
+Thumbs.db
+Desktop.ini
