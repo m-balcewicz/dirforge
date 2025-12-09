@@ -6,6 +6,24 @@ set -euo pipefail
 
 PROG_NAME="dirforge"
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$(cd "$SCRIPT_DIR/../lib" && pwd)"
+
+# Source help system libraries if available
+if [ -f "$LIB_DIR/terminal.sh" ]; then
+    source "$LIB_DIR/terminal.sh"
+fi
+if [ -f "$LIB_DIR/colors.sh" ]; then
+    source "$LIB_DIR/colors.sh"
+    init_colors 2>/dev/null || true
+fi
+if [ -f "$LIB_DIR/help.sh" ]; then
+    source "$LIB_DIR/help.sh"
+fi
+
+CONSTITUTION_VERSION="v1.0.16"
+
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
 # JSON output flag. When true with DRY_RUN, output machine-readable JSON plan.
@@ -478,6 +496,101 @@ EOF
   fi
 }
 
+handle_help_request() {
+  # Route help requests to appropriate help functions based on context
+  # Usage: handle_help_request [command] [world-type-or-subcommand] [world-type]
+  
+  local cmd="${1:-}"
+  local arg2="${2:-}"
+  local arg3="${3:-}"
+  
+  # Determine if arg2 is a world type or subcommand
+  local world=""
+  local subcmd=""
+  
+  case "$arg2" in
+    research|lecture|coding|journal|office|private)
+      # arg2 is a world type
+      world="$arg2"
+      subcmd="${arg3:-}"
+      ;;
+    *)
+      # arg2 is a subcommand or empty
+      subcmd="$arg2"
+      world="$arg3"
+      ;;
+  esac
+  
+  # DEBUG: uncomment for troubleshooting
+  # echo "DEBUG: cmd='$cmd' subcmd='$subcmd' world='$world' (arg2='$arg2' arg3='$arg3')" >&2
+  
+  # Check if help system is available
+  if ! declare -F show_global_help >/dev/null 2>&1; then
+    # Fallback to basic usage if help system not available
+    usage
+    return
+  fi
+  
+  case "$cmd" in
+    ""|"help"|"--help"|"-h")
+      show_global_help
+      ;;
+    "init")
+      if [ -n "$world" ]; then
+        # World-specific help: dirforge init research --help
+        if declare -F show_world_help >/dev/null 2>&1; then
+          show_world_help "$world"
+        else
+          show_command_help "init"
+        fi
+      else
+        # Command help: dirforge init --help
+        if declare -F show_command_help >/dev/null 2>&1; then
+          show_command_help "init"
+        else
+          show_global_help
+        fi
+      fi
+      ;;
+    "--version"|"-v")
+      echo "$PROG_NAME (DirForge Constitution $CONSTITUTION_VERSION)"
+      echo "Enhanced Terminal Help System"
+      ;;
+    *)
+      # Unknown command - show contextual help
+      echo "Unknown command: $cmd" >&2
+      echo >&2
+      if declare -F show_global_help >/dev/null 2>&1; then
+        echo "Available commands:" >&2
+        show_global_help | grep -A5 "Usage" || usage
+      else
+        usage
+      fi
+      exit 1
+      ;;
+  esac
+}
+
+suggest_world_help() {
+  # Suggest valid world types for unknown world types
+  local invalid_world="$1"
+  local valid_worlds="research lecture coding journal office private"
+  
+  echo "Unknown world type: $invalid_world" >&2
+  echo >&2
+  echo "Valid world types:" >&2
+  for world in $valid_worlds; do
+    echo "  $world" >&2
+  done
+  echo >&2
+  echo "For detailed help on a specific world type:" >&2
+  echo "  $PROG_NAME init <world-type> --help" >&2
+  echo >&2
+  echo "Examples:" >&2
+  echo "  $PROG_NAME init research --help" >&2
+  echo "  $PROG_NAME init lecture --help" >&2
+}
+
 usage() {
   cat <<EOF
 Usage: $PROG_NAME init <world> [options]
@@ -522,6 +635,18 @@ output_json_plan() {
 }
 
 main() {
+  # Handle help and version flags first (before parsing other options)
+  case "${1:-}" in
+    --help|-h|help)
+      handle_help_request
+      exit 0
+      ;;
+    --version|-v|version)
+      handle_help_request "--version"
+      exit 0
+      ;;
+  esac
+
   # Global flags: support --dry-run or --preview anywhere in the args
   new_args=()
   while [ "$#" -gt 0 ]; do
@@ -536,6 +661,15 @@ main() {
         BACKUP=true; shift;;
       --yes|-y)
         YES=true; shift;;
+      --help|-h)
+        # Context-aware help handling
+        if [ "${#new_args[@]}" -gt 0 ]; then
+          handle_help_request "${new_args[@]}"
+        else
+          handle_help_request
+        fi
+        exit 0
+        ;;
       *) new_args+=("$1"); shift;;
     esac
   done
@@ -549,18 +683,27 @@ main() {
   # Restore positional params
   set -- "${new_args[@]}"
   if [ "$#" -lt 1 ]; then
-    usage; exit 1
+    handle_help_request
+    exit 1
   fi
+  
   cmd="$1"; shift
   case "$cmd" in
     init)
-      world="$1"; shift || { echo "Missing world"; usage; exit 1; }
+      # Handle help for init command
+      if [ "$#" -eq 0 ]; then
+        handle_help_request "init"
+        exit 1
+      fi
+      
+      world="$1"
+      shift
+      
       case "$world" in
         research) init_research "$@" ;;
         lecture) init_lecture "$@" ;;
         coding) init_coding "$@" ;;
-        journal)
-          init_journal "$@" ;;
+        journal) init_journal "$@" ;;
         office)
           echo "Creating OFFICE_WORLD standard folders..."
           for d in 00_admin 01_finance 04_inventory_equipment 05_software_licenses 06_public_relations 90_archive; do
@@ -581,7 +724,10 @@ main() {
           else
             echo "Created PRIVATE_WORLD/"
           fi ;;
-        *) echo "Unknown world: $world"; usage; exit 1;;
+        *) 
+          suggest_world_help "$world"
+          exit 1
+          ;;
       esac
       
       # Output JSON plan if requested
@@ -589,7 +735,10 @@ main() {
         output_json_plan
       fi
     ;;
-    *) usage; exit 1;;
+    *) 
+      handle_help_request "$cmd"
+      exit 1
+      ;;
   esac
 }
 
