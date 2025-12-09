@@ -1,0 +1,42 @@
+Coding Project Creation
+=======================
+
+Software development projects (Constitution §III.I)
+Updated: 2025-12-09 (Constitution v1.0.16)
+
+Purpose
+-------
+
+Creates standardized software development project with version control, testing, and documentation structure.
+
+Usage
+-----
+
+  dirforge init coding [options]
+  dirforge init coding --name "project-name"
+
+Required Options
+----------------
+
+  --name "project-name"                         Project name (kebab-case recommended)
+
+Optional Options
+----------------
+
+  --lang python|javascript|rust|go             Primary language (default: python)
+  --license mit|apache|gpl3                    Software license (default: mit)
+  --no-git                                      Skip Git repository initialization
+
+Examples
+--------
+
+Examples:
+
+  # Python project with MIT license
+  dirforge init coding --name "data-processor" --lang python
+  
+  # JavaScript project
+  dirforge init coding --name "web-app" --lang javascript
+  
+  # Rust project with Apache license
+  dirforge init coding --name "cli-tool" --lang rust --license apache

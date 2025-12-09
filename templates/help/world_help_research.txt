@@ -1,0 +1,90 @@
+Research Project Creation
+==========================
+
+Academic research projects with data management (Constitution §III.V)
+Updated: 2025-12-09 (Constitution v1.0.16)
+
+Purpose
+-------
+
+Creates standardized research project with data analysis workflow. Follows project-by-activity principle with co-located provenance for reproducible research.
+
+Usage
+-----
+
+  dirforge init research [options]
+  dirforge init research --title "Project Name"
+
+Required Options
+----------------
+
+  --title "Project Title"                       Human-readable project title (converted to PROJECT-ID)
+
+Optional Options
+----------------
+
+  --python 3.11                                 Python version for conda environment (default: 3.11)
+  --no-conda                                    Skip conda environment creation
+  --conda-packages "pkg1 pkg2"                  Additional packages beyond base set
+
+Naming Conventions
+------------------
+
+  Project ID Format:        YYYY_<snake_case_title>
+  Example Input:            Thermal Model Analysis
+  Generated ID:             2025_thermal_model_analysis
+  Conda Environment:        research_thermal_model_analysis
+  Rules:                    ASCII lowercase [a-z0-9_-] only
+
+Directory Structure
+-------------------
+
+  RESEARCH_WORLD/2025_project_name/
+  ├── 01_project_management/
+  ├── 02_admin/
+  ├── 03_design_protocols/
+  ├── 04_data/
+  ├── 05_data_analysis/
+  │   └── environment.yml
+  ├── 06_data_outputs/
+  ├── 07_publication/
+  ├── 08_documentation/
+  ├── .integrity/
+  │   ├── checksums/
+  │   └── manifests/
+  ├── README.md
+  └── project.yaml
+
+Examples
+--------
+
+Common Usage:
+
+  # Interactive mode with prompts
+  dirforge init research
+  # Prompts for: Project title
+  
+  # Direct specification
+  dirforge init research --title "Thermal Analysis"
+  
+  # Custom Python version
+  dirforge init research --title "ML Study" --python 3.12
+  
+  # Skip conda environment (theory-only)
+  dirforge init research --title "Theory Work" --no-conda
+  
+  # Preview structure without creating
+  dirforge --dry-run init research --title "Test Project"
+  
+  # Backup existing project before overwrite
+  dirforge init research --title "Existing" --backup
+
+Best Practices
+--------------
+
+  • Use descriptive PROJECT-ID that will make sense in 5 years
+  • Include year prefix for chronological organization
+  • Place large datasets in external storage with manifests in 04_data/
+  • Use .integrity/checksums/ for data validation
+  • Version control 05_data_analysis/ with Git
+  • Archive final results in 06_data_outputs/ with version tags

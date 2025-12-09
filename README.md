@@ -4,7 +4,7 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 
 Overview
 - CLI script: `tools/dirforge` (Bash)
-- Templates: `templates/` (project.yaml.template, lecture project templates)
+- Templates: `templates/` (project templates, help examples, configuration templates)
 - Installer helper: `scripts/install_dirforge.sh`
 
 Install (recommended, user-local)
@@ -38,6 +38,15 @@ dirforge init lecture --name "Digital Rock Physics"
 
 # Create a coding project (python)
 dirforge init coding --language python --project ml_toolkit
+
+# Create journal project for your submission
+dirforge init journal --journal "Geophysics" --id "GEO-2025-0451"
+
+# Create journal project for reviewer work
+dirforge init journal --journal "Nature Geoscience" --id "REVIEWER_2024_Q4"
+
+# Create journal project for editorial duties
+dirforge init journal --journal "JGR Solid Earth" --id "ASSOC_EDITOR_2024"
 ```
 
 Developer commands
@@ -52,4 +61,6 @@ Notes & future directions
 - The installer is deliberately idempotent and conservative — it copies the script, it does not remove or modify other files.
 
 Contributing
-- If you want to add features (journal init, extra templates, tests), keep helper scripts in `tools/` and templates in `templates/`.
+- If you want to add features (journal init, extra templates, tests), keep helper scripts in `tools/`, templates in `templates/`, and example projects in `examples/`.
+- Help system templates are stored in `templates/help/` for reference and testing.
+- Project configuration templates use `.template` extension in `templates/`.
