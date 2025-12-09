@@ -15,9 +15,10 @@ done < <(find . -type f \( -name '*.sh' -o -path './tools/dirforge' \) -print0)
 
 if command -v shellcheck >/dev/null 2>&1; then
   echo "Running shellcheck..."
-  # shellcheck can accept multiple files; limit to *.sh
+  # Run shellcheck on all .sh files
   files=$(find . -type f -name '*.sh' -print | tr '\n' ' ')
   if [ -n "$files" ]; then
+    # shellcheck disable=SC2086
     shellcheck -x $files || ret=1
   fi
 else
