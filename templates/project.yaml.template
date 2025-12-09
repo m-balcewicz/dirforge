@@ -1,0 +1,7 @@
+owner: "<owner name>"
+contact: "<email@example.org>"
+license: "CC-BY-4.0"
+sync_policy: "iCloud: active, External: raw_data_on_nas"
+conda_env: "<conda_env>"
+created: "<YYYY-MM-DD>"
+project_id: "<project_id>"
