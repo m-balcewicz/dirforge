@@ -54,6 +54,7 @@ fi
 # Perform installation
 if [ "$INSTALL_MODE" = "system" ]; then
   DEST="/usr/local/bin/dirforge"
+  LIB_DEST="/usr/local/lib/dirforge"
   
   # Check for sudo if not running as root
   if [ "$(id -u)" -ne 0 ]; then
@@ -64,18 +65,41 @@ if [ "$INSTALL_MODE" = "system" ]; then
   
   echo "Installing system-wide to $DEST..."
   mkdir -p /usr/local/bin
+  mkdir -p "$LIB_DEST"
+  
+  # Copy main script
   cp "$SRC" "$DEST"
   chmod 755 "$DEST"
+  
+  # Copy help system libraries
+  if [ -d "$REPO_ROOT/lib" ]; then
+    cp -r "$REPO_ROOT/lib"/* "$LIB_DEST/"
+    chmod 755 "$LIB_DEST"/*.sh
+    echo "✓ Installed help system libraries to $LIB_DEST"
+  fi
+  
   echo "✓ Installed to $DEST (available to all users)"
   
 else  # local mode
   BIN_DIR="$HOME/bin"
+  LIB_DIR="$HOME/.local/lib/dirforge"
   DEST="$BIN_DIR/dirforge"
   
   echo "Installing locally to $DEST..."
   mkdir -p "$BIN_DIR"
+  mkdir -p "$LIB_DIR"
+  
+  # Copy main script
   cp "$SRC" "$DEST"
   chmod 755 "$DEST"
+  
+  # Copy help system libraries
+  if [ -d "$REPO_ROOT/lib" ]; then
+    cp -r "$REPO_ROOT/lib"/* "$LIB_DIR/"
+    chmod 755 "$LIB_DIR"/*.sh
+    echo "✓ Installed help system libraries to $LIB_DIR"
+  fi
+  
   echo "✓ Installed to $DEST"
   
   # Check PATH and suggest update if needed

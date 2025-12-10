@@ -8,7 +8,21 @@ PROG_NAME="dirforge"
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="$(cd "$SCRIPT_DIR/../lib" && pwd)"
+
+# Detect library directory (development vs installed)
+if [ -d "$SCRIPT_DIR/../lib" ]; then
+    # Development mode - script is in tools/, libraries in lib/
+    LIB_DIR="$(cd "$SCRIPT_DIR/../lib" && pwd)"
+elif [ -d "$HOME/.local/lib/dirforge" ]; then
+    # Local installation mode  
+    LIB_DIR="$HOME/.local/lib/dirforge"
+elif [ -d "/usr/local/lib/dirforge" ]; then
+    # System installation mode
+    LIB_DIR="/usr/local/lib/dirforge"
+else
+    # Fallback - try relative path anyway
+    LIB_DIR="$SCRIPT_DIR/../lib"
+fi
 
 # Source help system libraries if available
 if [ -f "$LIB_DIR/terminal.sh" ]; then
