@@ -1,0 +1,15 @@
+# {{PROJECT_NAME}}
+
+{{PROJECT_NAME}} — Python project scaffold
+
+Created: {{DATE}}
+Conda environment: `coding_{{PROJECT_NAME}}`
+
+Structure:
+  - src/{{PROJECT_NAME}}/
+  - tests/
+  - docs/
+
+Usage:
+  conda activate coding_{{PROJECT_NAME}}
+  pytest tests/

@@ -1,0 +1,4 @@
+% Main entry for {{PROJECT_NAME}}
+function main()
+    disp('Hello from MATLAB project {{PROJECT_NAME}}');
+end

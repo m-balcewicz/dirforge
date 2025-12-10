@@ -1,0 +1,11 @@
+# {{PROJECT_NAME}} (Bash)
+
+Created: {{DATE}}
+
+Structure:
+  - bin/{{PROJECT_NAME}}.sh
+  - lib/utils.sh
+  - tests/
+  - config/
+
+Make scripts executable: chmod +x bin/*.sh

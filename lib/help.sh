@@ -1076,53 +1076,69 @@ show_lecture_help() {
 # Coding project help
 show_coding_help() {
     local constitution_version="v1.0.16"
-    
-    # Build help content first
+
     local help_content=""
-    
-    help_content+="$(format_header "Coding Project Creation" 1)"
+    help_content+="$(format_header "Coding Projects (CODING_WORLD)" 1)"
     help_content+="\n"
-    help_content+="Software development projects\n"
+    help_content+="Create language-specific coding projects in CODING_WORLD. Supports python, matlab, fortran, bash.\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
     help_content+="\n"
-    
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized software development project with version control, testing, and documentation structure." 0)\n"
-    help_content+="\n"
-    
+
     help_content+="$(format_header "Usage" 2)"
     help_content+="\n"
-    help_content+="$(format_command "dirforge init coding [options]")\n"
-    help_content+="$(format_command "dirforge init coding --name \"project-name\"")\n"
+    help_content+="$(format_command "dirforge init coding --language <lang> --project <name> [options]")\n"
     help_content+="\n"
-    
-    help_content+="$(format_header "Required Options" 2)"
+
+    help_content+="$(format_header "Supported Languages" 2)"
     help_content+="\n"
-    help_content+="$(format_command "--name \"project-name\"" "Project name (kebab-case recommended)")\n"
+    help_content+="  $(format_command "python" "Python project with conda env, pyproject.toml, tests")\n"
+    help_content+="  $(format_command "matlab" "MATLAB project with functions/, tests/, data/")\n"
+    help_content+="  $(format_command "fortran" "Fortran project with Makefile and optional conda env (gfortran)")\n"
+    help_content+="  $(format_command "bash" "Shell project with executable scripts and lib/")\n"
     help_content+="\n"
-    
-    help_content+="$(format_header "Optional Options" 2)"
+
+    help_content+="$(format_header "Required Arguments" 2)"
     help_content+="\n"
-    help_content+="$(format_command "--lang python|javascript|rust|go" "Primary language (default: python)")\n"
-    help_content+="$(format_command "--license mit|apache|gpl3" "Software license (default: mit)")\n"
-    help_content+="$(format_command "--no-git" "Skip Git repository initialization")\n"
+    help_content+="$(format_command "--language <lang>" "One of: python|matlab|fortran|bash (case-insensitive)")\n"
+    help_content+="$(format_command "--project <name>" "Project name (converted to lower_snake_case)")\n"
     help_content+="\n"
-    
-    # Directory structure
-    help_content+="$(format_header "Directory Structure" 2)"
-    
-    # Generate dynamic directory tree from scaffolder code
-    local tree_content
-    tree_content=$(generate_dynamic_tree "coding" "project-name")
-    
-    help_content+="$(format_directory_tree "$tree_content")\n"
-    
-    local examples="# Python project with MIT license\ndirforge init coding --name \"data-processor\" --lang python\n\n# JavaScript project\ndirforge init coding --name \"web-app\" --lang javascript\n\n# Rust project with Apache license\ndirforge init coding --name \"cli-tool\" --lang rust --license apache"
-    
-    help_content+="$(format_example "$examples" "Examples")\n"
-    
-    # Display with automatic pager integration
+
+    help_content+="$(format_header "Optional Arguments" 2)"
+    help_content+="\n"
+    help_content+="$(format_command "--python <version>" "Python version for conda env (python/fortran). Default: 3.11")\n"
+    help_content+="$(format_command "--no-conda" "Skip conda environment creation (applies to python/fortran)")\n"
+    help_content+="$(format_command "--no-git" "Skip git initialization")\n"
+    help_content+="$(format_command "--dry-run" "Preview structure without creating (use with --json for machine-readable plan)")\n"
+    help_content+="$(format_command "--force" "Overwrite existing project without prompting")\n"
+    help_content+="$(format_command "--backup" "Create timestamped backup before overwriting")\n"
+    help_content+="\n"
+
+    help_content+="$(format_header "Examples" 2)"
+    help_content+="\n"
+    help_content+="$(format_example "# Python machine learning toolkit\ndirforge init coding --language python --project ml_toolkit\n# Creates: CODING_WORLD/python/ml_toolkit/\n# Conda env: coding_ml_toolkit" "Python Example")\n"
+    help_content+="$(format_example "# MATLAB seismic processing\ndirforge init coding --language matlab --project seismic_processing\n# Creates: CODING_WORLD/matlab/seismic_processing/" "MATLAB Example")\n"
+    help_content+="$(format_example "# Fortran wave solver\ndirforge init coding --language fortran --project wave_solver --python 3.10\n# Creates: CODING_WORLD/fortran/wave_solver/" "Fortran Example")\n"
+    help_content+="$(format_example "# Bash admin scripts\ndirforge init coding --language bash --project admin_scripts\n# Creates: CODING_WORLD/bash/admin_scripts/" "Bash Example")\n"
+
+    help_content+="$(format_header "Directory Structures" 2)"
+    help_content+="\n"
+    help_content+="$(format_command "Python:" "CODING_WORLD/python/<project>/ with src/, tests/, pyproject.toml, environment.yml")\n"
+    help_content+="$(format_command "MATLAB:" "CODING_WORLD/matlab/<project>/ with src/, functions/, tests/, data/, figures/")\n"
+    help_content+="$(format_command "Fortran:" "CODING_WORLD/fortran/<project>/ with src/, modules/, Makefile, environment.yml")\n"
+    help_content+="$(format_command "Bash:" "CODING_WORLD/bash/<project>/ with bin/, lib/, tests/, config/")\n"
+    help_content+="\n"
+
+    help_content+="$(format_header "Conda Environments" 2)"
+    help_content+="\n"
+    help_content+="Python and Fortran projects create conda env named: coding_<project_name> (unless --no-conda).\n"
+    help_content+="Activate with: conda activate coding_<project_name>\n"
+    help_content+="\n"
+
+    help_content+="$(format_header "Constitution Compliance" 2)"
+    help_content+="\n"
+    help_content+="$(dim "Constitution v1.0.16, Section III.I — CODING_WORLD")\n"
+    help_content+="The scaffolder creates language directories: matlab, python, bash, fortran (others are future phases).\n"
+
     display_with_pager "$help_content"
 }
 

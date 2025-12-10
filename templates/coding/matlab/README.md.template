@@ -1,0 +1,13 @@
+# {{PROJECT_NAME}} (MATLAB)
+
+Created: {{DATE}}
+
+Structure:
+  - src/main.m
+  - functions/
+  - tests/
+  - data/
+  - figures/
+
+Notes:
+  Add `src` and `functions` to MATLAB path when working in the project.
