@@ -84,7 +84,7 @@ Specific World Projects:
 
 
 Constitution Compliance
-All project structures follow DirForge Constitution v1.0.16 for consistency across teams and organizations.
+All project structures follow DirForge Constitution v1.0.17 for consistency across teams and organizations.
 
 Use 'dirforge init <world-type> --help' for detailed world-specific information including directory trees, naming
 conventions, and required inputs.

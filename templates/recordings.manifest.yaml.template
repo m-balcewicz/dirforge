@@ -1,7 +1,7 @@
 # Recording Manifest Template
 # 
 # This manifest describes external storage for large lecture recordings.
-# Follow constitution v1.0.16 manifest policy (Section II + III.VI).
+# Follow constitution v1.0.17 manifest policy (Section II + III.VI).
 #
 # Usage:
 #   1. Copy this template to your lecture project: 02_data/recordings.manifest.yaml

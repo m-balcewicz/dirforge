@@ -4,7 +4,7 @@ dirforge
 
 Create standardized directory structures per DirForge Constitution
 
-Constitution Version: v1.0.16
+Constitution Version: v1.0.17
 
 
 Usage

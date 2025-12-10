@@ -8,26 +8,86 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.16
+- **Constitution compliance**: All structures follow DirForge Constitution v1.0.17
 
 ## Installation
-1) Make sure `~/bin` is on your PATH (zsh):
+
+DirForge provides multiple installation methods for different use cases. The **Installation Wizard** is recommended for new users.
+
+### Quick Installation (Recommended)
+
+For the best experience, use the interactive installation wizard:
+
 ```bash
-mkdir -p ~/bin
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+# Clone the repository
+git clone https://github.com/m-balcewicz/dirforge.git
+cd dirforge
+
+# Run the installation wizard
+./scripts/dirforge_install_wizard.sh
 ```
 
-2) Install dirforge (local default; system-wide requires sudo):
+The wizard will:
+- Guide you through installation options
+- Detect your system configuration
+- Set up PATH automatically
+- Run tests to verify installation
+- Provide clear feedback and next steps
+
+### Manual Installation
+
+If you prefer manual installation, use the traditional script:
+
 ```bash
-# Local (default)
+# Local installation (recommended, no sudo required)
 bash scripts/install_dirforge.sh
 
-# Explicit local
-bash scripts/install_dirforge.sh --local
-
-# System-wide
+# System-wide installation (requires sudo)
 sudo bash scripts/install_dirforge.sh --system
+```
+
+### Installation Options
+
+- **Local Installation** (`~/bin`): Available only to your user, no admin rights needed
+- **System Installation** (`/usr/local/bin`): Available to all users, requires sudo
+
+### Uninstallation
+
+To remove DirForge from your system:
+
+```bash
+# Interactive uninstallation
+./scripts/uninstall_dirforge.sh
+
+# Remove local installation only
+./scripts/uninstall_dirforge.sh --local
+
+# Remove system installation (requires sudo)
+sudo ./scripts/uninstall_dirforge.sh --system
+
+# Remove all installations
+sudo ./scripts/uninstall_dirforge.sh --all
+```
+
+### Requirements
+
+- **bash** (version 4.0 or later recommended)
+- **Standard Unix tools**: `cp`, `chmod`, `mkdir`, `grep`, `tr`
+- **macOS** or **Linux** (other Unix-like systems may work)
+
+### Post-Installation
+
+After installation, verify everything works:
+
+```bash
+# Check installation
+dirforge --version
+
+# Run tests
+bash tests/run_tests.sh
+
+# Get help
+dirforge --help
 ```
 
 Help System
@@ -56,7 +116,7 @@ dirforge --version
 **Help System Features:**
 - **Progressive disclosure**: More detailed help as you specify context
 - **ANSI color formatting**: Enhanced readability with terminal color support
-- **Constitution compliance**: Direct references to DirForge Constitution v1.0.16
+- **Constitution compliance**: Direct references to DirForge Constitution v1.0.17
 - **Directory structure previews**: ASCII tree views of generated structures
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
@@ -169,9 +229,19 @@ workspace/
 │   ├── 09_installers/
 │   └── 90_archive/
 └── RESEARCH_WORLD/
-    ├── 00_admin/
-    ├── 01_projects/
-    └── 90_archive/
+    ├── <PROJECT_ID>/
+    │   ├── 00_admin/
+    │   ├── 01_project_management/
+    │   ├── 02_studies/
+    │   │   ├── <study_name>/
+    │   │   │   ├── 00_protocols/
+    │   │   │   ├── 01_code/
+    │   │   │   ├── 02_data/
+    │   │   │   ├── 03_outputs/
+    │   │   │   ├── 04_publication/
+    │   │   │   ├── 05_presentations/
+    │   │   │   └── .integrity/
+    │   └── .integrity/
 ```
 
 ### Individual World Projects
@@ -180,10 +250,17 @@ Create specific projects within existing world directories:
 
 ```bash
 # Research projects (within RESEARCH_WORLD/)
+# Create project with study-based structure
 dirforge init research --title "Thermal Model Analysis"
 dirforge init research --title "ML Study" --python 3.12
 dirforge init research --title "Theory Work" --no-conda
-dirforge init research --title "Existing Project" --backup
+
+# Create project with first study in one command
+dirforge init research --title "Digital Rock Physics" --study "Porosity Analysis"
+
+# Add studies to existing projects
+dirforge init research --project thermal_model_analysis --study "Heat Transfer Model"
+dirforge init research --project thermal_model_analysis --study "Validation Experiments"
 
 # Lecture projects (within LECTURE_WORLD/)  
 dirforge init lecture --name "Digital Rock Physics"
@@ -211,9 +288,29 @@ Each world type has additional options for customization:
 
 #### Research Projects
 - `--title "Project Title"`: Human-readable project title (required)
+- `--study "Study Name"`: Create project with initial study
 - `--python VERSION`: Python version for conda environment (default: 3.11)
 - `--no-conda`: Skip conda environment creation
 - `--conda-packages "pkg1 pkg2"`: Additional packages beyond base set
+
+#### Research Studies
+Research projects use a study-based organization where each project can contain multiple independent studies. Studies are created within the project's `02_studies/` directory:
+
+```bash
+# Create a study in an existing project
+dirforge init research --project "thermal_model_analysis" --study "Heat Transfer Model"
+
+# Study names are automatically converted to lower_snake_case
+# "Heat Transfer Model" becomes "heat_transfer_model"
+```
+
+Each study contains its own complete research workflow:
+- `00_protocols/`: Experimental protocols and methodologies
+- `01_code/`: Analysis scripts, notebooks, and software
+- `02_data/`: Raw and processed datasets with metadata.yaml
+- `03_outputs/`: Results, figures, and processed data
+- `04_publication/`: Manuscripts and supplementary materials
+- `05_presentations/`: Slides and presentation materials
 
 #### Lecture Projects  
 - `--name "Course Name"`: Lecture/course name (required)
@@ -291,7 +388,7 @@ Developer commands
 **Help System Architecture:**
 - Progressive disclosure: `dirforge --help` → `dirforge init --help` → `dirforge init <world> --help`
 - Terminal adaptation: Auto-detects color support, terminal width, paging capability
-- Constitution integration: Dynamic references to DirForge Constitution v1.0.16
+- Constitution integration: Dynamic references to DirForge Constitution v1.0.17
 - Performance optimization: Cached content generation for repeated calls (<200ms target)
 
 Notes & future directions
