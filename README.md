@@ -197,28 +197,19 @@ dirforge init ~/workspace --force --auto
 ```
 workspace/
 ├── CODING_WORLD/
-│   ├── 00_admin/
-│   ├── 01_projects/
-│   └── 90_archive/
 ├── JOURNAL_WORLD/
-│   ├── 00_admin/
-│   ├── 01_daily/
-│   ├── 02_weekly/
-│   ├── 03_monthly/
-│   ├── 04_yearly/
-│   └── 90_archive/
 ├── LECTURE_WORLD/
-│   ├── 00_admin/
-│   ├── 01_courses/
-│   └── 90_archive/
 ├── OFFICE_WORLD/
 │   ├── 00_admin/
 │   ├── 01_finance/
+│   ├── 02_hr_administration/
+│   ├── 03_faculty/
 │   ├── 04_inventory_equipment/
 │   ├── 05_software_licenses/
 │   ├── 06_public_relations/
 │   └── 90_archive/
 ├── PRIVATE_WORLD/
+│   ├── 00_admin/
 │   ├── 01_credentials/
 │   ├── 02_id_contracts/
 │   ├── 03_finance/
@@ -229,19 +220,6 @@ workspace/
 │   ├── 09_installers/
 │   └── 90_archive/
 └── RESEARCH_WORLD/
-    ├── <PROJECT_ID>/
-    │   ├── 00_admin/
-    │   ├── 01_project_management/
-    │   ├── 02_studies/
-    │   │   ├── <study_name>/
-    │   │   │   ├── 00_protocols/
-    │   │   │   ├── 01_code/
-    │   │   │   ├── 02_data/
-    │   │   │   ├── 03_outputs/
-    │   │   │   ├── 04_publication/
-    │   │   │   ├── 05_presentations/
-    │   │   │   └── .integrity/
-    │   └── .integrity/
 ```
 
 ### Individual World Projects
@@ -259,8 +237,8 @@ dirforge init research --title "Theory Work" --no-conda
 dirforge init research --title "Digital Rock Physics" --study "Porosity Analysis"
 
 # Add studies to existing projects
-dirforge init research --project thermal_model_analysis --study "Heat Transfer Model"
-dirforge init research --project thermal_model_analysis --study "Validation Experiments"
+dirforge init research --project 2025_thermal_model_analysis --study "Heat Transfer Model"
+dirforge init research --project 2025_thermal_model_analysis --study "Validation Experiments"
 
 # Lecture projects (within LECTURE_WORLD/)  
 dirforge init lecture --name "Digital Rock Physics"
@@ -269,7 +247,7 @@ dirforge init lecture --name "Advanced Course" --force
 
 # Coding projects (within CODING_WORLD/)
 dirforge init coding --language python --project ml_toolkit
-dirforge init coding --language javascript --project web_app
+dirforge init coding --language matlab --project functions
 dirforge init coding --project my_tool --dry-run
 
 # Journal projects (within JOURNAL_WORLD/)
@@ -287,18 +265,21 @@ dirforge init private   # Creates PRIVATE_WORLD/ with standard directories
 Each world type has additional options for customization:
 
 #### Research Projects
-- `--title "Project Title"`: Human-readable project title (required)
-- `--study "Study Name"`: Create project with initial study
+- `--title "Project Title"`: Human-readable project title (required for new projects)
+- `--project "project_id"`: Existing project ID to add study to (use with `--study`)
+- `--study "Study Name"`: Create project with initial study or add study to existing project
 - `--python VERSION`: Python version for conda environment (default: 3.11)
 - `--no-conda`: Skip conda environment creation
 - `--conda-packages "pkg1 pkg2"`: Additional packages beyond base set
+
+**Note:** Project IDs are automatically generated as `YEAR_snake_case_title` (e.g., `2025_thermal_model_analysis` for "Thermal Model Analysis" created in 2025).
 
 #### Research Studies
 Research projects use a study-based organization where each project can contain multiple independent studies. Studies are created within the project's `02_studies/` directory:
 
 ```bash
 # Create a study in an existing project
-dirforge init research --project "thermal_model_analysis" --study "Heat Transfer Model"
+dirforge init research --project "2025_thermal_model_analysis" --study "Heat Transfer Model"
 
 # Study names are automatically converted to lower_snake_case
 # "Heat Transfer Model" becomes "heat_transfer_model"
