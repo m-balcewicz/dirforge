@@ -10,6 +10,24 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **JSON output**: Machine-readable plans for automation
 - **Constitution compliance**: All structures follow DirForge Constitution v1.0.16
 
+## Constitutional Compliance
+
+DirForge now includes built-in validation and automated tests to ensure generated
+workspaces strictly follow the authoritative DirForge Constitution (v1.0.16).
+
+- Run the comprehensive compliance test suite:
+
+```bash
+# Run the repo-level integration tests (includes constitution checks)
+bash tests/run_tests.sh
+
+# Run the dedicated constitutional compliance checks
+bash tests/test_constitution_compliance.sh
+```
+
+The `dirforge` CLI reports the constitution version and supports a dry-run JSON
+mode for automation and CI integration.
+
 Overview
 - CLI script: `tools/dirforge` (Bash)
 - Help system libraries: `lib/` (terminal detection, color formatting, help content)
