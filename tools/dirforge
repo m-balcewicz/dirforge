@@ -180,7 +180,7 @@ create_conda_env() {
   conda create -n "$env_name" python="$py_ver" $packages -y
 }
 
-export_environment_yml() {
+export_environment_yaml() {
   local env_name="$1"; shift
   local dest="$1"; shift
   local py_ver="$1"; shift
@@ -361,7 +361,7 @@ EOF
       base_pkgs="$base_pkgs $extra_pkgs"
     fi
     create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-    export_environment_yml "$CONDA_NAME" "$RESEARCH_ROOT/environment.yml" "$py_ver" $base_pkgs
+    export_environment_yaml "$CONDA_NAME" "$RESEARCH_ROOT/environment.yaml" "$py_ver" $base_pkgs
     echo "Activate with: conda activate $CONDA_NAME"
   else
     if [ "$JSON_OUTPUT" = false ]; then
@@ -563,7 +563,7 @@ EOF
     fi
     CONDA_NAME="lecture_$lecture_id"
     create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-    export_environment_yml "$CONDA_NAME" "$LECTURE_ROOT/01_code/environment.yml" "$py_ver" $base_pkgs
+    export_environment_yaml "$CONDA_NAME" "$LECTURE_ROOT/01_code/environment.yaml" "$py_ver" $base_pkgs
     echo "Conda environment created: $CONDA_NAME"
     echo "Activate with: conda activate $CONDA_NAME"
   else
@@ -708,7 +708,7 @@ EOF
     local CONDA_NAME="coding_${project_name}"
     local base_pkgs="numpy matplotlib pandas jupyter pytest black flake8"
     create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-    export_environment_yml "$CONDA_NAME" "$project_dir/environment.yml" "$py_ver" $base_pkgs
+    export_environment_yaml "$CONDA_NAME" "$project_dir/environment.yaml" "$py_ver" $base_pkgs
   fi
 
   if [ "$skip_git" = false ]; then
@@ -796,7 +796,7 @@ EOF
     local CONDA_NAME="coding_${project_name}"
     local base_pkgs="gfortran numpy"
     create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-    export_environment_yml "$CONDA_NAME" "$project_dir/environment.yml" "$py_ver" $base_pkgs
+    export_environment_yaml "$CONDA_NAME" "$project_dir/environment.yaml" "$py_ver" $base_pkgs
   fi
 
   if [ "$skip_git" = false ]; then
