@@ -4,37 +4,13 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 
 ## Key Features
 - **Complete workspace initialization**: Create all 6 world types at once
-- **Individual world creation**: Research, lecture, coding, journal, office, private projects
+- **Individual world creation**: Research, lecture, coding (with multi-language support), journal, office, private projects
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation
 - **Constitution compliance**: All structures follow DirForge Constitution v1.0.16
 
-## Constitutional Compliance
-
-DirForge now includes built-in validation and automated tests to ensure generated
-workspaces strictly follow the authoritative DirForge Constitution (v1.0.16).
-
-- Run the comprehensive compliance test suite:
-
-```bash
-# Run the repo-level integration tests (includes constitution checks)
-bash tests/run_tests.sh
-
-# Run the dedicated constitutional compliance checks
-bash tests/test_constitution_compliance.sh
-```
-
-The `dirforge` CLI reports the constitution version and supports a dry-run JSON
-mode for automation and CI integration.
-
-Overview
-- CLI script: `tools/dirforge` (Bash)
-- Help system libraries: `lib/` (terminal detection, color formatting, help content)
-- Templates: `templates/` (project templates, help examples, configuration templates)
-- Installer helper: `scripts/install_dirforge.sh`
-
-Install (recommended, user-local)
+## Installation
 1) Make sure `~/bin` is on your PATH (zsh):
 ```bash
 mkdir -p ~/bin
@@ -85,7 +61,7 @@ dirforge --version
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
 
-## Usage examples
+## Usage
 
 ### Complete Workspace Initialization
 
