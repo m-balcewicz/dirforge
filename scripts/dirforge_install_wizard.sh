@@ -27,8 +27,8 @@ fi
 # Utility functions
 print_header() {
     echo -e "${BLUE}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${NC} ${CYAN}                    DirForge Installation Wizard${NC} ${BLUE}                      ║${NC}"
-    echo -e "${BLUE}║${NC} ${PURPLE}         Create standardized directory structures per Constitution${NC} ${BLUE}         ║${NC}"
+    echo -e "${BLUE}║${NC} ${CYAN}                    DirForge Installation Wizard${NC} ${BLUE}                            ║${NC}"
+    echo -e "${BLUE}║${NC} ${PURPLE}         Create standardized directory structures per Constitution${NC} ${BLUE}          ║${NC}"
     echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo
 }
@@ -85,8 +85,11 @@ confirm() {
         echo -n "$prompt [y/N]: "
     fi
 
-    read -r response
-    response=${response:-$default}
+    if read -r response; then
+        response=${response:-$default}
+    else
+        response="$default"  # Default if read fails
+    fi
 
     case "$response" in
         [Yy]|[Yy][Ee][Ss]) return 0 ;;
@@ -97,18 +100,58 @@ confirm() {
 
 # Detect shell
 detect_shell() {
+    # Check if we're in zsh or bash directly
     if [[ -n "${ZSH_VERSION:-}" ]]; then
         echo "zsh"
     elif [[ -n "${BASH_VERSION:-}" ]]; then
         echo "bash"
     else
-        echo "unknown"
+        # Check the parent process shell
+        local ppid=$(ps -p $$ -o ppid= 2>/dev/null | tr -d ' ')
+        if [[ -n "$ppid" ]]; then
+            local parent_shell=$(ps -p "$ppid" -o comm= 2>/dev/null | tr -d ' ')
+            if [[ -n "$parent_shell" ]]; then
+                basename "$parent_shell"
+                return
+            fi
+        fi
+        # Fallback to $SHELL
+        basename "${SHELL:-unknown}"
     fi
 }
 
 # Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Select shell with user choice
+select_shell() {
+    # Check if running interactively
+    if [[ -t 0 ]]; then
+        echo "Select your shell:"
+        echo "  1) bash"
+        echo "  2) zsh"
+        echo "  3) fish"
+        echo "  4) tcsh"
+        echo "  5) ksh"
+        echo -n "Enter choice [1-5]: "
+        if read -r choice; then
+            case "$choice" in
+                1) echo "bash" ;;
+                2) echo "zsh" ;;
+                3) echo "fish" ;;
+                4) echo "tcsh" ;;
+                5) echo "ksh" ;;
+                *) echo "bash" ;;  # Default to bash if invalid
+            esac
+        else
+            echo "bash"  # Default if read fails
+        fi
+    else
+        # Non-interactive, default to bash
+        echo "bash"
+    fi
 }
 
 # Main installation wizard
@@ -146,7 +189,17 @@ main() {
         print_warning "Non-macOS system detected - some features may not work as expected"
     fi
 
-    local shell_type=$(detect_shell)
+    # Auto-detect shell based on config files
+    local shell_type="bash"  # default
+    if [[ -f ~/.zshrc ]]; then
+        shell_type="zsh"
+    elif [[ -f ~/.config/fish/config.fish ]]; then
+        shell_type="fish"
+    elif [[ -f ~/.tcshrc ]] || [[ -f ~/.cshrc ]]; then
+        shell_type="tcsh"
+    elif [[ -f ~/.kshrc ]]; then
+        shell_type="ksh"
+    fi
     print_success "Shell detected: $shell_type"
 
     # Determine shell RC file
@@ -160,6 +213,19 @@ main() {
             ;;
         zsh)
             shell_rc="$HOME/.zshrc"
+            ;;
+        fish)
+            shell_rc="$HOME/.config/fish/config.fish"
+            ;;
+        tcsh)
+            if [[ -f ~/.tcshrc ]]; then
+                shell_rc="$HOME/.tcshrc"
+            elif [[ -f ~/.cshrc ]]; then
+                shell_rc="$HOME/.cshrc"
+            fi
+            ;;
+        ksh)
+            shell_rc="$HOME/.kshrc"
             ;;
     esac
 
@@ -319,7 +385,7 @@ main() {
 
     echo
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║${NC} ${CYAN}                        Installation Complete!${NC} ${GREEN}                          ║${NC}"
+    echo -e "${GREEN}║${NC} ${CYAN}                        Installation Complete!${NC} ${GREEN}                              ║${NC}"
     echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo
     echo -e "${GREEN}DirForge has been successfully installed!${NC}"
