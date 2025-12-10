@@ -36,7 +36,7 @@ if [ -f "$LIB_DIR/help.sh" ]; then
     source "$LIB_DIR/help.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.16"
+CONSTITUTION_VERSION="v1.0.17"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -197,7 +197,63 @@ EOF
 }
 
 init_research() {
-  local title="${TITLE:-}" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  local title="${TITLE:-}" project_id="" study_name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --title) shift; title="$1";;
+      --project) shift; project_id="$1";;
+      --study) shift; study_name="$1";;
+      --python) shift; py_ver="$1";;
+      --no-conda) no_conda=true;;
+      --conda-packages) shift; extra_pkgs="$1";;
+      *) echo "Unknown arg: $1"; exit 1;;
+    esac
+    shift
+  done
+  
+  # Determine operation mode
+  if [ -n "$project_id" ] && [ -n "$study_name" ]; then
+    # Study creation mode
+    init_research_study --project "$project_id" --study "$study_name"
+    return
+  elif [ -n "$title" ] && [ -n "$study_name" ]; then
+    # Combined project + study creation
+    # First create project, then create study
+    local args=()
+    [ -n "$title" ] && args+=(--title "$title")
+    [ -n "$py_ver" ] && args+=(--python "$py_ver")
+    [ "$no_conda" = true ] && args+=(--no-conda)
+    [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
+    init_research_project_only "${args[@]}"
+    # Extract project ID from what was just created
+    local id_raw
+    id_raw=$(to_snake_case "$title")
+    local year
+    year=$(date +%Y)
+    if [[ "$id_raw" =~ ^[0-9]{4}_ ]]; then
+      project_id="$id_raw"
+    else
+      project_id="${year}_$id_raw"
+    fi
+    init_research_study --project "$project_id" --study "$study_name"
+    return
+  elif [ -n "$title" ]; then
+    # Project creation mode
+    local args=()
+    [ -n "$title" ] && args+=(--title "$title")
+    [ -n "$py_ver" ] && args+=(--python "$py_ver")
+    [ "$no_conda" = true ] && args+=(--no-conda)
+    [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
+    init_research_project_only "${args[@]}"
+    return
+  else
+    echo "Error: Either --title (for new project) or --project and --study (for new study) must be specified" >&2
+    exit 1
+  fi
+}
+
+init_research_project_only() {
+  local title="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --title) shift; title="$1";;
@@ -257,7 +313,7 @@ init_research() {
   fi
 
   # create numbered subfolders
-  for d in 01_project_management 02_admin 03_design_protocols 04_data 05_data_analysis 06_data_outputs 07_publication 08_documentation; do
+  for d in 00_admin 01_project_management 02_studies; do
     do_mkdir_p "$RESEARCH_ROOT/$d"
   done
 
@@ -266,11 +322,28 @@ init_research() {
   do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
 
   # create files
-  write_file "$RESEARCH_ROOT/README.md" <<'EOF'
+  write_file "$RESEARCH_ROOT/README.md" <<EOF
 # $PROJECT_ID
 
-Created: $(date --iso-8601=seconds)
+Created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 Conda env: $CONDA_NAME
+
+## Project Structure
+
+This research project follows the DirForge Constitution v1.0.17 study-based organization:
+
+- \`00_admin/\` - Project contracts, ethics, agreements
+- \`01_project_management/\` - Proposals, reports, budgets
+- \`02_studies/\` - Container for individual research studies
+
+## Creating Studies
+
+Add studies to this project using:
+\`\`\`bash
+dirforge init research --project $PROJECT_ID --study "Study Name"
+\`\`\`
+
+Each study will be created in \`02_studies/<study_name>/\` with its own protocols, code, data, outputs, and publications.
 EOF
 
   write_file "$RESEARCH_ROOT/project.yaml" <<'EOF'
@@ -288,7 +361,7 @@ EOF
       base_pkgs="$base_pkgs $extra_pkgs"
     fi
     create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-    export_environment_yml "$CONDA_NAME" "$RESEARCH_ROOT/05_data_analysis/environment.yml" "$py_ver" $base_pkgs
+    export_environment_yml "$CONDA_NAME" "$RESEARCH_ROOT/environment.yml" "$py_ver" $base_pkgs
     echo "Activate with: conda activate $CONDA_NAME"
   else
     if [ "$JSON_OUTPUT" = false ]; then
@@ -302,6 +375,104 @@ EOF
     fi
   else
     echo "Created research project '$PROJECT_ID' in $RESEARCH_ROOT"
+  fi
+}
+
+init_research_study() {
+  local project_id="" study_name=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --project) shift; project_id="$1";;
+      --study) shift; study_name="$1";;
+      *) echo "Unknown arg for study: $1"; exit 1;;
+    esac
+    shift
+  done
+
+  if [ -z "$project_id" ]; then
+    echo "Error: --project is required" >&2
+    exit 1
+  fi
+  if [ -z "$study_name" ]; then
+    echo "Error: --study is required" >&2
+    exit 1
+  fi
+
+  local PROJECT_ROOT="RESEARCH_WORLD/$project_id"
+  
+  # Check if project exists (skip in dry-run mode for combined operations)
+  if [ "$DRY_RUN" = false ] && [ ! -d "$PROJECT_ROOT" ]; then
+    echo "Error: Project '$project_id' does not exist at $PROJECT_ROOT" >&2
+    echo "Create the project first with: dirforge init research --title \"Project Title\"" >&2
+    exit 1
+  fi
+  
+  # Sanitize study name
+  local study_id
+  study_id=$(to_snake_case "$study_name")
+  
+  local STUDY_ROOT="$PROJECT_ROOT/02_studies/$study_id"
+  if [ -d "$STUDY_ROOT" ]; then
+    if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
+      echo "Study '$study_id' already exists at $STUDY_ROOT" >&2
+      echo "Use --force to overwrite or --backup to create a backup before overwriting" >&2
+      exit 1
+    fi
+    
+    prompt_overwrite "$STUDY_ROOT"
+    
+    if [ "$BACKUP" = true ]; then
+      backup_directory "$STUDY_ROOT"
+    fi
+    
+    if [ "$DRY_RUN" = false ]; then
+      rm -rf "$STUDY_ROOT"
+    fi
+  fi
+  
+  do_mkdir_p "$STUDY_ROOT"
+  
+  # Create study subdirectories
+  for d in 00_protocols 01_code 02_data 03_outputs 04_publication 05_presentations; do
+    do_mkdir_p "$STUDY_ROOT/$d"
+  done
+  
+  # Create study .integrity directories
+  do_mkdir_p "$STUDY_ROOT/.integrity/checksums"
+  do_mkdir_p "$STUDY_ROOT/.integrity/manifests"
+  
+  # Create study README.md
+  write_file "$STUDY_ROOT/README.md" <<EOF
+# $study_name ($study_id)
+
+Created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+Project: $project_id
+
+## Study Overview
+
+**Research Question:** [Brief description of the specific research question this study addresses]
+
+**Methods:** [Brief description of experimental/computational methods]
+
+**Expected Outcomes:** [What results or insights this study aims to produce]
+
+## Directory Structure
+
+- \`00_protocols/\` - Experimental protocols, calibration notes, instrument configurations
+- \`01_code/\` - Analysis scripts, notebooks, environment.yml
+- \`02_data/\` - Raw and processed datasets, metadata.yaml files
+- \`03_outputs/\` - Processed results, figures, tables
+- \`04_publication/\` - Manuscript drafts, supplementary materials
+- \`05_presentations/\` - Slides and presentations for conferences, meetings
+- \`.integrity/\` - Checksums and manifest validation files
+EOF
+
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create research study '$study_id' in $STUDY_ROOT"
+    fi
+  else
+    echo "Created research study '$study_id' in $STUDY_ROOT"
   fi
 }
 
@@ -877,7 +1048,7 @@ init_all_worlds() {
   # Create base directory if it doesn't exist
   do_mkdir_p "$target_path"
   
-  # Define all world types - per DirForge Constitution v1.0.16
+  # Define all world types - per DirForge Constitution v1.0.17
   local worlds=(
     "CODING_WORLD"
     "JOURNAL_WORLD" 
@@ -954,7 +1125,7 @@ init_all_worlds() {
     echo "  PRIVATE_WORLD/          (with 10 subfolders)"
     echo "  RESEARCH_WORLD/         (empty - use 'dirforge init research' to create projects)"
     echo
-    echo "Constitution version: v1.0.16"
+    echo "Constitution version: v1.0.17"
     echo
     echo "Next steps:"
     echo "  • Create a research project: $PROG_NAME init research --title \"Project Name\""

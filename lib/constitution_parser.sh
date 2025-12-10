@@ -3,7 +3,7 @@
 # Part of constitutional compliance validation system
 
 # Constitution parser library for extracting world structure definitions
-# from Constitution markdown file per DirForge Constitution v1.0.16
+# from Constitution markdown file per DirForge Constitution v1.0.17
 
 # Global variables for constitution parsing
 CONSTITUTION_FILE=""

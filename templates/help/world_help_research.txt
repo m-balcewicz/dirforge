@@ -2,7 +2,7 @@ Research Project Creation
 ==========================
 
 Academic research projects with data management (Constitution §III.V)
-Updated: 2025-12-09 (Constitution v1.0.16)
+Updated: 2025-12-10 (Constitution v1.0.17)
 
 Purpose
 -------

@@ -2,7 +2,7 @@ Journal Project Creation
 ========================
 
 Personal documentation and notes (Constitution §III.VI)
-Updated: 2025-12-09 (Constitution v1.0.16)
+Updated: 2025-12-09 (Constitution v1.0.17)
 
 Purpose
 -------

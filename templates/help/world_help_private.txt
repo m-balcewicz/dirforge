@@ -2,7 +2,7 @@ Private Project Creation
 ========================
 
 Personal projects with privacy controls (Constitution §III.VII)
-Updated: 2025-12-09 (Constitution v1.0.16)
+Updated: 2025-12-09 (Constitution v1.0.17)
 
 Purpose
 -------

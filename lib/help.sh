@@ -722,7 +722,7 @@ format_box() {
 
 # Show global help - top-level help overview for dirforge
 show_global_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Check cache first
     local cache_key
@@ -783,7 +783,7 @@ show_global_help() {
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
     
-    local examples="# Create research project with interactive prompts\ndirforge init research --title \"Thermal Analysis\"\n\n# Create lecture project structure\ndirforge init lecture --name \"Digital Rock Physics\"\n\n# Preview project creation with JSON output\ndirforge --dry-run init research --title \"Test\" | jq ."
+    local examples="# Create research project with interactive prompts\ndirforge init research --title \"Thermal Analysis\"\n\n# Add study to existing research project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Create lecture project structure\ndirforge init lecture --name \"Digital Rock Physics\"\n\n# Preview project creation with JSON output\ndirforge --dry-run init research --title \"Test\" | jq ."
     
     help_content+="$(format_example "$examples" "Common Usage")\n"
     
@@ -820,7 +820,7 @@ show_command_help() {
 
 # Show detailed help for the init command
 show_init_command_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Build help content first, then display with pager
     local help_content=""
@@ -922,7 +922,7 @@ show_world_help() {
 
 # Research project help with directory structure and examples
 show_research_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Check cache first
     local cache_key
@@ -938,14 +938,14 @@ show_research_help() {
     
     help_content+="$(format_header "Research Project Creation" 1)"
     help_content+="\n"
-    help_content+="Academic research projects with data management\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
+    help_content+="Academic research projects with study-based organization\n"
+    help_content+="Updated: 2025-12-10 (Constitution $constitution_version)\n"
     help_content+="\n"
     
     # Purpose and compliance
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized research project with data analysis workflow. Follows project-by-activity principle with co-located provenance for reproducible research." 0)\n"
+    help_content+="$(wrap_text "Creates standardized research project with study-based organization. Each project contains independent studies with complete data analysis workflows. Follows project-by-activity principle with co-located provenance for reproducible research." 0)\n"
     help_content+="\n"
     
     # Usage
@@ -953,12 +953,14 @@ show_research_help() {
     help_content+="\n"
     help_content+="$(format_command "dirforge init research [options]")\n"
     help_content+="$(format_command "dirforge init research --title \"Project Name\"")\n"
+    help_content+="$(format_command "dirforge init research --project \"PROJECT_ID\" --study \"Study Name\"")\n"
     help_content+="\n"
     
     # Required inputs
     help_content+="$(format_header "Required Options" 2)"
     help_content+="\n"
-    help_content+="$(format_command "--title \"Project Title\"" "Human-readable project title (converted to PROJECT-ID)")\n"
+    help_content+="$(format_command "--title \"Project Title\"" "Create new project (converted to PROJECT-ID)")\n"
+    help_content+="$(format_command "--project \"PROJECT_ID\" --study \"Study Name\"" "Add study to existing project")\n"
     help_content+="\n"
     
     # Optional inputs
@@ -971,7 +973,7 @@ show_research_help() {
     
     # Naming conventions
     help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="$(format_key_value "Project ID Format:YYYY_<snake_case_title>\nExample Input:Thermal Model Analysis\nGenerated ID:2025_thermal_model_analysis\nConda Environment:research_thermal_model_analysis\nRules:ASCII lowercase [a-z0-9_-] only")\n"
+    help_content+="$(format_key_value "Project ID Format:YYYY_<snake_case_title>\nExample Input:Thermal Model Analysis\nGenerated ID:2025_thermal_model_analysis\nConda Environment:research_thermal_model_analysis\n\nStudy ID Format:snake_case_name\nExample Input:My First Study\nGenerated ID:my_first_study\nRules:ASCII lowercase [a-z0-9_-] only")\n"
     help_content+="\n"
     
     # Directory structure
@@ -986,7 +988,7 @@ show_research_help() {
     # Examples
     help_content+="$(format_header "Examples" 2)"
     
-    local examples="# Interactive mode with prompts\ndirforge init research\n# Prompts for: Project title\n\n# Direct specification\ndirforge init research --title \"Thermal Analysis\"\n\n# Custom Python version\ndirforge init research --title \"ML Study\" --python 3.12\n\n# Skip conda environment (theory-only)\ndirforge init research --title \"Theory Work\" --no-conda\n\n# Preview structure without creating\ndirforge --dry-run init research --title \"Test Project\"\n\n# Backup existing project before overwrite\ndirforge init research --title \"Existing\" --backup"
+    local examples="# Create new research project\ndirforge init research --title \"Thermal Analysis\"\n\n# Add study to existing project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Combined: create project and first study\ndirforge init research --title \"Thermal Analysis\" --study \"Initial Model\"\n\n# Custom Python version\ndirforge init research --title \"ML Study\" --python 3.12\n\n# Skip conda environment (theory-only)\ndirforge init research --title \"Theory Work\" --no-conda\n\n# Preview structure without creating\ndirforge --dry-run init research --title \"Test Project\"\n\n# Backup existing project before overwrite\ndirforge init research --title \"Existing\" --backup"
     
     # Add examples directly without title - format them manually
     help_content+="\n"
@@ -997,7 +999,7 @@ show_research_help() {
     
     # Best practices
     help_content+="$(format_header "Best Practices" 2)"
-    help_content+="$(format_list "Use descriptive PROJECT-ID that will make sense in 5 years\nInclude year prefix for chronological organization\nPlace large datasets in external storage with manifests in 04_data/\nUse .integrity/checksums/ for data validation\nVersion control 05_data_analysis/ with Git\nArchive final results in 06_data_outputs/ with version tags" "")\n"
+    help_content+="$(format_list "Use descriptive PROJECT-ID that will make sense in 5 years\nInclude year prefix for chronological organization\nCreate independent studies within 02_studies/ for different research questions\nUse study-specific conda environments for reproducibility\nPlace large datasets in study 02_data/ with manifests\nUse .integrity/checksums/ for data validation\nVersion control study 01_code/ with Git\nArchive final results in study 04_publication/" "")\n"
     help_content+="\n"
     
     # Cache the content before displaying
@@ -1009,7 +1011,7 @@ show_research_help() {
 
 # Lecture project help with grading workflow documentation
 show_lecture_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Build help content first, then display with pager (force pager for long content)
     local help_content=""
@@ -1075,15 +1077,21 @@ show_lecture_help() {
 
 # Coding project help
 show_coding_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
 
     local help_content=""
     help_content+="$(format_header "Coding Projects (CODING_WORLD)" 1)"
     help_content+="\n"
-    help_content+="Create language-specific coding projects in CODING_WORLD. Supports python, matlab, fortran, bash.\n"
+    help_content+="Software development projects with language-specific tooling. Supports python, matlab, fortran, bash.\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
     help_content+="\n"
-
+    
+    # Purpose and compliance
+    help_content+="$(format_header "Purpose" 2)"
+    help_content+="\n"
+    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 0)\n"
+    help_content+="\n"
+    
     help_content+="$(format_header "Usage" 2)"
     help_content+="\n"
     help_content+="$(format_command "dirforge init coding --language <lang> --project <name> [options]")\n"
@@ -1136,7 +1144,7 @@ show_coding_help() {
 
     help_content+="$(format_header "Constitution Compliance" 2)"
     help_content+="\n"
-    help_content+="$(dim "Constitution v1.0.16, Section III.I — CODING_WORLD")\n"
+    help_content+="$(dim "Constitution v1.0.17, Section III.I — CODING_WORLD")\n"
     help_content+="The scaffolder creates language directories: matlab, python, bash, fortran (others are future phases).\n"
 
     display_with_pager "$help_content"
@@ -1144,7 +1152,7 @@ show_coding_help() {
 
 # Journal project help
 show_journal_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Build help content first
     local help_content=""
@@ -1186,7 +1194,7 @@ show_journal_help() {
 
 # Office project help
 show_office_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Build help content first
     local help_content=""
@@ -1212,7 +1220,7 @@ show_office_help() {
 
 # Private project help
 show_private_help() {
-    local constitution_version="v1.0.16"
+    local constitution_version="v1.0.17"
     
     # Build help content first
     local help_content=""

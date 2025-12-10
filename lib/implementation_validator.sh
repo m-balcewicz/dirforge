@@ -263,7 +263,7 @@ identify_missing_constitutional_folders() {
     local missing_folders=""
     local summary_info=""
     
-    # Define constitutional requirements manually based on Constitution v1.0.16
+    # Define constitutional requirements manually based on Constitution v1.0.17
     # OFFICE_WORLD required folders (7 total)
     local office_constitutional_folders=(
         "00_admin"
@@ -676,7 +676,7 @@ detect_spelling_errors() {
     
     local spelling_errors=""
     
-    # Known spelling corrections from Constitution v1.0.16
+    # Known spelling corrections from Constitution v1.0.17
     local corrections=(
         "equiptment:equipment"
         "adminstriation:administration"

@@ -1,7 +1,12 @@
-- add the correct --help function for "dirforge init --help"
-  - show the different options with "path" and "--here"
-- Add support for more languages in coding_world:
-  - ERROR: Only python language supported for coding init currently.
-- Update the Structure of the README.md file. Make the correct order with first installation, main function of init workspace and then the individual world-types.
-- Create an installation routine for simple installation
-- Create an uninstallation process
+- Give a more comprehensive feedback if you dirforge outside of your main folder. Maybe we can add a global variable, so the system always knows where the world-types are located to make it from anywhere in the terminal.
+- Provide a full example if the user is missing one argument:
+  - ❯ dirforge init coding --language matlab --preview
+  - For help: dirforge init coding --help
+  - Error: --project is required
+- Create a low-level automation for "dirforge init publication" >> create a base for LaTeX manuscript
+- Create a low-level automation for "dirforge init study" >> according to constitutions.md:
+  - 02_studies/<study_name>/00_protocols/
+  - 02_studies/<study_name>/01_code/
+  - 02_studies/<study_name>/02_data/
+  - 02_studies/<study_name>/03_outputs/
+  - 02_studies/<study_name>/04_publication/

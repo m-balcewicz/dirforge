@@ -13,7 +13,7 @@ HELP_LIB="$PROJECT_ROOT/lib/help.sh"
 COLORS_LIB="$PROJECT_ROOT/lib/colors.sh" 
 TERMINAL_LIB="$PROJECT_ROOT/lib/terminal.sh"
 DIRFORGE_TOOL="$PROJECT_ROOT/tools/dirforge"
-CONSTITUTION_VERSION="v1.0.16"
+CONSTITUTION_VERSION="v1.0.17"
 
 # Validation results
 declare -i TOTAL_CHECKS=0
@@ -210,7 +210,7 @@ validate_world_types() {
         # Check for appropriate descriptions based on world type
         case "$world_type" in
             "research")
-                if echo "$content" | grep -qi "Academic research projects with data management"; then
+                if echo "$content" | grep -qi "Academic research projects with study-based organization"; then
                     check_pass "Correct description for research world type"
                 else
                     check_fail "Missing or incorrect description for research world type"
