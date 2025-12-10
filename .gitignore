@@ -45,6 +45,7 @@ build/
 *credentials*
 *.env
 .envrc
+project.yaml
 
 # OS-specific
 Thumbs.db
