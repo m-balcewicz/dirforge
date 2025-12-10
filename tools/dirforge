@@ -411,45 +411,274 @@ EOF
 }
 
 init_coding() {
-  local language="" project="" py_ver="${PY:-3.11}"
+  local language="" project="" py_ver="${PY:-3.11}" skip_conda=false skip_git=false
+  local no_git=false no_conda=false
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --language) shift; language="$1";;
-      --project) shift; project="$1";;
-      --python) shift; py_ver="$1";;
-      *) echo "Unknown arg for coding: $1"; exit 1;;
+      --language)
+        shift; language=$(echo "$1" | tr '[:upper:]' '[:lower:]') ;;
+      --project)
+        shift; project="$1" ;;
+      --python)
+        shift; py_ver="$1" ;;
+      --no-conda)
+        skip_conda=true ;;
+      --no-git)
+        skip_git=true ;;
+      --help)
+        if declare -F show_coding_help >/dev/null 2>&1; then
+          show_coding_help
+        else
+          echo "Usage: $PROG_NAME init coding --language <lang> --project <name> [options]"
+        fi
+        return 0 ;;
+      *) echo "Unknown arg for coding: $1"; exit 1 ;;
     esac
     shift
   done
-  if [ "$language" != "python" ]; then
-    echo "Only python language supported for coding init currently."; exit 1
+
+  if [ -z "$language" ] || [ -z "$project" ]; then
+    if [ -z "$language" ]; then
+      echo "Error: --language is required" >&2
+    fi
+    if [ -z "$project" ]; then
+      echo "Error: --project is required" >&2
+    fi
+    echo "For help: $PROG_NAME init coding --help" >&2
+    return 1
   fi
-  if [ -z "$project" ]; then
-    read -r -p "Project name: " project
-  fi
+
+  case "$language" in
+    python|matlab|fortran|bash)
+      ;; 
+    *)
+      echo "Error: Unsupported language '$language'" >&2
+      echo "Supported languages: python, matlab, fortran, bash" >&2
+      echo "For help: $PROG_NAME init coding --help" >&2
+      return 1
+      ;;
+  esac
+
   proj_id=$(to_snake_case "$project")
-  ROOT="CODING_WORLD/python/$proj_id"
+  local ROOT="CODING_WORLD/${language}/${proj_id}"
+
   if [ -d "$ROOT" ]; then
-    echo "Project exists: $ROOT"; exit 1
+    if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
+      echo "Project '$proj_id' already exists at $ROOT" >&2
+      echo "Use --force to overwrite or --backup to create a backup before overwriting" >&2
+      return 1
+    fi
+    prompt_overwrite "$ROOT"
+    if [ "$BACKUP" = true ]; then
+      backup_directory "$ROOT"
+    fi
+    if [ "$DRY_RUN" = false ]; then
+      rm -rf "$ROOT"
+    fi
   fi
-  do_mkdir_p "$ROOT/src" "$ROOT/tests" "$ROOT/docs"
-  write_file "$ROOT/README.md" <<'EOF'
-# $proj_id
 
-Created: $(date --iso-8601=seconds)
-EOF
+  case "$language" in
+    python)
+      init_coding_python "$ROOT" "$proj_id" "$py_ver" "$skip_conda" "$skip_git"
+      ;;
+    matlab)
+      init_coding_matlab "$ROOT" "$proj_id" "$skip_git"
+      ;;
+    fortran)
+      init_coding_fortran "$ROOT" "$proj_id" "$py_ver" "$skip_conda" "$skip_git"
+      ;;
+    bash)
+      init_coding_bash "$ROOT" "$proj_id" "$skip_git"
+      ;;
+  esac
 
-  CONDA_NAME="coding_$proj_id"
-  base_pkgs="numpy matplotlib pandas jupyter pyyaml"
-  create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
-  export_environment_yml "$CONDA_NAME" "$ROOT/environment.yml" "$py_ver" $base_pkgs
   if [ "$DRY_RUN" = true ]; then
     if [ "$JSON_OUTPUT" = false ]; then
-      echo "DRY RUN: would create coding project at $ROOT"
+      echo "DRY RUN: would create ${language} project at $ROOT"
     fi
   else
-    echo "Activate with: conda activate $CONDA_NAME"
-    echo "Created coding project at $ROOT"
+    echo "✓ ${language} project created: ${ROOT}"
+    if { [ "$language" = "python" ] || [ "$language" = "fortran" ]; } && [ "$skip_conda" = false ]; then
+      echo "✓ Conda environment: coding_${proj_id}"
+      echo "Activate with: conda activate coding_${proj_id}"
+    fi
+  fi
+}
+
+# Language-specific initializers
+init_coding_python() {
+  local project_dir="$1" project_name="$2" py_ver="$3" skip_conda="$4" skip_git="$5"
+  do_mkdir_p "$project_dir/src/$project_name" "$project_dir/tests" "$project_dir/docs"
+
+  write_file "$project_dir/README.md" <<EOF
+# $project_name
+
+Created: $(date +%Y-%m-%d)
+Language: Python
+EOF
+
+  write_file "$project_dir/pyproject.toml" <<'EOF'
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+EOF
+
+  write_file "$project_dir/src/$project_name/__init__.py" <<EOF
+"""$project_name package."""
+__version__ = "0.1.0"
+EOF
+
+  write_file "$project_dir/tests/test_example.py" <<'EOF'
+def test_smoke():
+  assert True
+EOF
+
+  if [ "$skip_conda" = false ]; then
+    local CONDA_NAME="coding_${project_name}"
+    local base_pkgs="numpy matplotlib pandas jupyter pytest black flake8"
+    create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
+    export_environment_yml "$CONDA_NAME" "$project_dir/environment.yml" "$py_ver" $base_pkgs
+  fi
+
+  if [ "$skip_git" = false ]; then
+    init_git_repo() { :; } || true
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    write_file "$project_dir/.gitignore" <<'EOF'
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+env/
+EOF
+  fi
+}
+
+init_coding_matlab() {
+  local project_dir="$1" project_name="$2" skip_git="$3"
+  do_mkdir_p "$project_dir/src" "$project_dir/functions" "$project_dir/tests" "$project_dir/data" "$project_dir/figures" "$project_dir/docs"
+
+  write_file "$project_dir/README.md" <<EOF
+# $project_name
+
+Created: $(date +%Y-%m-%d)
+Language: MATLAB
+EOF
+
+  write_file "$project_dir/src/main.m" <<'EOF'
+% Main entry for $PROJECT_NAME
+disp('Hello from MATLAB project')
+EOF
+
+  write_file "$project_dir/project.yaml" <<EOF
+project:
+  name: ${project_name}
+  language: matlab
+  created: $(date +%Y-%m-%d)
+  owner: ${USER}
+EOF
+
+  touch "$project_dir/data/.gitkeep" || true
+  touch "$project_dir/figures/.gitkeep" || true
+
+  if [ "$skip_git" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    write_file "$project_dir/.gitignore" <<'EOF'
+*.asv
+*.mat
+slprj/
+figures/*.png
+EOF
+  fi
+}
+
+init_coding_fortran() {
+  local project_dir="$1" project_name="$2" py_ver="$3" skip_conda="$4" skip_git="$5"
+  do_mkdir_p "$project_dir/src" "$project_dir/modules" "$project_dir/tests" "$project_dir/build" "$project_dir/docs"
+
+  write_file "$project_dir/README.md" <<EOF
+# $project_name
+
+Created: $(date +%Y-%m-%d)
+Language: Fortran
+EOF
+
+  write_file "$project_dir/Makefile" <<'EOF'
+FC = gfortran
+FCFLAGS = -O2 -fcheck=all
+SRC = src/main.f90
+all:
+	$(FC) $(FCFLAGS) -o build/$(notdir $(SRC:.f90=)) $(SRC)
+EOF
+
+  write_file "$project_dir/src/main.f90" <<'EOF'
+! Main program for $PROJECT_NAME
+program main
+  print *, 'Hello Fortran'
+end program main
+EOF
+
+  if [ "$skip_conda" = false ]; then
+    local CONDA_NAME="coding_${project_name}"
+    local base_pkgs="gfortran numpy"
+    create_conda_env "$CONDA_NAME" "$py_ver" $base_pkgs || true
+    export_environment_yml "$CONDA_NAME" "$project_dir/environment.yml" "$py_ver" $base_pkgs
+  fi
+
+  if [ "$skip_git" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    write_file "$project_dir/.gitignore" <<'EOF'
+*.o
+*.mod
+build/
+*.out
+EOF
+  fi
+}
+
+init_coding_bash() {
+  local project_dir="$1" project_name="$2" skip_git="$3"
+  do_mkdir_p "$project_dir/bin" "$project_dir/lib" "$project_dir/tests" "$project_dir/config" "$project_dir/docs"
+
+  write_file "$project_dir/README.md" <<EOF
+# $project_name
+
+Created: $(date +%Y-%m-%d)
+Language: Bash
+EOF
+
+  write_file "$project_dir/bin/${project_name}.sh" <<'EOF'
+#!/usr/bin/env bash
+echo "Hello from $PROJECT_NAME"
+EOF
+
+  if [ "$DRY_RUN" = false ]; then
+    chmod +x "$project_dir/bin/${project_name}.sh" || true
+  fi
+
+  write_file "$project_dir/project.yaml" <<EOF
+project:
+  name: ${project_name}
+  language: bash
+  created: $(date +%Y-%m-%d)
+  owner: ${USER}
+EOF
+
+  if [ "$skip_git" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    write_file "$project_dir/.gitignore" <<'EOF'
+*.log
+tmp/
+.env
+*.bak
+EOF
   fi
 }
 

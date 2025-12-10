@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# {{PROJECT_NAME}} - main script
+
+echo "Hello from {{PROJECT_NAME}}"

@@ -1,0 +1,4 @@
+! Main program for {{PROJECT_NAME}}
+program main
+  print *, 'Hello from {{PROJECT_NAME}}'
+end program main

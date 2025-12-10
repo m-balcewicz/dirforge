@@ -1,0 +1,5 @@
+FC = gfortran
+FCFLAGS = -O2
+SRC = src/main.f90
+all:
+	$(FC) $(FCFLAGS) -o build/$(notdir $(SRC:.f90=)) $(SRC)

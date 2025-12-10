@@ -1,1 +1,7 @@
-- create an uninstallation process
+- add the correct --help function for "dirforge init --help"
+  - show the different options with "path" and "--here"
+- Add support for more languages in coding_world:
+  - ERROR: Only python language supported for coding init currently.
+- Update the Structure of the README.md file. Make the correct order with first installation, main function of init workspace and then the individual world-types.
+- Create an installation routine for simple installation
+- Create an uninstallation process

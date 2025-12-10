@@ -1,0 +1,12 @@
+# {{PROJECT_NAME}} (Fortran)
+
+Created: {{DATE}}
+
+Structure:
+  - src/main.f90
+  - modules/
+  - tests/
+  - build/
+
+Build:
+  make
