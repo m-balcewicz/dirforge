@@ -1,0 +1,67 @@
+
+dirforge init
+====================================================================================================================
+
+Create new project structure based on DirForge Constitution
+
+
+Usage
+-----
+
+  dirforge init <world-type> [options]
+  dirforge init <world-type> --help                                                  Show world-type specific help
+
+
+World Types
+-----------
+
+  research                                                         Academic research projects with data management
+  lecture                                                               Educational content with grading workflows
+  coding                                                                             Software development projects
+  journal                                         Journal-related activities: submissions, reviews, editorial work
+  office                                                                     Administrative and business documents
+  private                                                                  Personal projects with privacy controls
+
+
+Common Options
+--------------
+
+  --help, -h                                                     Show help for this command or specific world type
+  --dry-run, --preview                                          Preview directory structure without creating files
+  --force                                                        Overwrite existing directories (use with caution)
+  --backup                                                    Create backup of existing content before overwriting
+  --yes                                              Skip interactive confirmations (use with --force or --backup)
+  --json                                                    Output machine-readable JSON plan (requires --dry-run)
+  --quiet, -q                                                                            Suppress non-error output
+  --verbose, -v                                                                 Show detailed progress information
+
+
+World-Type Specific Options
+Each world type has additional options for customization. Use 'dirforge init <world-type> --help' to see specific
+options and requirements.
+
+
+Examples
+--------
+
+Common Usage:)
+
+  # Get help for research projects
+  dirforge init research --help
+  
+  # Preview research project structure
+  dirforge init research --title "My Study" --dry-run
+  
+  # Create lecture with backup of existing content
+  dirforge init lecture --name "Physics 101" --backup
+  
+  # Create coding project with minimal output
+  dirforge init coding --name "my-app" --quiet
+
+
+Constitution Compliance
+All project structures follow DirForge Constitution v1.0.16 for consistency across teams and organizations.
+
+Use 'dirforge init <world-type> --help' for detailed world-specific information including directory trees, naming
+conventions, and required inputs.
+

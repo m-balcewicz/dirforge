@@ -1,0 +1,52 @@
+# Recording Manifest Template
+# 
+# This manifest describes external storage for large lecture recordings.
+# Follow constitution v1.0.16 manifest policy (Section II + III.VI).
+#
+# Usage:
+#   1. Copy this template to your lecture project: 02_data/recordings.manifest.yaml
+#   2. Fill in all required fields below
+#   3. Validate with: ../../tools/manifest.sh 02_data/recordings.manifest.yaml
+#
+# Required fields (from constitution):
+#   - storage_location: Full connection string (smb://, s3://, https://, nfs://)
+#   - server_or_nas: Server hostname or NAS identifier
+#   - path_on_store: Absolute path to recordings on remote storage
+#   - naming: Filename convention (e.g., YYYY-MM-DD_<course>_<session>_<device>_vNN.ext)
+#   - checksum: Relative path to checksum file in .integrity/checksums/
+#   - access: Human-readable access instructions
+#   - retention_days: Data retention period in days (institutional policy)
+#   - owner_contact: Email or contact for data access requests
+
+# Example values (replace with your actual values):
+
+storage_location: "smb://nas.institution.edu/lectures/course_recordings"
+server_or_nas: "nas.institution.edu"
+path_on_store: "/mnt/lecture_archive/2025/course_code/recordings"
+naming: "YYYY-MM-DD_<course_code>_<session>_<device>_vNN.ext"
+checksum: ".integrity/checksums/recordings.sha256"
+access: "Contact IT department for NAS credentials. Requires VPN connection for off-campus access."
+retention_days: 2190  # 6 years (typical institutional retention for educational materials)
+owner_contact: "instructor@institution.edu"
+
+# Optional fields:
+# description: "Lecture recordings for Course Name, Term YYYY"
+# license: "Institutional use only - see consent forms in 02_data/consent/"
+# size_gb: 145.3
+# file_count: 24
+# privacy_notes: "Contains identifiable students - consent forms required in 02_data/consent/"
+# backup_location: "s3://institution-backup/lectures/course_code/"
+# last_verified: "2025-12-09"
+
+# Recording filename convention (from constitution Section III.VI):
+# Format: YYYY-MM-DD_<course_code>_<session>_<device>_vNN.ext
+# Examples:
+#   2025-03-15_gphy101_field_day_gopro1_v01.mp4
+#   2025-04-22_gphy101_lab_session_camcorder_v01.mp4
+#   2025-05-10_gphy101_final_review_zoom_v02.mp4
+
+# Checksum file format (.integrity/checksums/recordings.sha256):
+# <checksum> <filepath_relative_to_path_on_store>
+# Example:
+#   abc123... 2025-03-15_gphy101_field_day_gopro1_v01.mp4
+#   def456... 2025-04-22_gphy101_lab_session_camcorder_v01.mp4

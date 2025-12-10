@@ -1,0 +1,47 @@
+
+Journal Project Creation
+====================================================================================================================
+
+All journal-related activities: submissions, reviews, editorial work
+Updated: 2025-12-09 (Constitution v1.0.16)
+
+
+Purpose
+-------
+
+Creates journal project for managing all aspects of academic publishing: your own manuscript submissions, reviewer
+assignments, editorial responsibilities, and any journal-related correspondence. Flexible structure supports diverse
+workflows.
+
+
+Structure
+---------
+
+JOURNAL_WORLD/JOURNAL_NAME/ID/
+├── manuscript/     # Papers, drafts, revisions
+├── reviews/        # Peer reviews, comments, responses
+└── correspondence/ # Editorial communications
+
+
+Use Cases
+---------
+
+• Your submissions: manuscript drafts and revisions
+• Reviewer work: papers to review and your reviews
+• Editorial duties: special issues, associate editor work
+• Conference abstracts and journal correspondence
+
+Examples:)
+
+  # Your manuscript submission
+  dirforge init journal --journal "Geophysics" --id "GEO-2025-0451"
+  
+  # Reviewer batch work
+  dirforge init journal --journal "Nature Geoscience" --id "REVIEWER_2024_Q4"
+  
+  # Editorial responsibilities
+  dirforge init journal --journal "JGR Solid Earth" --id "ASSOC_EDITOR_2024"
+  
+  # Special issue coordination
+  dirforge init journal --journal "IEEE TGRS" --id "SPECIAL_ISSUE_ML"
+

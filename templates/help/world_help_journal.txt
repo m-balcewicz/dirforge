@@ -1,0 +1,24 @@
+Journal Project Creation
+========================
+
+Personal documentation and notes (Constitution §III.VI)
+Updated: 2025-12-09 (Constitution v1.0.16)
+
+Purpose
+-------
+
+Creates personal documentation project for notes, ideas, and knowledge management with privacy controls.
+
+Examples
+--------
+
+Examples:
+
+  # Daily journal
+  dirforge init journal --name "daily-notes"
+  
+  # Research notebook
+  dirforge init journal --name "research-ideas" --encrypted
+  
+  # Meeting notes
+  dirforge init journal --name "team-meetings"

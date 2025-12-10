@@ -1,0 +1,27 @@
+# Lecture Project Metadata Template
+# This template is used by `tools/dirforge init lecture` to scaffold lecture projects.
+# Variables like $lecture_id, $name are substituted during project creation.
+
+course_code: "<COURSE_CODE>"
+title: "$name"
+term: "<TERM>"
+instructor:
+  name: "<Instructor Name>"
+  email: "<email@example.org>"
+sync_policy: "iCloud: slides/manuscript; External: raw_recordings_on_nas"
+conda_env: "lecture_$lecture_id"
+project_id: "$lecture_id"
+created: "$(date +%Y-%m-%d)"
+
+# Recording metadata (optional)
+recordings:
+  location: "02_data/experimental_recordings/"
+  manifest: ".integrity/manifests/recordings.manifest.yaml"
+  format: "mp4"
+  quality: "1080p"
+
+# Constitution compliance
+integrity:
+  checksums_dir: ".integrity/checksums/"
+  manifests_dir: ".integrity/manifests/"
+  checksum_algorithm: "sha256"
