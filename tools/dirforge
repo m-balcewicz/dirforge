@@ -585,6 +585,192 @@ handle_help_request() {
   esac
 }
 
+init_all_worlds() {
+  # Create top-level directory structure with all world types
+  local target_path="."
+  local auto_create=false
+  
+  # Parse arguments
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --auto|--yes|-y)
+        auto_create=true
+        shift
+        ;;
+      --here)
+        target_path="."
+        shift
+        ;;
+      --path=*)
+        target_path="${1#--path=}"
+        shift
+        ;;
+      -*)
+        echo "Unknown option: $1" >&2
+        echo "Usage: $PROG_NAME init [path] [--auto|--yes|-y] [--here] [--path=PATH]" >&2
+        exit 1
+        ;;
+      *)
+        # First non-option argument is the target path
+        target_path="$1"
+        shift
+        ;;
+    esac
+  done
+  
+  # Convert to absolute path and normalize
+  if [[ "$target_path" == "." ]]; then
+    target_path="$(pwd)"
+  elif [[ "$target_path" != /* ]]; then
+    target_path="$(pwd)/$target_path"
+  fi
+  
+  echo "Initializing DirForge workspace at: $target_path"
+  echo
+  
+  # Check if target directory exists and is not empty
+  if [ -d "$target_path" ] && [ "$(ls -A "$target_path" 2>/dev/null | wc -l)" -gt 0 ]; then
+    if [ "$auto_create" = false ] && [ "$YES" = false ] && [ "$FORCE" = false ]; then
+      echo "WARNING: Directory '$target_path' exists and is not empty." >&2
+      echo "Contents will be preserved, but new world directories will be created alongside existing files." >&2
+      read -r -p "Continue with initialization? [y/N] " response
+      case "$response" in
+        [yY][eE][sS]|[yY]) 
+          ;;
+        *)
+          echo "Initialization cancelled." >&2
+          exit 1
+          ;;
+      esac
+    fi
+  fi
+  
+  # Create base directory if it doesn't exist
+  do_mkdir_p "$target_path"
+  
+  # Define all world types and their standard directories
+  local worlds=(
+    "CODING_WORLD"
+    "JOURNAL_WORLD" 
+    "LECTURE_WORLD"
+    "OFFICE_WORLD"
+    "PRIVATE_WORLD"
+    "RESEARCH_WORLD"
+  )
+  
+  local coding_dirs=(
+    "00_admin"
+    "01_projects" 
+    "90_archive"
+  )
+  
+  local journal_dirs=(
+    "00_admin"
+    "01_daily"
+    "02_weekly" 
+    "03_monthly"
+    "04_yearly"
+    "90_archive"
+  )
+  
+  local lecture_dirs=(
+    "00_admin"
+    "01_courses"
+    "90_archive"
+  )
+  
+  local office_dirs=(
+    "00_admin"
+    "01_finance"
+    "04_inventory_equipment"
+    "05_software_licenses"
+    "06_public_relations"
+    "90_archive"
+  )
+  
+  local private_dirs=(
+    "01_credentials"
+    "02_id_contracts"
+    "03_finance"
+    "04_documents"
+    "05_photos"
+    "06_movies"
+    "07_hiking"
+    "09_installers"
+    "90_archive"
+  )
+  
+  local research_dirs=(
+    "00_admin"
+    "01_projects"
+    "90_archive"
+  )
+  
+  # Create world directories
+  for world in "${worlds[@]}"; do
+    local world_path="$target_path/$world"
+    do_mkdir_p "$world_path"
+    
+    # Get the appropriate directories for this world
+    local dirs_var="${world%_WORLD}_dirs[@]"
+    dirs_var=$(echo "$dirs_var" | tr '[:upper:]' '[:lower:]')
+    
+    case "$world" in
+      CODING_WORLD)
+        for dir in "${coding_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+      JOURNAL_WORLD)
+        for dir in "${journal_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+      LECTURE_WORLD)
+        for dir in "${lecture_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+      OFFICE_WORLD)
+        for dir in "${office_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+      PRIVATE_WORLD)
+        for dir in "${private_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+      RESEARCH_WORLD)
+        for dir in "${research_dirs[@]}"; do
+          do_mkdir_p "$world_path/$dir"
+        done
+        ;;
+    esac
+    
+    if [ "$DRY_RUN" = false ]; then
+      echo "✓ Created $world with standard directories"
+    fi
+  done
+  
+  if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN: would create complete DirForge workspace at $target_path"
+  else
+    echo
+    echo "✅ DirForge workspace initialized successfully at $target_path"
+    echo
+    echo "Created world directories:"
+    for world in "${worlds[@]}"; do
+      echo "  - $world/"
+    done
+    echo
+    echo "You can now create specific projects in each world:"
+    echo "  $PROG_NAME init research --title \"My Research Project\""
+    echo "  $PROG_NAME init coding --project \"my-app\" --language python"
+    echo "  $PROG_NAME init lecture --name \"My Course\""
+  fi
+}
+
 suggest_world_help() {
   # Suggest valid world types for unknown world types
   local invalid_world="$1"
@@ -603,22 +789,44 @@ suggest_world_help() {
   echo "Examples:" >&2
   echo "  $PROG_NAME init research --help" >&2
   echo "  $PROG_NAME init lecture --help" >&2
+  echo >&2
+  echo "To initialize a complete workspace with all worlds:" >&2
+  echo "  $PROG_NAME init [path] [--auto]" >&2
 }
 
 usage() {
   cat <<EOF
-Usage: $PROG_NAME init <world> [options]
+Usage: 
+  $PROG_NAME init <world> [options]        # Create specific world project
+  $PROG_NAME init [path] [--auto]          # Initialize complete workspace with all worlds
 
 World types: research, lecture, coding, journal, office, private
 
 Global options:
   --dry-run, --preview    Preview changes without writing to filesystem
   --json                  Output machine-readable JSON plan (requires --dry-run)
+  --force                 Overwrite existing projects without prompting
+  --backup                Create timestamped backups before overwriting
+  --yes, -y               Skip interactive prompts and proceed
+
+Complete workspace initialization:
+  path                    Target directory (default: current directory)
+  --auto, --yes, -y       Create automatically without prompts
+  --here                  Explicitly use current directory
 
 Examples:
+  # Initialize complete workspace
+  $PROG_NAME init
+  $PROG_NAME init /path/to/workspace --auto
+  $PROG_NAME init ~/myworkspace
+  
+  # Create specific world projects
   $PROG_NAME init research --title "Thermal Model Analysis" --python 3.11
   $PROG_NAME init lecture --name "Digital Rock Physics"
   $PROG_NAME init coding --language python --project ml_toolkit
+  
+  # Preview changes
+  $PROG_NAME --dry-run init ~/test-workspace
   $PROG_NAME --dry-run --json init research --title "Test" | jq .
 EOF
 }
@@ -638,11 +846,13 @@ output_json_plan() {
   echo '  ],'
   echo '  "files": ['
   first=true
-  for file in "${JSON_FILES[@]}"; do
-    if [ "$first" = false ]; then echo ","; fi
-    printf '    "%s"' "$(json_escape "$file")"
-    first=false
-  done
+  if [ "${#JSON_FILES[@]}" -gt 0 ]; then
+    for file in "${JSON_FILES[@]}"; do
+      if [ "$first" = false ]; then echo ","; fi
+      printf '    "%s"' "$(json_escape "$file")"
+      first=false
+    done
+  fi
   echo ""
   echo '  ]'
   echo "}"
@@ -704,45 +914,55 @@ main() {
   cmd="$1"; shift
   case "$cmd" in
     init)
-      # Handle help for init command
+      # Check if there are any arguments
       if [ "$#" -eq 0 ]; then
-        handle_help_request "init"
-        exit 1
+        # No arguments - initialize complete workspace in current directory
+        init_all_worlds "."
+      else
+        # Check if first argument is a help flag
+        case "$1" in
+          --help|-h)
+            handle_help_request "init"
+            exit 0
+            ;;
+          research|lecture|coding|journal|office|private)
+            # Traditional world-specific init
+            world="$1"
+            shift
+            
+            case "$world" in
+              research) init_research "$@" ;;
+              lecture) init_lecture "$@" ;;
+              coding) init_coding "$@" ;;
+              journal) init_journal "$@" ;;
+              office)
+                echo "Creating OFFICE_WORLD standard folders..."
+                for d in 00_admin 01_finance 04_inventory_equipment 05_software_licenses 06_public_relations 90_archive; do
+                  do_mkdir_p "OFFICE_WORLD/$d"
+                done
+                if [ "$DRY_RUN" = true ]; then
+                  echo "DRY RUN: would create OFFICE_WORLD/"
+                else
+                  echo "Created OFFICE_WORLD/"
+                fi ;;
+              private)
+                echo "Creating PRIVATE_WORLD standard folders..."
+                for d in 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
+                  do_mkdir_p "PRIVATE_WORLD/$d"
+                done
+                if [ "$DRY_RUN" = true ]; then
+                  echo "DRY RUN: would create PRIVATE_WORLD/"
+                else
+                  echo "Created PRIVATE_WORLD/"
+                fi ;;
+            esac
+            ;;
+          *)
+            # Initialize complete workspace (all worlds) - could be path or flags
+            init_all_worlds "$@"
+            ;;
+        esac
       fi
-      
-      world="$1"
-      shift
-      
-      case "$world" in
-        research) init_research "$@" ;;
-        lecture) init_lecture "$@" ;;
-        coding) init_coding "$@" ;;
-        journal) init_journal "$@" ;;
-        office)
-          echo "Creating OFFICE_WORLD standard folders..."
-          for d in 00_admin 01_finance 04_inventory_equipment 05_software_licenses 06_public_relations 90_archive; do
-            do_mkdir_p "OFFICE_WORLD/$d"
-          done
-          if [ "$DRY_RUN" = true ]; then
-            echo "DRY RUN: would create OFFICE_WORLD/"
-          else
-            echo "Created OFFICE_WORLD/"
-          fi ;;
-        private)
-          echo "Creating PRIVATE_WORLD standard folders..."
-          for d in 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
-            do_mkdir_p "PRIVATE_WORLD/$d"
-          done
-          if [ "$DRY_RUN" = true ]; then
-            echo "DRY RUN: would create PRIVATE_WORLD/"
-          else
-            echo "Created PRIVATE_WORLD/"
-          fi ;;
-        *) 
-          suggest_world_help "$world"
-          exit 1
-          ;;
-      esac
       
       # Output JSON plan if requested
       if [ "$JSON_OUTPUT" = true ]; then

@@ -8,8 +8,19 @@ Create new project structure based on DirForge Constitution
 Usage
 -----
 
-  dirforge init <world-type> [options]
+  dirforge init <world-type> [options]                                          Create specific world project
+  dirforge init [path] [--auto]                                          Initialize complete workspace with all worlds
   dirforge init <world-type> --help                                                  Show world-type specific help
+
+
+Workspace Initialization
+------------------------
+
+Initialize a complete workspace with all world types at once:
+
+  path                                                     Target directory (default: current directory)
+  --auto, --yes, -y                                                   Create automatically without prompts
+  --here                                                              Explicitly use current directory
 
 
 World Types
@@ -44,7 +55,20 @@ options and requirements.
 Examples
 --------
 
-Common Usage:)
+Workspace Initialization:
+
+  # Initialize complete workspace in current directory
+  dirforge init
+  dirforge init --here
+  
+  # Initialize workspace in specific directory
+  dirforge init /path/to/my/workspace
+  dirforge init ~/my-projects --auto
+  
+  # Preview workspace creation
+  dirforge init ~/test-workspace --dry-run
+
+Specific World Projects:
 
   # Get help for research projects
   dirforge init research --help
@@ -64,4 +88,7 @@ All project structures follow DirForge Constitution v1.0.16 for consistency acro
 
 Use 'dirforge init <world-type> --help' for detailed world-specific information including directory trees, naming
 conventions, and required inputs.
+
+For workspace initialization, all six world types (CODING_WORLD, JOURNAL_WORLD, LECTURE_WORLD, OFFICE_WORLD, 
+PRIVATE_WORLD, RESEARCH_WORLD) are created with their standard directory structures.
 

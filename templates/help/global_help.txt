@@ -17,6 +17,7 @@ Commands
 --------
 
   init <world-type>                                                                   Create new project structure
+  init [path] [--auto]                                                        Initialize complete workspace with all worlds
 
 
 Global Options
@@ -42,7 +43,12 @@ World Types
 Examples
 --------
 
-Common Usage:)
+Common Usage:
+
+  # Initialize complete workspace with all world types
+  dirforge init
+  dirforge init --here
+  dirforge init /path/to/workspace --auto
 
   # Create research project with interactive prompts
   dirforge init research --title "Thermal Analysis"
