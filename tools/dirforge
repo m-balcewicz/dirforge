@@ -648,47 +648,32 @@ init_all_worlds() {
   # Create base directory if it doesn't exist
   do_mkdir_p "$target_path"
   
-  # Define all world types and their standard directories
+  # Define all world types - per DirForge Constitution v1.0.16
   local worlds=(
     "CODING_WORLD"
     "JOURNAL_WORLD" 
     "LECTURE_WORLD"
+    "LITERATURE_WORLD"
     "OFFICE_WORLD"
     "PRIVATE_WORLD"
     "RESEARCH_WORLD"
   )
   
-  local coding_dirs=(
-    "00_admin"
-    "01_projects" 
-    "90_archive"
-  )
-  
-  local journal_dirs=(
-    "00_admin"
-    "01_daily"
-    "02_weekly" 
-    "03_monthly"
-    "04_yearly"
-    "90_archive"
-  )
-  
-  local lecture_dirs=(
-    "00_admin"
-    "01_courses"
-    "90_archive"
-  )
+  # Only OFFICE_WORLD and PRIVATE_WORLD get subfolders during workspace init
+  # Other worlds remain empty until specific projects are created
   
   local office_dirs=(
     "00_admin"
     "01_finance"
+    "02_hr_administration"
+    "03_faculty"
     "04_inventory_equipment"
     "05_software_licenses"
     "06_public_relations"
-    "90_archive"
   )
   
   local private_dirs=(
+    "00_admin"
     "01_credentials"
     "02_id_contracts"
     "03_finance"
@@ -700,37 +685,14 @@ init_all_worlds() {
     "90_archive"
   )
   
-  local research_dirs=(
-    "00_admin"
-    "01_projects"
-    "90_archive"
-  )
-  
   # Create world directories
   for world in "${worlds[@]}"; do
     local world_path="$target_path/$world"
     do_mkdir_p "$world_path"
     
-    # Get the appropriate directories for this world
-    local dirs_var="${world%_WORLD}_dirs[@]"
-    dirs_var=$(echo "$dirs_var" | tr '[:upper:]' '[:lower:]')
-    
+    # Per Constitution: Only OFFICE_WORLD and PRIVATE_WORLD get subfolders at init
+    # All others remain empty until specific projects are created
     case "$world" in
-      CODING_WORLD)
-        for dir in "${coding_dirs[@]}"; do
-          do_mkdir_p "$world_path/$dir"
-        done
-        ;;
-      JOURNAL_WORLD)
-        for dir in "${journal_dirs[@]}"; do
-          do_mkdir_p "$world_path/$dir"
-        done
-        ;;
-      LECTURE_WORLD)
-        for dir in "${lecture_dirs[@]}"; do
-          do_mkdir_p "$world_path/$dir"
-        done
-        ;;
       OFFICE_WORLD)
         for dir in "${office_dirs[@]}"; do
           do_mkdir_p "$world_path/$dir"
@@ -741,33 +703,35 @@ init_all_worlds() {
           do_mkdir_p "$world_path/$dir"
         done
         ;;
-      RESEARCH_WORLD)
-        for dir in "${research_dirs[@]}"; do
-          do_mkdir_p "$world_path/$dir"
-        done
+      CODING_WORLD|JOURNAL_WORLD|LECTURE_WORLD|RESEARCH_WORLD|LITERATURE_WORLD)
+        # These remain empty - projects created by specific init commands
         ;;
     esac
-    
-    if [ "$DRY_RUN" = false ]; then
-      echo "✓ Created $world with standard directories"
-    fi
   done
+  
   
   if [ "$DRY_RUN" = true ]; then
     echo "DRY RUN: would create complete DirForge workspace at $target_path"
   else
     echo
-    echo "✅ DirForge workspace initialized successfully at $target_path"
+    echo "✅ Workspace initialized at: $target_path"
     echo
     echo "Created world directories:"
-    for world in "${worlds[@]}"; do
-      echo "  - $world/"
-    done
+    echo "  CODING_WORLD/           (empty - use 'dirforge init coding' to create projects)"
+    echo "  JOURNAL_WORLD/          (empty - use 'dirforge init journal' to create activities)"
+    echo "  LECTURE_WORLD/          (empty - use 'dirforge init lecture' to create courses)"
+    echo "  LITERATURE_WORLD/       (empty - user-managed)"
+    echo "  OFFICE_WORLD/           (with 7 subfolders)"
+    echo "  PRIVATE_WORLD/          (with 10 subfolders)"
+    echo "  RESEARCH_WORLD/         (empty - use 'dirforge init research' to create projects)"
     echo
-    echo "You can now create specific projects in each world:"
-    echo "  $PROG_NAME init research --title \"My Research Project\""
-    echo "  $PROG_NAME init coding --project \"my-app\" --language python"
-    echo "  $PROG_NAME init lecture --name \"My Course\""
+    echo "Constitution version: v1.0.16"
+    echo
+    echo "Next steps:"
+    echo "  • Create a research project: $PROG_NAME init research --title \"Project Name\""
+    echo "  • Create a lecture: $PROG_NAME init lecture --name \"Course Name\""
+    echo "  • Create a coding project: $PROG_NAME init coding --language python --project \"name\""
+    echo "  • Create a journal activity: $PROG_NAME init journal --journal \"Journal Name\" --id \"MS-ID\""
   fi
 }
 
@@ -937,7 +901,7 @@ main() {
               journal) init_journal "$@" ;;
               office)
                 echo "Creating OFFICE_WORLD standard folders..."
-                for d in 00_admin 01_finance 04_inventory_equipment 05_software_licenses 06_public_relations 90_archive; do
+                for d in 00_admin 01_finance 02_hr_administration 03_faculty 04_inventory_equipment 05_software_licenses 06_public_relations; do
                   do_mkdir_p "OFFICE_WORLD/$d"
                 done
                 if [ "$DRY_RUN" = true ]; then
@@ -947,7 +911,7 @@ main() {
                 fi ;;
               private)
                 echo "Creating PRIVATE_WORLD standard folders..."
-                for d in 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
+                for d in 00_admin 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
                   do_mkdir_p "PRIVATE_WORLD/$d"
                 done
                 if [ "$DRY_RUN" = true ]; then
