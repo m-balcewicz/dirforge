@@ -1070,6 +1070,7 @@ init_all_worlds() {
     "04_inventory_equipment"
     "05_software_licenses"
     "06_public_relations"
+    "90_archive"
   )
   
   local private_dirs=(
