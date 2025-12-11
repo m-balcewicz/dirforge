@@ -297,7 +297,13 @@ main() {
     fi
 
     # Check if dirforge source exists
-    local repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+    local script_dir
+    if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+        script_dir="$(dirname "${BASH_SOURCE[0]}")"
+    else
+        script_dir="$(dirname "$0")"
+    fi
+    local repo_root="$(cd "$script_dir/.." >/dev/null 2>&1 && pwd)"
     local src="$repo_root/tools/dirforge"
 
     if [[ ! -f "$src" ]]; then
