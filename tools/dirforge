@@ -24,6 +24,21 @@ else
     LIB_DIR="$SCRIPT_DIR/../lib"
 fi
 
+# Detect templates directory (development vs installed)
+if [ -d "$SCRIPT_DIR/../templates" ]; then
+    # Development mode - templates in templates/
+    TEMPLATES_DIR="$(cd "$SCRIPT_DIR/../templates" && pwd)"
+elif [ -d "$HOME/.local/share/dirforge/templates" ]; then
+    # Local installation mode
+    TEMPLATES_DIR="$HOME/.local/share/dirforge/templates"
+elif [ -d "/usr/local/share/dirforge/templates" ]; then
+    # System installation mode
+    TEMPLATES_DIR="/usr/local/share/dirforge/templates"
+else
+    # Fallback
+    TEMPLATES_DIR="$SCRIPT_DIR/../templates"
+fi
+
 # Source help system libraries if available
 if [ -f "$LIB_DIR/terminal.sh" ]; then
     source "$LIB_DIR/terminal.sh"
@@ -36,7 +51,7 @@ if [ -f "$LIB_DIR/help.sh" ]; then
     source "$LIB_DIR/help.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.17"
+CONSTITUTION_VERSION="v1.0.18"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -388,11 +403,11 @@ conda_env: "$CONDA_NAME"
 EOF
 
   # Render project management templates
-  render_template "$LIB_DIR/templates/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$LIB_DIR/templates/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$LIB_DIR/templates/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$LIB_DIR/templates/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$LIB_DIR/templates/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
 
   # Conda
   if [ "$no_conda" = false ]; then
