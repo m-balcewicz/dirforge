@@ -1,7 +1,0 @@
-- Create a low-level automation for "dirforge init publication" >> create a base for LaTeX manuscript
-- Create a low-level automation for "dirforge init study" >> according to constitutions.md:
-  - 02_studies/<study_name>/00_protocols/
-  - 02_studies/<study_name>/01_code/
-  - 02_studies/<study_name>/02_data/
-  - 02_studies/<study_name>/03_outputs/
-  - 02_studies/<study_name>/04_publication/
