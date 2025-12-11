@@ -9,7 +9,7 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.20
+- **Constitution compliance**: All structures follow DirForge Constitution v1.0.21
 
 ## Installation
 
@@ -272,10 +272,18 @@ dirforge init coding --language python --project ml_toolkit
 dirforge init coding --language matlab --project functions
 dirforge init coding --project my_tool --dry-run
 
-# Journal projects (within JOURNAL_WORLD/)
-dirforge init journal --journal "Geophysics" --id "GEO-2025-0451"
-dirforge init journal --journal "Nature Geoscience" --id "REVIEWER_2024_Q4" 
-dirforge init journal --journal "JGR Solid Earth" --id "ASSOC_EDITOR_2024"
+# Journal projects (within JOURNAL_WORLD/) - Role-Based Organization
+# Primary authorship (lead author projects)
+dirforge init journal --name "thermal_analysis" --first
+dirforge init journal --name "seismic_modeling_study" --first --year 2024
+
+# Co-author collaboration (joint projects)
+dirforge init journal --name "2021_elastic_properties" --coauthor
+dirforge init journal --name "international_consortium" --coauthor
+
+# Journal service (reviews, editorial work)
+dirforge init journal --name "Geophysics" --id "GEO-2025-0451" --service
+dirforge init journal --name "Nature Geoscience" --id "REVIEWER_2024_Q4" --service
 
 # Office and private world structures
 dirforge init office    # Creates OFFICE_WORLD/ with standard directories
@@ -342,9 +350,15 @@ Use descriptive filenames (e.g., `2025-09-01_budget_v1.xlsx`, `proposal_final.pd
 - `--language LANG`: Programming language (python, javascript, etc.)
 - `--no-conda`: Skip conda environment creation (for Python projects)
 
-#### Journal Projects
-- `--journal "Journal Name"`: Target journal name (required)
-- `--id "MANUSCRIPT_ID"`: Manuscript or reviewer ID (required)
+#### Journal Projects (Role-Based Organization)
+- `--name "Name"`: Paper name (for --first/--coauthor) or journal name (for --service)
+- `--first`: Primary authorship role (lead author projects)
+- `--coauthor`: Co-author collaboration role (joint projects)  
+- `--service`: Journal service role (reviews, editorial work)
+- `--year YYYY`: Explicit year for authorship projects (default: current year or extracted from name)
+- `--id "MANUSCRIPT_ID"`: Manuscript/reviewer ID (required with --service)
+
+**Role-based structure**: Projects are organized by role (admin, primary authorship, co-author, service) rather than journal name. Use `dirforge init journal --help` for complete examples and migration guidance.
 
 ### Command Line Options
 

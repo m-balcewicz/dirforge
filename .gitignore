@@ -19,6 +19,7 @@ specs/
 tests/
 fixtures/
 examples/
+.backup/
 
 # Test artifacts and temporary files
 tests/dirforge_test_workspace_*/
