@@ -1071,6 +1071,7 @@ show_research_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init research                           # Parent-only mode: create RESEARCH_WORLD/\n"
     help_content+="  dirforge init research -n \"Project Name\"          # New project\n"
     help_content+="  dirforge init research -p PROJECT_ID -s \"Study\"   # Add study\n\n"
     
@@ -1082,6 +1083,7 @@ show_research_help_short() {
     help_content+="  --no-conda          Skip conda environment\n\n"
     
     help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init research                           # Create RESEARCH_WORLD/ only\n"
     help_content+="  dirforge init research -n \"Thermal Analysis\"\n"
     help_content+="  dirforge init research -n \"ML Study\" -s \"Initial Model\"\n"
     help_content+="  dirforge init research -p 2025_thermal_analysis -s \"Validation\"\n\n"
@@ -1124,6 +1126,44 @@ show_research_help() {
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
     help_content+="$(wrap_text "Creates standardized research project with study-based organization. Each project contains independent studies with complete data analysis workflows. Follows project-by-activity principle with co-located provenance for reproducible research." 1)\n"
+    help_content+="\n"
+    
+    help_content+="$(format_header "Structure" 2)"
+    help_content+="\n"
+    help_content+="RESEARCH_WORLD/PROJECT_ID/\n"
+    help_content+="├── 00_admin/                    # Project contracts, ethics, agreements\n"
+    help_content+="├── 01_project_management/       # Proposals, reports, budgets\n"
+    help_content+="│   ├── 01_proposal/\n"
+    help_content+="│   ├── 02_finance/\n"
+    help_content+="│   ├── 03_reports/\n"
+    help_content+="│   └── 04_presentations/\n"
+    help_content+="├── 02_studies/                  # Individual research studies\n"
+    help_content+="│   └── <study_name>/\n"
+    help_content+="│       ├── 01_code/            # Analysis scripts and notebooks\n"
+    help_content+="│       ├── 02_data/            # Raw and processed data\n"
+    help_content+="│       ├── 03_results/         # Outputs, figures, tables\n"
+    help_content+="│       └── 04_publication/     # Papers, drafts, reviews\n"
+    help_content+="├── .integrity/                  # Data integrity and manifests\n"
+    help_content+="└── environment.yml              # Conda environment\n"
+    help_content+="\n"
+    
+    help_content+="$(format_header "Structure" 2)"
+    help_content+="\n"
+    help_content+="RESEARCH_WORLD/PROJECT_ID/\n"
+    help_content+="├── 00_admin/                    # Project contracts, ethics, agreements\n"
+    help_content+="├── 01_project_management/       # Proposals, reports, budgets\n"
+    help_content+="│   ├── 01_proposal/\n"
+    help_content+="│   ├── 02_finance/\n"
+    help_content+="│   ├── 03_reports/\n"
+    help_content+="│   └── 04_presentations/\n"
+    help_content+="├── 02_studies/                  # Individual research studies\n"
+    help_content+="│   └── <study_name>/\n"
+    help_content+="│       ├── 01_code/            # Analysis scripts and notebooks\n"
+    help_content+="│       ├── 02_data/            # Raw and processed data\n"
+    help_content+="│       ├── 03_results/         # Outputs, figures, tables\n"
+    help_content+="│       └── 04_publication/     # Papers, drafts, reviews\n"
+    help_content+="├── .integrity/                  # Data integrity and manifests\n"
+    help_content+="└── environment.yml              # Conda environment\n"
     help_content+="\n"
     
     # Usage
@@ -1205,6 +1245,7 @@ show_lecture_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init lecture                       # Parent-only mode: create LECTURE_WORLD/\n"
     help_content+="  dirforge init lecture -n \"Course Name\"    # New lecture project\n\n"
     
     help_content+="$(format_header "Key Flags" 2)\n"
@@ -1213,6 +1254,7 @@ show_lecture_help_short() {
     help_content+="  --code \"PHYS101\"    Course code\n\n"
     
     help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init lecture                           # Create LECTURE_WORLD/ only\n"
     help_content+="  dirforge init lecture -n \"Digital Rock Physics\"\n"
     help_content+="  dirforge init lecture -n \"Physics 101\" --code \"PHYS101\"\n\n"
     
@@ -1308,6 +1350,7 @@ show_coding_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init coding                               # Parent-only mode: create CODING_WORLD/\n"
     help_content+="  dirforge init coding -l <language> -p <project>    # New coding project\n\n"
     
     help_content+="$(format_header "Languages" 2)\n"
@@ -1320,6 +1363,7 @@ show_coding_help_short() {
     help_content+="  --no-conda          Skip conda environment\n\n"
     
     help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init coding                            # Create CODING_WORLD/ only\n"
     help_content+="  dirforge init coding -l python -p ml_toolkit\n"
     help_content+="  dirforge init coding -l matlab -p seismic_processing\n"
     help_content+="  dirforge init coding -l fortran -p wave_solver\n\n"
@@ -1350,7 +1394,7 @@ show_coding_help() {
     # Purpose and compliance
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 1)\n"
+    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 0)\n"
     help_content+="\n"
     
     help_content+="$(format_header "Usage" 2)"
@@ -1392,12 +1436,15 @@ show_coding_help() {
     help_content+="\n"
 
 
-    help_content+="$(format_header "Directory Structures" 2)"
+    help_content+="$(format_header "Structure" 2)"
     help_content+="\n"
-    help_content+="$(format_command "Python:" "CODING_WORLD/python/<project>/ with src/, tests/, pyproject.toml, environment.yml")\n"
-    help_content+="$(format_command "MATLAB:" "CODING_WORLD/matlab/<project>/ with src/, functions/, tests/, data/, figures/")\n"
-    help_content+="$(format_command "Fortran:" "CODING_WORLD/fortran/<project>/ with src/, modules/, Makefile, environment.yml")\n"
-    help_content+="$(format_command "Bash:" "CODING_WORLD/bash/<project>/ with bin/, lib/, tests/, config/")\n"
+    help_content+="CODING_WORLD/<language>/<project>/\n"
+    help_content+="├── src/               # Source code and modules\n"
+    help_content+="├── tests/             # Unit tests and test data\n"
+    help_content+="├── docs/              # Documentation and examples\n"
+    help_content+="├── config/            # Configuration files\n"
+    help_content+="├── environment.yml    # Conda environment specification\n"
+    help_content+="└── README.md          # Project documentation\n"
     help_content+="\n"
 
     help_content+="$(format_header "Conda Environments" 2)"
@@ -1423,6 +1470,7 @@ show_journal_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init journal                              # Parent-only mode: create JOURNAL_WORLD/\n"
     help_content+="  dirforge init journal -j \"Journal Name\" -i \"ID\"    # New journal activity\n\n"
     
     help_content+="$(format_header "Key Flags" 2)\n"
@@ -1430,6 +1478,7 @@ show_journal_help_short() {
     help_content+="  -i, --id            Manuscript/reviewer ID\n\n"
     
     help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init journal                               # Create JOURNAL_WORLD/ only\n"
     help_content+="  dirforge init journal -j \"Geophysics\" -i \"GEO-2025-0451\"\n"
     help_content+="  dirforge init journal -j \"Nature Geoscience\" -i \"REVIEWER_2024_Q4\"\n\n"
     
@@ -1500,7 +1549,7 @@ show_office_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
-    help_content+="  dirforge init office    # Creates OFFICE_WORLD/ standard structure\n\n"
+    help_content+="  dirforge init office    # Creates OFFICE_WORLD/ with standard structure\n\n"
     
     help_content+="$(format_header "Structure" 2)\n"
     help_content+="  00_admin, 01_finance, 02_hr_administration, 03_faculty,\n"
@@ -1536,6 +1585,18 @@ show_office_help() {
     help_content+="$(wrap_text "Creates administrative project for business documents, contracts, finance tracking, and equipment management." 1)\n"
     help_content+="\n"
     
+    help_content+="$(format_header "Structure" 2)"
+    help_content+="\n"
+    help_content+="OFFICE_WORLD/\n"
+    help_content+="├── 00_admin/                # Administrative documents\n"
+    help_content+="├── 01_finance/              # Financial records and budgets\n"
+    help_content+="├── 02_hr_administration/    # Human resources and personnel\n"
+    help_content+="├── 03_faculty/              # Faculty affairs and committees\n"
+    help_content+="├── 04_inventory_equipment/  # Equipment and inventory management\n"
+    help_content+="├── 05_software_licenses/    # Software licensing and compliance\n"
+    help_content+="└── 06_public_relations/     # Communications and outreach\n"
+    help_content+="\n"
+    
     local examples="  # Budget tracking\n  dirforge init office --name \"2025-budget\"\n\n  # Equipment inventory\n  dirforge init office --name \"lab-equipment\"\n\n  # Contract management\n  dirforge init office --name \"vendor-contracts\""
     
     help_content+="$(format_header "Examples" 2)\n"
@@ -1557,7 +1618,7 @@ show_private_help_short() {
     help_content+="\nConstitution $constitution_version\n\n"
     
     help_content+="$(format_header "Usage" 2)\n"
-    help_content+="  dirforge init private    # Creates PRIVATE_WORLD/ standard structure\n\n"
+    help_content+="  dirforge init private   # Creates PRIVATE_WORLD/ with standard structure\n\n"
     
     help_content+="$(format_header "Structure" 2)\n"
     help_content+="  00_admin, 01_credentials, 02_id_contracts, 03_finance, 04_documents,\n"
@@ -1590,7 +1651,22 @@ show_private_help() {
     
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates private project for personal files, photos, finance, and sensitive documents with enhanced security." 1)\n"
+    help_content+="$(wrap_text "Creates private project for personal files, photos, finance, and sensitive documents with enhanced security." 0)\n"
+    help_content+="\n"
+    
+    help_content+="$(format_header "Structure" 2)"
+    help_content+="\n"
+    help_content+="PRIVATE_WORLD/\n"
+    help_content+="├── 00_admin/           # Personal administrative documents\n"
+    help_content+="├── 01_credentials/     # Passwords, certificates, keys\n"
+    help_content+="├── 02_id_contracts/    # Identity documents and contracts\n"
+    help_content+="├── 03_finance/         # Personal finance and banking\n"
+    help_content+="├── 04_documents/       # Important personal documents\n"
+    help_content+="├── 05_photos/          # Personal photography collection\n"
+    help_content+="├── 06_movies/          # Personal video collection\n"
+    help_content+="├── 07_hiking/          # Outdoor activities and trips\n"
+    help_content+="├── 09_installers/      # Software installers and utilities\n"
+    help_content+="└── 90_archive/         # Archived personal materials\n"
     help_content+="\n"
     
     local examples="  # Personal finance\n  dirforge init private --name \"finance-2025\" --encrypted\n\n  # Photo archive\n  dirforge init private --name \"family-photos\"\n\n  # Personal documents\n  dirforge init private --name \"documents\" --backup-enabled"

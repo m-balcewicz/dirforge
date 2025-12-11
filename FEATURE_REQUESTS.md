@@ -6,14 +6,14 @@ Track feature requests and enhancement ideas for DirForge. Quick notes that can 
 
 ## Proposed
 
-- Create low-level automation for `dirforge init publication` to create base LaTeX manuscript structure
-- Create low-level automation for `dirforge init study` to scaffold research study structure:
+1. Create low-level automation for `dirforge init publication` to create base LaTeX manuscript structure
+2. Create low-level automation for `dirforge init study` to scaffold research study structure:
   - `02_studies/<study_name>/00_protocols/`
   - `02_studies/<study_name>/01_code/`
   - `02_studies/<study_name>/02_data/`
   - `02_studies/<study_name>/03_outputs/`
   - `02_studies/<study_name>/04_publication/`
-
+3. Create a consistent `--help` output. Therefore, we need to define which sections in each `--help` and `--help-long` should be shown. In the next step remove all intendations and keep the formatting somehow "simple".
 ---
 
 ## Under Review

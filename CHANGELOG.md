@@ -1,3 +1,21 @@
+## [1.0.21] - 2025-12-11
+
+### Added
+- **Parent-Only Mode**: New simplified world-type initialization
+  - `dirforge init <world-type>` now creates only the parent directory (e.g., RESEARCH_WORLD/)
+  - No prompts, no subfolders, no project-specific configuration
+  - Available for all world types: research, lecture, coding, journal, office, private
+  - Useful for setting up workspace structure before creating specific projects
+  - Examples: `dirforge init research`, `dirforge init coding`, `dirforge init journal`
+
+### Changed
+- **Help System**: Updated all world-type help to document parent-only mode
+- **Main Command Logic**: Enhanced dispatch to detect and handle parent-only mode
+- **Error Handling**: Added validation for invalid flag combinations (e.g., `--id` without `--journal`)
+
+### Fixed
+- **User Experience**: Simplified common workflow of creating world directories
+
 ## [1.0.20] - 2025-12-11
 
 ### Added
