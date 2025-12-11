@@ -1,14 +1,36 @@
+## [1.0.20] - 2025-12-11
+
+### Added
+- **Short Help Mode**: New `--help` (short) vs `--help-long` (detailed) help system
+  - Default `-h`/`--help` now shows concise quick reference (54 lines)
+  - New `--help-long` flag shows comprehensive documentation (152 lines)
+  - Short help optimized for daily workflow and quick rechecks
+  - Progressive disclosure guides users to detailed help when needed
+  - Both modes cached for performance
+
+### Changed
+- **Consistent Flag Naming**: Standardized all world types to use `--name`/`-n` for new projects
+  - Research: Changed from `--title`/`-t` to `--name`/`-n` (consistent with lecture/coding)
+  - Kept `--project`/`-p` specifically for referencing existing projects
+  - Updated all help text, error messages, and documentation
+  - Updated all test files to use new flag naming
+  - Improves consistency: all world types now use `-n` for creation, `-p` for reference
+
+### Fixed
+- **Help System UX**: Reduced information overload with two-tier help system
+- **Flag Consistency**: Unified interface across all world types
+
 ## [1.0.19] - 2025-12-11
 
 ### Added
 - **Short Flag Support**: Convenient short flags for all commands
-  - Research: `-t` (--title), `-p` (--project), `-s` (--study)
+  - Research: `-n` (--name), `-p` (--project), `-s` (--study)
   - Lecture: `-n` (--name)
   - Coding: `-l` (--language), `-p` (--project)
   - Journal: `-j` (--journal), `-i` (--id)
-  - Examples: `dirforge init research -t "Project"`, `dirforge init coding -l python -p my_tool`
+  - Examples: `dirforge init research -n "Project"`, `dirforge init coding -l python -p my_tool`
   - Improves CLI ergonomics for frequently used commands
-  - All short flags use single dash syntax (`-t`, not `--t`)
+  - All short flags use single dash syntax (`-n`, not `--n`)
 
 ### Changed
 - **Constitution Version**: Updated to v1.0.19 across all files

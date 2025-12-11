@@ -8,7 +8,7 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.19
+- **Constitution compliance**: All structures follow DirForge Constitution v1.0.20
 
 ## Installation
 
@@ -250,12 +250,12 @@ Create specific projects within existing world directories:
 ```bash
 # Research projects (within RESEARCH_WORLD/)
 # Create project with study-based structure
-dirforge init research --title "Thermal Model Analysis"
-dirforge init research --title "ML Study" --python 3.12
-dirforge init research --title "Theory Work" --no-conda
+dirforge init research --name "Thermal Model Analysis"
+dirforge init research --name "ML Study" --python 3.12
+dirforge init research --name "Theory Work" --no-conda
 
 # Create project with first study in one command
-dirforge init research --title "Digital Rock Physics" --study "Porosity Analysis"
+dirforge init research --name "Digital Rock Physics" --study "Porosity Analysis"
 
 # Add studies to existing projects
 dirforge init research --project 2025_thermal_model_analysis --study "Heat Transfer Model"
@@ -286,7 +286,7 @@ dirforge init private   # Creates PRIVATE_WORLD/ with standard directories
 Each world type has additional options for customization:
 
 #### Research Projects
-- `--title "Project Title"`: Human-readable project title (required for new projects)
+- `--name "Project Name"`: Human-readable project name (required for new projects)
 - `--project "project_id"`: Existing project ID to add study to (use with `--study`)
 - `--study "Study Name"`: Create project with initial study or add study to existing project
 - `--python VERSION`: Python version for conda environment (default: 3.11)
@@ -330,7 +330,7 @@ RESEARCH_WORLD/<PROJECT_ID>/01_project_management/
 └── 04_presentations/  (kept flat for easier previews/exports)
 ```
 
-Use descriptive filenames (e.g., `2025-09-01_budget_v1.xlsx`, `proposal_final.pdf`) and avoid committing secrets. The scaffolder renders README templates into these folders with `{{PROJECT_NAME}}` and `{{PROJECT_ID}}` populated from the `--title` you provide.
+Use descriptive filenames (e.g., `2025-09-01_budget_v1.xlsx`, `proposal_final.pdf`) and avoid committing secrets. The scaffolder renders README templates into these folders with `{{PROJECT_NAME}}` and `{{PROJECT_ID}}` populated from the `--name` you provide.
 
 #### Lecture Projects  
 - `--name "Course Name"`: Lecture/course name (required)
@@ -408,7 +408,7 @@ Developer commands
 **Help System Architecture:**
 - Progressive disclosure: `dirforge --help` → `dirforge init --help` → `dirforge init <world> --help`
 - Terminal adaptation: Auto-detects color support, terminal width, paging capability
-- Constitution integration: Dynamic references to DirForge Constitution v1.0.19
+- **Constitution integration**: Dynamic references to DirForge Constitution v1.0.20
 - Performance optimization: Cached content generation for repeated calls (<200ms target)
 
 Notes & future directions

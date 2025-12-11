@@ -723,7 +723,7 @@ format_box() {
 # Show global help - top-level help overview for dirforge
 # Show short/quick reference help (default for --help)
 show_global_help_short() {
-    local constitution_version="v1.0.19"
+    local constitution_version="v1.0.20"
     
     # Check cache first
     local cache_key
@@ -755,7 +755,7 @@ show_global_help_short() {
     # Essential commands
     help_content+="$(format_header "World Types" 2)"
     help_content+="\n"
-    help_content+="$(format_command "research" "Research projects    (flags: -t title, -p project, -s study)")"
+    help_content+="$(format_command "research" "Research projects    (flags: -n name, -p project, -s study)")"
     help_content+="\n"
     help_content+="$(format_command "lecture" "Lecture materials    (flags: -n name)")"
     help_content+="\n"
@@ -789,7 +789,7 @@ show_global_help_short() {
     help_content+="\n"
     help_content+="  dirforge init --here --auto                $(dim "# Complete workspace here")"
     help_content+="\n"
-    help_content+="  dirforge init research -t \"My Project\"      $(dim "# Research project")"
+    help_content+="  dirforge init research -n \"My Project\"      $(dim "# Research project")"
     help_content+="\n"
     help_content+="  dirforge init coding -l python -p mytool   $(dim "# Python project")"
     help_content+="\n"
@@ -812,7 +812,7 @@ show_global_help_short() {
 
 # Show comprehensive/long help (for --help-long)
 show_global_help() {
-    local constitution_version="v1.0.19"
+    local constitution_version="v1.0.20"
     
     # Check cache first
     local cache_key
@@ -923,7 +923,7 @@ show_global_help() {
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
     
-    local examples="# Initialize complete workspace in current directory\ndirforge init --here --auto\n\n# Initialize workspace in specific directory\ndirforge init ~/my-workspace\ndirforge init --path=/opt/workspaces/team1\n\n# Create research project with short flags\ndirforge init research -t \"Thermal Analysis\"\ndirforge init research -t \"ML Study\" --python 3.12\n\n# Add study to existing research project\ndirforge init research -p 2025_thermal_analysis -s \"Heat Transfer\"\n\n# Create lecture project\ndirforge init lecture -n \"Digital Rock Physics\"\n\n# Create coding project with language\ndirforge init coding -l python -p ml_toolkit\ndirforge init coding -l matlab -p functions\n\n# Create journal activity\ndirforge init journal -j \"Geophysics\" -i \"GEO-2025-0451\"\n\n# Preview with JSON output for automation\ndirforge init ~/test --dry-run --json | jq .\ndirforge init research -t \"Test\" --dry-run --json"
+    local examples="# Initialize complete workspace in current directory\ndirforge init --here --auto\n\n# Initialize workspace in specific directory\ndirforge init ~/my-workspace\ndirforge init --path=/opt/workspaces/team1\n\n# Create research project with short flags\ndirforge init research -n \"Thermal Analysis\"\ndirforge init research -n \"ML Study\" --python 3.12\n\n# Add study to existing research project\ndirforge init research -p 2025_thermal_analysis -s \"Heat Transfer\"\n\n# Create lecture project\ndirforge init lecture -n \"Digital Rock Physics\"\n\n# Create coding project with language\ndirforge init coding -l python -p ml_toolkit\ndirforge init coding -l matlab -p functions\n\n# Create journal activity\ndirforge init journal -j \"Geophysics\" -i \"GEO-2025-0451\"\n\n# Preview with JSON output for automation\ndirforge init ~/test --dry-run --json | jq .\ndirforge init research -n \"Test\" --dry-run --json"
     
     help_content+="$(format_example "$examples" "Common Usage")\n"
     
@@ -961,7 +961,7 @@ show_command_help() {
 
 # Show detailed help for the init command
 show_init_command_help() {
-    local constitution_version="v1.0.19"
+    local constitution_version="v1.0.20"
     
     # Build help content first, then display with pager
     local help_content=""
@@ -1014,7 +1014,7 @@ show_init_command_help() {
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
     
-    local examples="# Get help for research projects\ndirforge init research --help\n\n# Preview research project structure\ndirforge init research --title \"My Study\" --dry-run\n\n# Create lecture with backup of existing content\ndirforge init lecture --name \"Physics 101\" --backup\n\n# Create coding project with minimal output\ndirforge init coding --name \"my-app\" --quiet"
+    local examples="# Get help for research projects\ndirforge init research --help\n\n# Preview research project structure\ndirforge init research --name \"My Study\" --dry-run\n\n# Create lecture with backup of existing content\ndirforge init lecture --name \"Physics 101\" --backup\n\n# Create coding project with minimal output\ndirforge init coding --name \"my-app\" --quiet"
     
     help_content+="$(format_example "$examples" "Common Usage")\n"
     
@@ -1032,25 +1032,26 @@ show_init_command_help() {
 # Show world-specific help with routing to appropriate world type
 show_world_help() {
     local world_type="$1"
+    local mode="${2:-short}"  # default to short, support 'long'
     
     case "$world_type" in
         "research")
-            show_research_help
+            show_research_help "$mode"
             ;;
         "lecture")
-            show_lecture_help
+            show_lecture_help "$mode"
             ;;
         "coding")
-            show_coding_help
+            show_coding_help "$mode"
             ;;
         "journal")
-            show_journal_help
+            show_journal_help "$mode"
             ;;
         "office")
-            show_office_help
+            show_office_help "$mode"
             ;;
         "private")
-            show_private_help
+            show_private_help "$mode"
             ;;
         *)
             echo "$(red "Error: Unknown world type '$world_type'")"
@@ -1061,13 +1062,49 @@ show_world_help() {
     esac
 }
 
+# Short help for research projects
+show_research_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Research Projects" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init research -n \"Project Name\"          # New project\n"
+    help_content+="  dirforge init research -p PROJECT_ID -s \"Study\"   # Add study\n\n"
+    
+    help_content+="$(format_header "Key Flags" 2)\n"
+    help_content+="  -n, --name          Project name (creates YYYY_snake_case_id)\n"
+    help_content+="  -p, --project       Existing project ID\n"
+    help_content+="  -s, --study         Study name\n"
+    help_content+="  --python VERSION    Python version for conda (default: 3.11)\n"
+    help_content+="  --no-conda          Skip conda environment\n\n"
+    
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init research -n \"Thermal Analysis\"\n"
+    help_content+="  dirforge init research -n \"ML Study\" -s \"Initial Model\"\n"
+    help_content+="  dirforge init research -p 2025_thermal_analysis -s \"Validation\"\n\n"
+    
+    help_content+="Use 'dirforge init research --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Research project help with directory structure and examples
 show_research_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
     
+    if [ "$mode" = "short" ]; then
+        show_research_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     # Check cache first
     local cache_key
-    cache_key=$(_cache_key "research_help" "$constitution_version")
+    cache_key=$(_cache_key "research_help_long" "$constitution_version")
     local cached_content
     if cached_content=$(_cache_get "$cache_key"); then
         display_with_pager "$cached_content"
@@ -1077,7 +1114,7 @@ show_research_help() {
     # Build help content first, then display with pager (force pager for long content)
     local help_content=""
     
-    help_content+="$(format_header "Research Project Creation" 1)"
+    help_content+="$(format_header "Research Project Creation (Detailed)" 1)"
     help_content+="\n"
     help_content+="Academic research projects with study-based organization\n"
     help_content+="Updated: 2025-12-10 (Constitution $constitution_version)\n"
@@ -1093,14 +1130,14 @@ show_research_help() {
     help_content+="$(format_header "Usage" 2)"
     help_content+="\n"
     help_content+="$(format_command "dirforge init research [options]")\n"
-    help_content+="$(format_command "dirforge init research --title \"Project Name\"")\n"
+    help_content+="$(format_command "dirforge init research --name \"Project Name\"")\n"
     help_content+="$(format_command "dirforge init research --project \"PROJECT_ID\" --study \"Study Name\"")\n"
     help_content+="\n"
     
     # Required inputs
     help_content+="$(format_header "Required Options" 2)"
     help_content+="\n"
-    help_content+="$(format_command "--title \"Project Title\"" "Create new project (converted to PROJECT-ID)")\n"
+    help_content+="$(format_command "--name \"Project Name\"" "Create new project (converted to PROJECT-ID)")\n"
     help_content+="$(format_command "--project \"PROJECT_ID\" --study \"Study Name\"" "Add study to existing project")\n"
     help_content+="\n"
     
@@ -1129,7 +1166,7 @@ show_research_help() {
     # Examples
     help_content+="$(format_header "Examples" 2)"
     
-    local examples="# Create new research project\ndirforge init research --title \"Thermal Analysis\"\n\n# Add study to existing project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Combined: create project and first study\ndirforge init research --title \"Thermal Analysis\" --study \"Initial Model\"\n\n# Custom Python version\ndirforge init research --title \"ML Study\" --python 3.12\n\n# Skip conda environment (theory-only)\ndirforge init research --title \"Theory Work\" --no-conda\n\n# Preview structure without creating\ndirforge --dry-run init research --title \"Test Project\"\n\n# Backup existing project before overwrite\ndirforge init research --title \"Existing\" --backup"
+    local examples="# Create new research project\ndirforge init research --name \"Thermal Analysis\"\n\n# Add study to existing project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Combined: create project and first study\ndirforge init research --name \"Thermal Analysis\" --study \"Initial Model\"\n\n# Custom Python version\ndirforge init research --name \"ML Study\" --python 3.12\n\n# Skip conda environment (theory-only)\ndirforge init research --name \"Theory Work\" --no-conda\n\n# Preview structure without creating\ndirforge --dry-run init research --name \"Test Project\"\n\n# Backup existing project before overwrite\ndirforge init research --name \"Existing\" --backup"
     
     # Add examples directly without title - format them manually
     help_content+="\n"
@@ -1150,14 +1187,46 @@ show_research_help() {
     display_with_pager "$help_content"
 }
 
+# Short help for lecture projects
+show_lecture_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Lecture Projects" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init lecture -n \"Course Name\"    # New lecture project\n\n"
+    
+    help_content+="$(format_header "Key Flags" 2)\n"
+    help_content+="  -n, --name          Course or lecture series name\n"
+    help_content+="  --term \"2025-spring\" Academic term\n"
+    help_content+="  --code \"PHYS101\"    Course code\n\n"
+    
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init lecture -n \"Digital Rock Physics\"\n"
+    help_content+="  dirforge init lecture -n \"Physics 101\" --code \"PHYS101\"\n\n"
+    
+    help_content+="Use 'dirforge init lecture --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Lecture project help with grading workflow documentation
 show_lecture_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
     
+    if [ "$mode" = "short" ]; then
+        show_lecture_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     # Build help content first, then display with pager (force pager for long content)
     local help_content=""
     
-    help_content+="$(format_header "Lecture Project Creation" 1)"
+    help_content+="$(format_header "Lecture Project Creation (Detailed)" 1)"
     help_content+="\n"
     help_content+="Educational content with grading workflows\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
@@ -1216,12 +1285,49 @@ show_lecture_help() {
     display_with_pager "$help_content"
 }
 
+# Short help for coding projects
+show_coding_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Coding Projects" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init coding -l <language> -p <project>    # New coding project\n\n"
+    
+    help_content+="$(format_header "Languages" 2)\n"
+    help_content+="  python, matlab, fortran, bash\n\n"
+    
+    help_content+="$(format_header "Key Flags" 2)\n"
+    help_content+="  -l, --language      Programming language\n"
+    help_content+="  -p, --project       Project name\n"
+    help_content+="  --python VERSION    Python version (default: 3.11)\n"
+    help_content+="  --no-conda          Skip conda environment\n\n"
+    
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init coding -l python -p ml_toolkit\n"
+    help_content+="  dirforge init coding -l matlab -p seismic_processing\n"
+    help_content+="  dirforge init coding -l fortran -p wave_solver\n\n"
+    
+    help_content+="Use 'dirforge init coding --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Coding project help
 show_coding_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
 
+    if [ "$mode" = "short" ]; then
+        show_coding_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     local help_content=""
-    help_content+="$(format_header "Coding Projects (CODING_WORLD)" 1)"
+    help_content+="$(format_header "Coding Projects (Detailed)" 1)"
     help_content+="\n"
     help_content+="Software development projects with language-specific tooling. Supports python, matlab, fortran, bash.\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
@@ -1240,10 +1346,10 @@ show_coding_help() {
 
     help_content+="$(format_header "Supported Languages" 2)"
     help_content+="\n"
-    help_content+="  $(format_command "python" "Python project with conda env, pyproject.toml, tests")\n"
-    help_content+="  $(format_command "matlab" "MATLAB project with functions/, tests/, data/")\n"
-    help_content+="  $(format_command "fortran" "Fortran project with Makefile and optional conda env (gfortran)")\n"
-    help_content+="  $(format_command "bash" "Shell project with executable scripts and lib/")\n"
+    help_content+="  python:     Python project with conda env, pyproject.toml, tests\n"
+    help_content+="  matlab:     MATLAB project with functions/, tests/, data/\n"
+    help_content+="  fortran:    Fortran project with Makefile and optional conda env (gfortran)\n"
+    help_content+="  bash:       Shell project with executable scripts and lib/\n"
     help_content+="\n"
 
     help_content+="$(format_header "Required Arguments" 2)"
@@ -1264,10 +1370,13 @@ show_coding_help() {
 
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
-    help_content+="$(format_example "# Python machine learning toolkit\ndirforge init coding --language python --project ml_toolkit\n# Creates: CODING_WORLD/python/ml_toolkit/\n# Conda env: coding_ml_toolkit" "Python Example")\n"
-    help_content+="$(format_example "# MATLAB seismic processing\ndirforge init coding --language matlab --project seismic_processing\n# Creates: CODING_WORLD/matlab/seismic_processing/" "MATLAB Example")\n"
-    help_content+="$(format_example "# Fortran wave solver\ndirforge init coding --language fortran --project wave_solver --python 3.10\n# Creates: CODING_WORLD/fortran/wave_solver/" "Fortran Example")\n"
-    help_content+="$(format_example "# Bash admin scripts\ndirforge init coding --language bash --project admin_scripts\n# Creates: CODING_WORLD/bash/admin_scripts/" "Bash Example")\n"
+    local examples="# Python machine learning toolkit\ndirforge init coding --language python --project ml_toolkit\n\n# MATLAB seismic processing\ndirforge init coding --language matlab --project seismic_processing\n\n# Fortran wave solver\ndirforge init coding --language fortran --project wave_solver --python 3.10\n\n# Bash admin scripts\ndirforge init coding --language bash --project admin_scripts"
+    
+    while IFS= read -r line; do
+        help_content+="  $(gray "$line")\n"
+    done <<< "$examples"
+    help_content+="\n"
+
 
     help_content+="$(format_header "Directory Structures" 2)"
     help_content+="\n"
@@ -1285,20 +1394,51 @@ show_coding_help() {
 
     help_content+="$(format_header "Constitution Compliance" 2)"
     help_content+="\n"
-    help_content+="$(dim "Constitution v1.0.17, Section III.I — CODING_WORLD")\n"
-    help_content+="The scaffolder creates language directories: matlab, python, bash, fortran (others are future phases).\n"
+    help_content+="Constitution $constitution_version, Section III.I — CODING_WORLD\n"
+    help_content+="Language directories: python, matlab, bash, fortran\n"
 
     display_with_pager "$help_content"
 }
 
+# Short help for journal projects
+show_journal_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Journal Activities" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init journal -j \"Journal Name\" -i \"ID\"    # New journal activity\n\n"
+    
+    help_content+="$(format_header "Key Flags" 2)\n"
+    help_content+="  -j, --journal       Journal name (e.g., \"Geophysics\")\n"
+    help_content+="  -i, --id            Manuscript/reviewer ID\n\n"
+    
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="  dirforge init journal -j \"Geophysics\" -i \"GEO-2025-0451\"\n"
+    help_content+="  dirforge init journal -j \"Nature Geoscience\" -i \"REVIEWER_2024_Q4\"\n\n"
+    
+    help_content+="Use 'dirforge init journal --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Journal project help
 show_journal_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
     
+    if [ "$mode" = "short" ]; then
+        show_journal_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     # Build help content first
     local help_content=""
     
-    help_content+="$(format_header "Journal Project Creation" 1)"
+    help_content+="$(format_header "Journal Project Creation (Detailed)" 1)"
     help_content+="\n"
     help_content+="All journal-related activities: submissions, reviews, editorial work\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
@@ -1333,14 +1473,41 @@ show_journal_help() {
     display_with_pager "$help_content"
 }
 
+# Short help for office projects
+show_office_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Office Documents" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init office    # Creates OFFICE_WORLD/ standard structure\n\n"
+    
+    help_content+="$(format_header "Structure" 2)\n"
+    help_content+="  00_admin, 01_finance, 02_hr_administration, 03_faculty,\n"
+    help_content+="  04_inventory_equipment, 05_software_licenses, 06_public_relations\n\n"
+    
+    help_content+="Use 'dirforge init office --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Office project help
 show_office_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
     
+    if [ "$mode" = "short" ]; then
+        show_office_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     # Build help content first
     local help_content=""
     
-    help_content+="$(format_header "Office Project Creation" 1)"
+    help_content+="$(format_header "Office Project Creation (Detailed)" 1)"
     help_content+="\n"
     help_content+="Administrative and business documents\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
@@ -1359,14 +1526,41 @@ show_office_help() {
     display_with_pager "$help_content"
 }
 
+# Short help for private projects
+show_private_help_short() {
+    local constitution_version="$1"
+    local help_content=""
+    
+    help_content+="$(format_header "Private Projects" 1)"
+    help_content+="\nConstitution $constitution_version\n\n"
+    
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="  dirforge init private    # Creates PRIVATE_WORLD/ standard structure\n\n"
+    
+    help_content+="$(format_header "Structure" 2)\n"
+    help_content+="  00_admin, 01_credentials, 02_id_contracts, 03_finance, 04_documents,\n"
+    help_content+="  05_photos, 06_movies, 07_hiking, 09_installers, 90_archive\n\n"
+    
+    help_content+="Use 'dirforge init private --help-long' for detailed documentation\n"
+    
+    echo -e "$help_content"
+}
+
 # Private project help
 show_private_help() {
-    local constitution_version="v1.0.19"
+    local mode="${1:-short}"  # default to short
+    local constitution_version="v1.0.20"
     
+    if [ "$mode" = "short" ]; then
+        show_private_help_short "$constitution_version"
+        return
+    fi
+    
+    # Long/detailed help follows
     # Build help content first
     local help_content=""
     
-    help_content+="$(format_header "Private Project Creation" 1)"
+    help_content+="$(format_header "Private Project Creation (Detailed)" 1)"
     help_content+="\n"
     help_content+="Personal projects with privacy controls\n"
     help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"

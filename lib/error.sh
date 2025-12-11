@@ -142,11 +142,11 @@ show_template_not_found_error() {
 show_research_missing_args_error() {
     local prog_name="$1"
     
-    echo "Error: Either --title (for new project) or --project and --study (for new study) must be specified" >&2
+    echo "Error: Either --name (for new project) or --project and --study (for new study) must be specified" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  # Create new project:" >&2
-    echo "  $prog_name init research --title \"Thermal Analysis\"" >&2
+    echo "  # Create new project" >&2
+    echo "  $prog_name init research --name \"Thermal Analysis\"" >&2
     echo "" >&2
     echo "  # Add study to existing project:" >&2
     echo "  $prog_name init research --project \"2025_thermal_analysis\" --study \"Initial Model\"" >&2
@@ -163,7 +163,7 @@ show_project_not_found_error() {
     echo "Error: Project '$project_id' does not exist at $project_root" >&2
     echo "" >&2
     echo "To create this project first, run:" >&2
-    echo "  dirforge init research --title \"Project Title\"" >&2
+    echo "  dirforge init research --name \"Project Name\"" >&2
 }
 
 # Show generic required argument error

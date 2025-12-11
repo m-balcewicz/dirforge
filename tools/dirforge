@@ -54,7 +54,7 @@ if [ -f "$LIB_DIR/error.sh" ]; then
     source "$LIB_DIR/error.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.19"
+CONSTITUTION_VERSION="v1.0.20"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -239,10 +239,10 @@ EOF
 }
 
 init_research() {
-  local title="${TITLE:-}" project_id="" study_name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  local name="${NAME:-}" project_id="" study_name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --title|-t) shift; title="$1";;
+      --name|-n) shift; name="$1";;
       --project|-p) shift; project_id="$1";;
       --study|-s) shift; study_name="$1";;
       --python) shift; py_ver="$1";;
@@ -258,18 +258,18 @@ init_research() {
     # Study creation mode
     init_research_study --project "$project_id" --study "$study_name"
     return
-  elif [ -n "$title" ] && [ -n "$study_name" ]; then
+  elif [ -n "$name" ] && [ -n "$study_name" ]; then
     # Combined project + study creation
     # First create project, then create study
     local args=()
-    [ -n "$title" ] && args+=(--title "$title")
+    [ -n "$name" ] && args+=(--name "$name")
     [ -n "$py_ver" ] && args+=(--python "$py_ver")
     [ "$no_conda" = true ] && args+=(--no-conda)
     [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
     init_research_project_only "${args[@]}"
     # Extract project ID from what was just created
     local id_raw
-    id_raw=$(to_snake_case "$title")
+    id_raw=$(to_snake_case "$name")
     local year
     year=$(date +%Y)
     if [[ "$id_raw" =~ ^[0-9]{4}_ ]]; then
@@ -279,10 +279,10 @@ init_research() {
     fi
     init_research_study --project "$project_id" --study "$study_name"
     return
-  elif [ -n "$title" ]; then
+  elif [ -n "$name" ]; then
     # Project creation mode
     local args=()
-    [ -n "$title" ] && args+=(--title "$title")
+    [ -n "$name" ] && args+=(--name "$name")
     [ -n "$py_ver" ] && args+=(--python "$py_ver")
     [ "$no_conda" = true ] && args+=(--no-conda)
     [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
@@ -295,10 +295,10 @@ init_research() {
 }
 
 init_research_project_only() {
-  local title="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+  local name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --title|-t) shift; title="$1";;
+      --name|-n) shift; name="$1";;
       --python) shift; py_ver="$1";;
       --no-conda) no_conda=true;;
       --conda-packages) shift; extra_pkgs="$1";;
@@ -306,11 +306,11 @@ init_research_project_only() {
     esac
     shift
   done
-  if [ -z "$title" ]; then
-    read -r -p "Project title: " title
+  if [ -z "$name" ]; then
+    read -r -p "Project name: " name
   fi
   local id_raw
-  id_raw=$(to_snake_case "$title")
+  id_raw=$(to_snake_case "$name")
   # prefix with year if not present
   local year
   year=$(date +%Y)
@@ -1186,7 +1186,7 @@ init_all_worlds() {
     echo "Constitution version: v1.0.17"
     echo
     echo "Next steps:"
-    echo "  • Create a research project: $PROG_NAME init research --title \"Project Name\""
+    echo "  • Create a research project: $PROG_NAME init research --name \"Project Name\""
     echo "  • Create a lecture: $PROG_NAME init lecture --name \"Course Name\""
     echo "  • Create a coding project: $PROG_NAME init coding --language python --project \"name\""
     echo "  • Create a journal activity: $PROG_NAME init journal --journal \"Journal Name\" --id \"MS-ID\""
@@ -1243,13 +1243,13 @@ Examples:
   $PROG_NAME init ~/myworkspace
   
   # Create specific world projects
-  $PROG_NAME init research --title "Thermal Model Analysis" --python 3.11
+  $PROG_NAME init research --name "Thermal Model Analysis" --python 3.11
   $PROG_NAME init lecture --name "Digital Rock Physics"
   $PROG_NAME init coding --language python --project ml_toolkit
   
   # Preview changes
   $PROG_NAME --dry-run init ~/test-workspace
-  $PROG_NAME --dry-run --json init research --title "Test" | jq .
+  $PROG_NAME --dry-run --json init research --name "Test" | jq .
 EOF
 }
 
@@ -1351,6 +1351,24 @@ main() {
             # Traditional world-specific init
             world="$1"
             shift
+            
+            # Check for help flags before processing world
+            case "${1:-}" in
+              --help|-h)
+                # Short help for world type
+                if declare -F show_world_help >/dev/null 2>&1; then
+                  show_world_help "$world" "short"
+                  exit 0
+                fi
+                ;;
+              --help-long)
+                # Long/detailed help for world type
+                if declare -F show_world_help >/dev/null 2>&1; then
+                  show_world_help "$world" "long"
+                  exit 0
+                fi
+                ;;
+            esac
             
             case "$world" in
               research) init_research "$@" ;;
