@@ -722,7 +722,7 @@ format_box() {
 
 # Show global help - top-level help overview for dirforge
 show_global_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Check cache first
     local cache_key
@@ -820,7 +820,7 @@ show_command_help() {
 
 # Show detailed help for the init command
 show_init_command_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Build help content first, then display with pager
     local help_content=""
@@ -922,7 +922,7 @@ show_world_help() {
 
 # Research project help with directory structure and examples
 show_research_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Check cache first
     local cache_key
@@ -1011,7 +1011,7 @@ show_research_help() {
 
 # Lecture project help with grading workflow documentation
 show_lecture_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Build help content first, then display with pager (force pager for long content)
     local help_content=""
@@ -1077,7 +1077,7 @@ show_lecture_help() {
 
 # Coding project help
 show_coding_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
 
     local help_content=""
     help_content+="$(format_header "Coding Projects (CODING_WORLD)" 1)"
@@ -1152,7 +1152,7 @@ show_coding_help() {
 
 # Journal project help
 show_journal_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Build help content first
     local help_content=""
@@ -1194,7 +1194,7 @@ show_journal_help() {
 
 # Office project help
 show_office_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Build help content first
     local help_content=""
@@ -1220,7 +1220,7 @@ show_office_help() {
 
 # Private project help
 show_private_help() {
-    local constitution_version="v1.0.18"
+    local constitution_version="v1.0.19"
     
     # Build help content first
     local help_content=""

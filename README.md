@@ -8,7 +8,7 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.18
+- **Constitution compliance**: All structures follow DirForge Constitution v1.0.19
 
 ## Installation
 
@@ -116,7 +116,7 @@ dirforge --version
 **Help System Features:**
 - **Progressive disclosure**: More detailed help as you specify context
 - **ANSI color formatting**: Enhanced readability with terminal color support
-- **Constitution compliance**: Direct references to DirForge Constitution v1.0.18
+- **Constitution compliance**: Direct references to DirForge Constitution v1.0.19
 - **Directory structure previews**: ASCII tree views of generated structures
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
@@ -408,7 +408,7 @@ Developer commands
 **Help System Architecture:**
 - Progressive disclosure: `dirforge --help` → `dirforge init --help` → `dirforge init <world> --help`
 - Terminal adaptation: Auto-detects color support, terminal width, paging capability
-- Constitution integration: Dynamic references to DirForge Constitution v1.0.18
+- Constitution integration: Dynamic references to DirForge Constitution v1.0.19
 - Performance optimization: Cached content generation for repeated calls (<200ms target)
 
 Notes & future directions

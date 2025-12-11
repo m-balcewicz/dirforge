@@ -10,3 +10,12 @@
   - 02_studies/<study_name>/02_data/
   - 02_studies/<study_name>/03_outputs/
   - 02_studies/<study_name>/04_publication/
+- Create for new research project within 01_project_management the following subdirectories:
+  - 01_proposal
+    - 01_draft
+    - 02_submission
+    - 03_review
+    - 04_final
+  - 02_finance
+  - 03_reports
+  - 04_presentations

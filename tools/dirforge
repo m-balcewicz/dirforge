@@ -54,7 +54,7 @@ if [ -f "$LIB_DIR/error.sh" ]; then
     source "$LIB_DIR/error.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.18"
+CONSTITUTION_VERSION="v1.0.19"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -242,9 +242,9 @@ init_research() {
   local title="${TITLE:-}" project_id="" study_name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --title) shift; title="$1";;
-      --project) shift; project_id="$1";;
-      --study) shift; study_name="$1";;
+      --title|-t) shift; title="$1";;
+      --project|-p) shift; project_id="$1";;
+      --study|-s) shift; study_name="$1";;
       --python) shift; py_ver="$1";;
       --no-conda) no_conda=true;;
       --conda-packages) shift; extra_pkgs="$1";;
@@ -298,7 +298,7 @@ init_research_project_only() {
   local title="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --title) shift; title="$1";;
+      --title|-t) shift; title="$1";;
       --python) shift; py_ver="$1";;
       --no-conda) no_conda=true;;
       --conda-packages) shift; extra_pkgs="$1";;
@@ -440,8 +440,8 @@ init_research_study() {
   local project_id="" study_name=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --project) shift; project_id="$1";;
-      --study) shift; study_name="$1";;
+      --project|-p) shift; project_id="$1";;
+      --study|-s) shift; study_name="$1";;
       *) echo "Unknown arg for study: $1"; exit 1;;
     esac
     shift
@@ -537,7 +537,7 @@ init_lecture() {
   local name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --name) shift; name="$1";;
+      --name|-n) shift; name="$1";;
       --python) shift; py_ver="$1";;
       --no-conda) no_conda=true;;
       --conda-packages) shift; extra_pkgs="$1";;
@@ -643,9 +643,9 @@ init_coding() {
   local no_git=false no_conda=false
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --language)
+      --language|-l)
         shift; language=$(echo "$1" | tr '[:upper:]' '[:lower:]') ;;
-      --project)
+      --project|-p)
         shift; project="$1" ;;
       --python)
         shift; py_ver="$1" ;;
@@ -905,8 +905,8 @@ init_journal() {
   local journal_name="" id=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --journal) shift; journal_name="$1";;
-      --id) shift; id="$1";;
+      --journal|-j) shift; journal_name="$1";;
+      --id|-i) shift; id="$1";;
       *) echo "Unknown arg for journal: $1"; exit 1;;
     esac
     shift

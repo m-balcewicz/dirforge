@@ -1,3 +1,23 @@
+## [1.0.19] - 2025-12-11
+
+### Added
+- **Short Flag Support**: Convenient short flags for all commands
+  - Research: `-t` (--title), `-p` (--project), `-s` (--study)
+  - Lecture: `-n` (--name)
+  - Coding: `-l` (--language), `-p` (--project)
+  - Journal: `-j` (--journal), `-i` (--id)
+  - Examples: `dirforge init research -t "Project"`, `dirforge init coding -l python -p my_tool`
+  - Improves CLI ergonomics for frequently used commands
+  - All short flags use single dash syntax (`-t`, not `--t`)
+
+### Changed
+- **Constitution Version**: Updated to v1.0.19 across all files
+- **Help System**: Updated to reference Constitution v1.0.19
+- **Documentation**: All references updated to v1.0.19
+
+### Fixed
+- **Flag Parsing**: Consistent flag handling across all world types
+
 ## [1.0.18] - 2025-12-11
 
 ### Added
