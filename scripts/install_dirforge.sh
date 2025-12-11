@@ -71,11 +71,11 @@ if [ "$INSTALL_MODE" = "system" ]; then
   cp "$SRC" "$DEST"
   chmod 755 "$DEST"
   
-  # Copy help system libraries
+  # Copy help system and error handling libraries
   if [ -d "$REPO_ROOT/lib" ]; then
     cp -r "$REPO_ROOT/lib"/* "$LIB_DEST/"
     chmod 755 "$LIB_DEST"/*.sh
-    echo "✓ Installed help system libraries to $LIB_DEST"
+    echo "✓ Installed help system and error handling libraries to $LIB_DEST"
   fi
   
   # Copy templates
@@ -99,11 +99,11 @@ else  # local mode
   cp "$SRC" "$DEST"
   chmod 755 "$DEST"
   
-  # Copy help system libraries
+  # Copy help system and error handling libraries
   if [ -d "$REPO_ROOT/lib" ]; then
     cp -r "$REPO_ROOT/lib"/* "$LIB_DIR/"
     chmod 755 "$LIB_DIR"/*.sh
-    echo "✓ Installed help system libraries to $LIB_DIR"
+    echo "✓ Installed help system and error handling libraries to $LIB_DIR"
   fi
   
   # Copy templates

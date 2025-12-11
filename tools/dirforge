@@ -50,6 +50,9 @@ fi
 if [ -f "$LIB_DIR/help.sh" ]; then
     source "$LIB_DIR/help.sh"
 fi
+if [ -f "$LIB_DIR/error.sh" ]; then
+    source "$LIB_DIR/error.sh"
+fi
 
 CONSTITUTION_VERSION="v1.0.18"
 
@@ -117,7 +120,7 @@ render_template() {
   shift 2
   # Verify template exists
   if [ ! -f "$template_file" ]; then
-    echo "ERROR: template not found: $template_file" >&2
+    show_template_not_found_error "$template_file"
     return 1
   fi
 
@@ -286,7 +289,7 @@ init_research() {
     init_research_project_only "${args[@]}"
     return
   else
-    echo "Error: Either --title (for new project) or --project and --study (for new study) must be specified" >&2
+    show_research_missing_args_error "$PROG_NAME"
     exit 1
   fi
 }
@@ -445,11 +448,11 @@ init_research_study() {
   done
 
   if [ -z "$project_id" ]; then
-    echo "Error: --project is required" >&2
+    show_required_arg_error "--project" "$PROG_NAME" "research"
     exit 1
   fi
   if [ -z "$study_name" ]; then
-    echo "Error: --study is required" >&2
+    show_required_arg_error "--study" "$PROG_NAME" "research"
     exit 1
   fi
 
@@ -457,8 +460,7 @@ init_research_study() {
   
   # Check if project exists (skip in dry-run mode for combined operations)
   if [ "$DRY_RUN" = false ] && [ ! -d "$PROJECT_ROOT" ]; then
-    echo "Error: Project '$project_id' does not exist at $PROJECT_ROOT" >&2
-    echo "Create the project first with: dirforge init research --title \"Project Title\"" >&2
+    show_project_not_found_error "$project_id" "$PROJECT_ROOT"
     exit 1
   fi
   
@@ -664,13 +666,7 @@ init_coding() {
   done
 
   if [ -z "$language" ] || [ -z "$project" ]; then
-    if [ -z "$language" ]; then
-      echo "Error: --language is required" >&2
-    fi
-    if [ -z "$project" ]; then
-      echo "Error: --project is required" >&2
-    fi
-    echo "For help: $PROG_NAME init coding --help" >&2
+    show_coding_missing_args_error "$language" "$project" "$skip_conda" "$skip_git" "$py_ver" "$PROG_NAME"
     return 1
   fi
 
@@ -678,9 +674,7 @@ init_coding() {
     python|matlab|fortran|bash)
       ;; 
     *)
-      echo "Error: Unsupported language '$language'" >&2
-      echo "Supported languages: python, matlab, fortran, bash" >&2
-      echo "For help: $PROG_NAME init coding --help" >&2
+      show_unsupported_language_error "$language" "$PROG_NAME"
       return 1
       ;;
   esac
@@ -690,8 +684,7 @@ init_coding() {
 
   if [ -d "$ROOT" ]; then
     if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
-      echo "Project '$proj_id' already exists at $ROOT" >&2
-      echo "Use --force to overwrite or --backup to create a backup before overwriting" >&2
+      show_project_exists_error "$proj_id" "$ROOT"
       return 1
     fi
     prompt_overwrite "$ROOT"
@@ -1320,7 +1313,7 @@ main() {
   
   # Validate JSON requires dry-run
   if [ "$JSON_OUTPUT" = true ] && [ "$DRY_RUN" = false ]; then
-    echo "ERROR: --json requires --dry-run" >&2
+    show_json_requires_dryrun_error
     exit 1
   fi
   

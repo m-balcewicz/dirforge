@@ -1,6 +1,12 @@
-## [1.0.18] - 2025-12-10
+## [1.0.18] - 2025-12-11
 
 ### Added
+- **Enhanced Error Handling System**: New modular error handling architecture (`lib/error.sh`)
+  - Context-aware error messages with user input echo
+  - Language-specific examples for coding projects
+  - Consistent error formatting across all world types
+  - Separation of error detection (in dirforge) and formatting (in error.sh)
+  - Improved user experience with actionable error messages
 - **Installation Wizard**: Interactive terminal-based installation wizard (`scripts/dirforge_install_wizard.sh`)
   - User-friendly installation process with system detection
   - Automatic PATH configuration
@@ -15,14 +21,28 @@
   - Multiple installation methods explained
   - Uninstallation instructions
   - System requirements and troubleshooting
+- **Updated Help Content**: Comprehensive coding world help (`templates/help/world_help_coding.txt`)
+  - Updated to reflect actual command-line options (--language, --project)
+  - Language-specific examples for python, matlab, fortran, bash
+  - Error handling documentation
 
 ### Changed
+- **Error Architecture**: Refactored error handling into dedicated `lib/error.sh` module
+  - All error messages now use consistent formatting functions
+  - Error functions are reusable across all world types
+  - Improved maintainability and testability
 - **Installation Process**: Improved user experience with wizard-based installation
 - **Documentation Structure**: Reorganized installation section for better discoverability
+- **Code Organization**: Better separation of concerns between business logic and presentation
 
 ### Fixed
+- **Template Path Resolution**: Fixed template directory detection for development and installed modes
+  - Added `TEMPLATES_DIR` variable alongside `LIB_DIR`
+  - Templates now correctly resolved from `templates/` directory
+  - Fixed "template not found" errors during research project creation
 - **Installation Feedback**: Better error messages and success confirmations
 - **PATH Detection**: Improved shell configuration detection and setup
+- **Version Consistency**: Updated all constitution version references to v1.0.18 across codebase
 
 ### Changed (BREAKING)
 - **Research World Study-Based Structure**: Complete reorganization of RESEARCH_WORLD from flat project structure to study-based organization

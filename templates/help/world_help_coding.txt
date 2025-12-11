@@ -2,41 +2,112 @@ Coding Project Creation
 =======================
 
 Software development projects (Constitution §III.I)
-Updated: 2025-12-09 (Constitution v1.0.17)
+Updated: 2025-12-11 (Constitution v1.0.18)
 
 Purpose
 -------
 
-Creates standardized software development project with version control, testing, and documentation structure.
+Creates standardized software development project with version control, testing, and documentation structure for multiple programming languages.
 
 Usage
 -----
 
   dirforge init coding [options]
-  dirforge init coding --name "project-name"
+  dirforge init coding --language python --project "project-name"
 
 Required Options
 ----------------
 
-  --name "project-name"                         Project name (kebab-case recommended)
+  --language python|matlab|fortran|bash        Programming language
+  --project "project-name"                     Project name (converted to snake_case)
 
 Optional Options
 ----------------
 
-  --lang python|javascript|rust|go             Primary language (default: python)
-  --license mit|apache|gpl3                    Software license (default: mit)
-  --no-git                                      Skip Git repository initialization
+  --python 3.11                                Python version for conda environment (Python projects only, default: 3.11)
+  --no-conda                                   Skip conda environment creation (Python/Fortran projects)
+  --no-git                                     Skip Git repository initialization
+
+Supported Languages
+-------------------
+
+  python     - Python package with setuptools, pytest, and conda environment
+  matlab     - MATLAB project with standard directory structure
+  fortran    - Fortran project with Makefile and build system
+  bash       - Bash scripting project with modular structure
+
+Naming Conventions
+------------------
+
+  Project ID Format:        <snake_case_project_name>
+  Example Input:            "Data Analysis Tool"
+  Generated ID:             data_analysis_tool
+  Conda Environment:        coding_data_analysis_tool (Python/Fortran)
+  Rules:                    ASCII lowercase [a-z0-9_-] only
+
+Directory Structure
+-------------------
+
+  CODING_WORLD/<language>/<project_id>/
+  ├── src/                        # Source code
+  ├── tests/                      # Test files
+  ├── docs/                       # Documentation
+  ├── environment.yaml            # Conda environment (Python/Fortran)
+  ├── pyproject.toml              # Python packaging (Python)
+  ├── Makefile                    # Build system (Fortran)
+  └── .gitignore                  # Version control exclusions
 
 Examples
 --------
 
-Examples:
+Python Projects:
 
-  # Python project with MIT license
-  dirforge init coding --name "data-processor" --lang python
+  # Basic Python project
+  dirforge init coding --language python --project "data_processor"
   
-  # JavaScript project
-  dirforge init coding --name "web-app" --lang javascript
+  # Python project with specific Python version
+  dirforge init coding --language python --project "ml_toolkit" --python 3.12
   
-  # Rust project with Apache license
-  dirforge init coding --name "cli-tool" --lang rust --license apache
+  # Python project without conda environment
+  dirforge init coding --language python --project "simple_script" --no-conda
+
+MATLAB Projects:
+
+  # MATLAB signal processing project
+  dirforge init coding --language matlab --project "signal_processing"
+  
+  # MATLAB finite element analysis
+  dirforge init coding --language matlab --project "finite_element_solver"
+
+Fortran Projects:
+
+  # Fortran numerical solver
+  dirforge init coding --language fortran --project "numerical_solver"
+  
+  # Fortran physics simulation
+  dirforge init coding --language fortran --project "physics_simulation" --python 3.11
+
+Bash Projects:
+
+  # Bash automation script
+  dirforge init coding --language bash --project "backup_script"
+  
+  # Bash system administration tool
+  dirforge init coding --language bash --project "system_monitor"
+
+Error Handling
+--------------
+
+The command provides detailed error messages with examples when required arguments are missing:
+
+  # Missing --project
+  dirforge init coding --language matlab
+  # Shows MATLAB-specific examples with user's options included
+
+  # Missing --language  
+  dirforge init coding --project "my_tool"
+  # Shows examples for all supported languages
+
+  # Missing both arguments
+  dirforge init coding --python 3.12
+  # Shows Python-specific example since --python was specified
