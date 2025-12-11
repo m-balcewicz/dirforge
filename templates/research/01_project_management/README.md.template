@@ -1,0 +1,37 @@
+# Project Management — {{PROJECT_NAME}}
+
+Project ID: {{PROJECT_ID}}
+
+This folder contains project-level management information for the research project.
+
+Guidance:
+- Place contracts, governance, and project-level administrative files here.
+- Use the subfolders for proposal lifecycle, finance, reports and presentations.
+
+Subfolders created by scaffolder:
+- `01_proposal/` — proposal lifecycle (draft, submission, review, final)
+- `02_finance/` — budgets, invoices, funding agreements
+- `03_reports/` — periodic and final reports
+- `04_presentations/` — slides and posters (kept flat by default)
+
+Maintain a clear naming scheme and avoid committing sensitive keys or secrets.
+# Project Management for {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+**Created:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+This directory contains all project management materials for the research project "{{PROJECT_NAME}}".
+
+## Directory Structure
+
+- `01_proposal/` - Research proposal lifecycle (draft, submission, review, final)
+- `02_finance/` - Budgets, funding applications, expense reports
+- `03_reports/` - Progress reports, milestone reports, final reports
+- `04_presentations/` - Project presentations and slides
+
+## Naming Conventions
+
+- Use lower_snake_case for file and folder names
+- Prefix files with dates when appropriate (YYYY-MM-DD_filename)
+- Keep sensitive information in secure locations</content>
+<parameter name="filePath">/Users/martin/Documents/CODING_WORLD/bash/dirforge/templates/research/01_project_management/README.md.template

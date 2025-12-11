@@ -40,20 +40,35 @@ Directory Structure
 -------------------
 
   RESEARCH_WORLD/2025_project_name/
-  ├── 01_project_management/
-  ├── 02_admin/
-  ├── 03_design_protocols/
-  ├── 04_data/
-  ├── 05_data_analysis/
-  │   └── environment.yml
-  ├── 06_data_outputs/
-  ├── 07_publication/
-  ├── 08_documentation/
+  ├── 00_admin/                   # contracts, ethics, agreements
+  ├── 01_project_management/      # proposals, budgets, reports, presentations
+  │   ├── README.md
+  │   ├── 01_proposal/
+  │   │   ├── 01_draft/
+  │   │   ├── 02_submission/
+  │   │   ├── 03_review/
+  │   │   └── 04_final/
+  │   ├── 02_finance/
+  │   ├── 03_reports/
+  │   └── 04_presentations/       # kept flat for easy previews
+  ├── 02_studies/                 # per-study workspaces (study-based organization)
   ├── .integrity/
   │   ├── checksums/
   │   └── manifests/
   ├── README.md
   └── project.yaml
+
+Project Management (01_project_management)
+------------------------------------------
+
+The `01_project_management/` folder centralizes project-level management artifacts:
+
+- `01_proposal/`: proposal lifecycle folders split into `01_draft/`, `02_submission/`, `03_review/`, and `04_final/`.
+- `02_finance/`: budgets, grant letters, invoices and financial reports.
+- `03_reports/`: periodic reports and final deliverables.
+- `04_presentations/`: slides, posters and presentation assets (by convention kept flat to simplify previews and exports).
+
+Use the README files rendered into each subfolder to document purpose and naming conventions. The scaffolder renders templates with `{{PROJECT_NAME}}` and `{{PROJECT_ID}}` placeholders.
 
 Examples
 --------

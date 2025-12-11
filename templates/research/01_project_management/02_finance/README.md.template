@@ -1,0 +1,29 @@
+# Finance — {{PROJECT_NAME}}
+
+Project ID: {{PROJECT_ID}}
+
+This folder contains budgets, funding agreements, invoices, and financial reports for the project.
+
+Guidance:
+- Store high-level budget spreadsheets, grant award letters, and invoices here.
+- Avoid committing bank account numbers or private financial credentials.
+- Use subfolders per fiscal year if needed: `2025/`, `2026/`.
+# Finance and Budget for {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+
+This directory contains all financial documents and budget information for "{{PROJECT_NAME}}".
+
+## Contents
+
+- Budget proposals and justifications
+- Funding applications and award letters
+- Expense reports and receipts
+- Financial reports and statements
+
+## Guidelines
+
+- Store original receipts and invoices securely
+- Use consistent naming conventions for financial documents
+- Keep budget vs. actual expenditure tracking</content>
+<parameter name="filePath">/Users/martin/Documents/CODING_WORLD/bash/dirforge/templates/research/01_project_management/02_finance/README.md.template
