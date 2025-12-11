@@ -5,6 +5,7 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 ## Key Features
 - **Complete workspace initialization**: Create all 6 world types at once
 - **Individual world creation**: Research, lecture, coding (with multi-language support), journal, office, private projects
+- **Parent-only mode**: Create just the parent directory (e.g., RESEARCH_WORLD/) for any world type
 - **Interactive and automated modes**: Prompts or automatic creation with flags
 - **Dry-run preview**: See what will be created before making changes
 - **JSON output**: Machine-readable plans for automation

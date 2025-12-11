@@ -13,19 +13,7 @@ Track feature requests and enhancement ideas for DirForge. Quick notes that can 
   - `02_studies/<study_name>/02_data/`
   - `02_studies/<study_name>/03_outputs/`
   - `02_studies/<study_name>/04_publication/`
-3. Create a consistent `--help` output. In the following some errors are listed:
-    - dirforge init coding --help-long ->
-        Purpose
-        -------
-            Creates standardized coding projects with language-specific tooling and best practices. Ensures
-            consistent project structures across different programming languages.
-    - dirforge init journal --help-long ->
-        Purpose
-        -------
-        Creates journal project for managing all aspects of academic publishing: your own manuscript
-        submissions, reviewer assignments, editorial responsibilities, and any journal-related
-        correspondence. Flexible structure supports diverse workflows.
-    
+3. Create a consistent `--help` output. Therefore, we need to define which sections in each `--help` and `--help-long` should be shown. In the next step remove all intendations and keep the formatting somehow "simple".
 ---
 
 ## Under Review

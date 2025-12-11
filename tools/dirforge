@@ -200,6 +200,159 @@ conda_env_exists() {
   conda info --envs 2>/dev/null | awk '{print $1}' | grep -xq "$name" || return 1
 }
 
+# Detect if init is in parent-only mode for a world-type
+# Returns 0 (true) if only <world-type> is given, no project/study flags
+# Usage: is_parent_only_mode <world-type> <args>
+is_parent_only_mode() {
+  local world_type="$1"; shift
+  # If no args, parent-only mode
+  if [ "$#" -eq 0 ]; then
+    return 0
+  fi
+  # For research: must NOT have --name, --project, --study
+  case "$world_type" in
+    research)
+      for arg in "$@"; do
+        case "$arg" in
+          --name|--project|--study|-n|-p|-s)
+            return 1
+            ;;
+        esac
+      done
+      return 0
+      ;;
+    journal)
+      # For journal, must NOT have --journal, --id, or --name
+      for arg in "$@"; do
+        case "$arg" in
+          --journal|--id|--name|-j|-i|-n)
+            return 1
+            ;;
+        esac
+      done
+      return 0
+      ;;
+    lecture)
+      # For lecture, must NOT have --name, --term, --code
+      for arg in "$@"; do
+        case "$arg" in
+          --name|--term|--code|-n)
+            return 1
+            ;;
+        esac
+      done
+      return 0
+      ;;
+    coding)
+      # For coding, must NOT have --language, --project, --name
+      for arg in "$@"; do
+        case "$arg" in
+          --language|--project|--name|-l|-p|-n)
+            return 1
+            ;;
+        esac
+      done
+      return 0
+      ;;
+    office|private)
+      # Office and private always create standard structure (no project-specific flags)
+      # Any flags would be invalid for these world types
+      return 0
+      ;;
+    *)
+      # Default: parent-only if no --name/-n
+      for arg in "$@"; do
+        case "$arg" in
+          --name|-n)
+            return 1
+            ;;
+        esac
+      done
+      return 0
+      ;;
+  esac
+}
+
+# Create only the parent directory for a given world-type (no subfolders, no prompts)
+# Usage: create_world_parent <world-type>
+create_world_parent() {
+  local world_type="$1"
+  case "$world_type" in
+    research)
+      do_mkdir_p "RESEARCH_WORLD"
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create parent directory: RESEARCH_WORLD"
+        fi
+      else
+        echo "Created parent directory: RESEARCH_WORLD"
+      fi
+      ;;
+    journal)
+      do_mkdir_p "JOURNAL_WORLD"
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create parent directory: JOURNAL_WORLD"
+        fi
+      else
+        echo "Created parent directory: JOURNAL_WORLD"
+      fi
+      ;;
+    lecture)
+      do_mkdir_p "LECTURE_WORLD"
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create parent directory: LECTURE_WORLD"
+        fi
+      else
+        echo "Created parent directory: LECTURE_WORLD"
+      fi
+      ;;
+    coding)
+      do_mkdir_p "CODING_WORLD"
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create parent directory: CODING_WORLD"
+        fi
+      else
+        echo "Created parent directory: CODING_WORLD"
+      fi
+      ;;
+    office)
+      # Office creates standard structure even in parent-only mode
+      echo "Creating OFFICE_WORLD standard folders..."
+      for d in 00_admin 01_finance 02_hr_administration 03_faculty 04_inventory_equipment 05_software_licenses 06_public_relations; do
+        do_mkdir_p "OFFICE_WORLD/$d"
+      done
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create OFFICE_WORLD/"
+        fi
+      else
+        echo "Created OFFICE_WORLD/"
+      fi
+      ;;
+    private)
+      # Private creates standard structure even in parent-only mode
+      echo "Creating PRIVATE_WORLD standard folders..."
+      for d in 00_admin 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
+        do_mkdir_p "PRIVATE_WORLD/$d"
+      done
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = false ]; then
+          echo "DRY RUN: would create PRIVATE_WORLD/"
+        fi
+      else
+        echo "Created PRIVATE_WORLD/"
+      fi
+      ;;
+    *)
+      echo "Unknown world type: $world_type" >&2
+      return 1
+      ;;
+  esac
+}
+
 create_conda_env() {
   local env_name="$1"; shift
   local py_ver="$1"; shift
@@ -309,6 +462,7 @@ init_research_project_only() {
   if [ -z "$name" ]; then
     read -r -p "Project name: " name
   fi
+  local title="$name"  # Set title for template rendering
   local id_raw
   id_raw=$(to_snake_case "$name")
   # prefix with year if not present
@@ -911,6 +1065,13 @@ init_journal() {
     esac
     shift
   done
+  
+  # T009: Error handling for invalid flag combinations
+  if [ -n "$id" ] && [ -z "$journal_name" ]; then
+    echo "Error: --id requires --journal to be specified" >&2
+    exit 1
+  fi
+  
   if [ -z "$journal_name" ]; then
     read -r -p "Journal name: " journal_name
   fi
@@ -1370,12 +1531,16 @@ main() {
                 ;;
             esac
             
-            case "$world" in
-              research) init_research "$@" ;;
-              lecture) init_lecture "$@" ;;
-              coding) init_coding "$@" ;;
-              journal) init_journal "$@" ;;
-              office)
+            # Check for parent-only mode first
+            if is_parent_only_mode "$world" "$@"; then
+              create_world_parent "$world"
+            else
+              case "$world" in
+                research) init_research "$@" ;;
+                lecture) init_lecture "$@" ;;
+                coding) init_coding "$@" ;;
+                journal) init_journal "$@" ;;
+                office)
                 echo "Creating OFFICE_WORLD standard folders..."
                 for d in 00_admin 01_finance 02_hr_administration 03_faculty 04_inventory_equipment 05_software_licenses 06_public_relations; do
                   do_mkdir_p "OFFICE_WORLD/$d"
@@ -1395,7 +1560,8 @@ main() {
                 else
                   echo "Created PRIVATE_WORLD/"
                 fi ;;
-            esac
+              esac
+            fi
             ;;
           *)
             # Initialize complete workspace (all worlds) - could be path or flags
