@@ -388,11 +388,11 @@ conda_env: "$CONDA_NAME"
 EOF
 
   # Render project management templates
-  render_template "$SCRIPT_DIR/../templates/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$SCRIPT_DIR/../templates/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$SCRIPT_DIR/../templates/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$SCRIPT_DIR/../templates/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
-  render_template "$SCRIPT_DIR/../templates/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$LIB_DIR/templates/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$LIB_DIR/templates/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$LIB_DIR/templates/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$LIB_DIR/templates/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$LIB_DIR/templates/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
 
   # Conda
   if [ "$no_conda" = false ]; then

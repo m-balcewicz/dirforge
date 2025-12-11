@@ -78,6 +78,12 @@ if [ "$INSTALL_MODE" = "system" ]; then
     echo "✓ Installed help system libraries to $LIB_DEST"
   fi
   
+  # Copy templates
+  if [ -d "$REPO_ROOT/templates" ]; then
+    cp -r "$REPO_ROOT/templates" "$LIB_DEST/"
+    echo "✓ Installed templates to $LIB_DEST"
+  fi
+  
   echo "✓ Installed to $DEST (available to all users)"
   
 else  # local mode
@@ -98,6 +104,12 @@ else  # local mode
     cp -r "$REPO_ROOT/lib"/* "$LIB_DIR/"
     chmod 755 "$LIB_DIR"/*.sh
     echo "✓ Installed help system libraries to $LIB_DIR"
+  fi
+  
+  # Copy templates
+  if [ -d "$REPO_ROOT/templates" ]; then
+    cp -r "$REPO_ROOT/templates" "$LIB_DIR/"
+    echo "✓ Installed templates to $LIB_DIR"
   fi
   
   echo "✓ Installed to $DEST"
