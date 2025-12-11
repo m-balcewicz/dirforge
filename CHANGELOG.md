@@ -8,13 +8,40 @@
   - Useful for setting up workspace structure before creating specific projects
   - Examples: `dirforge init research`, `dirforge init coding`, `dirforge init journal`
 
+- **Role-Based Journal Organization**: Complete redesign of JOURNAL_WORLD structure  
+  - **New Structure**: Four role-based directories replace journal-name organization
+    - `00_admin/`: Manual organization for subscriptions, memberships
+    - `01_primary_authorship/`: Lead author projects (`--name "paper" --first`)
+    - `02_coauthor_invites/`: Collaborative projects (`--name "paper" --coauthor`)
+    - `03_journal_service/`: Review/editorial work (`--name "journal" --id "ID" --service`)
+  - **Command Changes**: Unified `--name` flag replaces separate `--journal`/`--paper` flags
+    - Primary: `dirforge init journal --name "thermal_analysis" --first`
+    - Co-author: `dirforge init journal --name "2021_elastic_properties" --coauthor`
+    - Service: `dirforge init journal --name "Nature Geoscience" --id "NGS-2024-123" --service`
+  - **Breaking Change**: Requires manual migration from v1.0.20 journal structure
+  - **Enhanced Validation**: Comprehensive error messages with examples and guidance
+  - **Migration Support**: Complete migration documentation in help system
+
 ### Changed
 - **Help System**: Updated all world-type help to document parent-only mode
 - **Main Command Logic**: Enhanced dispatch to detect and handle parent-only mode
 - **Error Handling**: Added validation for invalid flag combinations (e.g., `--id` without `--journal`)
+- **Journal Command Interface**: Breaking change from `--journal`/`--id` to role-based flags
+  - Old: `--journal "Name" --id "ID"` → New: `--name "Name" --id "ID" --service`
+  - Added: `--first` and `--coauthor` flags for authorship roles
+  - Enhanced: `--year` flag with automatic extraction from paper names
+- **Constitution Version**: Updated to v1.0.21 with role-based journal requirements
 
 ### Fixed
 - **User Experience**: Simplified common workflow of creating world directories
+- **Journal Organization**: Clearer separation of different academic journal roles
+- **Command Consistency**: All journal commands now use unified `--name` flag pattern
+
+### Migration Notes
+- **Breaking Change**: Journal commands require flag changes and structure migration
+- **Old Structure**: `JOURNAL_WORLD/JOURNAL_NAME/ID/` no longer supported
+- **New Structure**: Role-based organization improves workflow clarity
+- Use `dirforge init journal --help` for complete migration guidance and examples
 
 ## [1.0.20] - 2025-12-11
 

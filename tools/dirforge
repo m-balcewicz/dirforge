@@ -54,7 +54,7 @@ if [ -f "$LIB_DIR/error.sh" ]; then
     source "$LIB_DIR/error.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.20"
+CONSTITUTION_VERSION="v1.0.21"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -222,10 +222,10 @@ is_parent_only_mode() {
       return 0
       ;;
     journal)
-      # For journal, must NOT have --journal, --id, or --name
+      # For journal, must NOT have project-specific flags
       for arg in "$@"; do
         case "$arg" in
-          --journal|--id|--name|-j|-i|-n)
+          --name|--id|--first|--coauthor|--service|--year|-n|-i|-f|-c|-s|-y)
             return 1
             ;;
         esac
@@ -348,6 +348,902 @@ create_world_parent() {
       ;;
     *)
       echo "Unknown world type: $world_type" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Detect if current directory is within a JOURNAL_WORLD structure
+# Returns 0 (true) if current or any parent directory contains JOURNAL_WORLD
+# Usage: is_in_journal_world
+is_in_journal_world() {
+  local current_dir
+  current_dir="$(pwd)"
+  
+  # Walk up the directory tree looking for JOURNAL_WORLD
+  while [ "$current_dir" != "/" ]; do
+    # Check if current directory IS JOURNAL_WORLD
+    if [ "$(basename "$current_dir")" = "JOURNAL_WORLD" ]; then
+      return 0
+    fi
+    
+    # Check if current directory contains JOURNAL_WORLD
+    if [ -d "$current_dir/JOURNAL_WORLD" ]; then
+      return 0
+    fi
+    
+    # Move up one directory
+    current_dir="$(dirname "$current_dir")"
+  done
+  
+  # Not found
+  return 1
+}
+
+# Validate role-based directory structure requirements
+# Returns 0 if valid, 1 if invalid (with error messages to stderr)
+# Usage: validate_journal_structure
+validate_journal_structure() {
+  # Check if we're in or have access to JOURNAL_WORLD
+  if ! is_in_journal_world; then
+    echo "Error: Not in JOURNAL_WORLD structure. Run 'dirforge init journal' first." >&2
+    return 1
+  fi
+  
+  # Find JOURNAL_WORLD root
+  local journal_root
+  journal_root="$(find_journal_world_root)"
+  if [ -z "$journal_root" ]; then
+    echo "Error: Could not locate JOURNAL_WORLD root directory." >&2
+    return 1
+  fi
+  
+  # Validate role directories exist
+  local expected_roles=("00_admin" "01_primary_authorship" "02_coauthor_invites" "03_journal_service")
+  local missing_roles=()
+  
+  for role in "${expected_roles[@]}"; do
+    if [ ! -d "$journal_root/$role" ]; then
+      missing_roles+=("$role")
+    fi
+  done
+  
+  if [ ${#missing_roles[@]} -gt 0 ]; then
+    echo "Warning: Missing role directories in JOURNAL_WORLD:" >&2
+    printf "  %s\n" "${missing_roles[@]}" >&2
+    echo "Consider running 'dirforge init journal' to create missing structure." >&2
+    return 1
+  fi
+  
+  return 0
+}
+
+# Find the JOURNAL_WORLD root directory
+# Returns the absolute path to JOURNAL_WORLD or empty if not found
+# Usage: journal_root=$(find_journal_world_root)
+find_journal_world_root() {
+  local current_dir
+  current_dir="$(pwd)"
+  
+  # Walk up the directory tree looking for JOURNAL_WORLD
+  while [ "$current_dir" != "/" ]; do
+    # Check if current directory IS JOURNAL_WORLD
+    if [ "$(basename "$current_dir")" = "JOURNAL_WORLD" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    
+    # Check if current directory contains JOURNAL_WORLD
+    if [ -d "$current_dir/JOURNAL_WORLD" ]; then
+      echo "$current_dir/JOURNAL_WORLD"
+      return 0
+    fi
+    
+    # Move up one directory
+    current_dir="$(dirname "$current_dir")"
+  done
+  
+  # Not found
+  return 1
+}
+
+# Validate paper name format and convert to valid directory name with comprehensive error messages
+# Returns 0 if valid, 1 if invalid (with detailed error to stderr)
+# Outputs sanitized name to stdout
+# Usage: sanitized_name=$(validate_paper_name "Paper Name")
+validate_paper_name() {
+  local paper_name="$1"
+  
+  # Check for empty input
+  if [ -z "$paper_name" ]; then
+    echo "Error: Paper name cannot be empty." >&2
+    echo "  Expected format: descriptive name like 'thermal_conductivity_review' or 'seismic_hazard_analysis'" >&2
+    echo "  Example: --name \"thermal_conductivity_review\"" >&2
+    return 1
+  fi
+  
+  # Check minimum length (at least 3 characters for meaningful names)
+  if [ ${#paper_name} -lt 3 ]; then
+    echo "Error: Paper name must be at least 3 characters long." >&2
+    echo "  Current: '$paper_name' (${#paper_name} characters)" >&2
+    echo "  Example: --name \"thermal_review\" (meaningful descriptive name)" >&2
+    return 1
+  fi
+  
+  # Check maximum length (filesystem limits and readability)
+  if [ ${#paper_name} -gt 200 ]; then
+    echo "Error: Paper name is too long (${#paper_name} characters, maximum 200)." >&2
+    echo "  Try using a shorter, more focused description." >&2
+    echo "  Example: Instead of a full title, use key terms like 'thermal_conductivity_review'" >&2
+    return 1
+  fi
+  
+  # Check for invalid characters with specific guidance
+  if echo "$paper_name" | grep -q '[<>:"|?*\\]'; then
+    echo "Error: Paper name contains invalid filesystem characters." >&2
+    echo "  Invalid characters found: $(echo "$paper_name" | grep -o '[<>:"|?*\\]' | tr '\n' ' ')" >&2
+    echo "  These characters are not allowed in directory names: < > : \" | ? * \\" >&2
+    echo "  Example: Use 'thermal_analysis' instead of 'thermal:analysis'" >&2
+    return 1
+  fi
+  
+  # Check for problematic patterns
+  if echo "$paper_name" | grep -q '^\.\|/$\|/\.\|\./$'; then
+    echo "Error: Paper name contains problematic path patterns." >&2
+    echo "  Cannot start with '.', end with '/', or contain './' or './'" >&2
+    echo "  Example: Use 'thermal_review' instead of './thermal_review'" >&2
+    return 1
+  fi
+  
+  # Check for multiple consecutive separators before sanitization
+  if echo "$paper_name" | grep -q '  \|__\|--\|\.\.'; then
+    echo "Warning: Paper name contains multiple consecutive separators." >&2
+    echo "  These will be cleaned up: '  ' -> '_', '__' -> '_', '--' -> '_'" >&2
+  fi
+  
+  # Check for year prefix format if provided
+  if echo "$paper_name" | grep -q '^[0-9]\{4\}_'; then
+    local year_part
+    year_part=$(echo "$paper_name" | cut -d'_' -f1)
+    if [ "$year_part" -lt 1900 ] || [ "$year_part" -gt 2100 ]; then
+      echo "Error: Year prefix '$year_part' is outside reasonable range (1900-2100)." >&2
+      echo "  Current format: '$paper_name'" >&2
+      echo "  Example: Use '2025_thermal_review' for 2025 papers" >&2
+      return 1
+    fi
+  fi
+  
+  # Check for characters beyond the allowed set: letters, numbers, spaces, hyphens, underscores
+  if echo "$paper_name" | grep -q '[^a-zA-Z0-9 _-]'; then
+    echo "Error: Paper name contains characters beyond the allowed set." >&2
+    echo "  Allowed: letters, numbers, spaces, hyphens, underscores" >&2
+    echo "  Invalid characters found: $(echo "$paper_name" | grep -o '[^a-zA-Z0-9 _-]' | tr '\n' ' ' | sed 's/ *$//')" >&2
+    echo "  Example: Use 'thermal_analysis' instead of 'thermal@analysis'" >&2
+    return 1
+  fi
+  
+  # Convert to lowercase with underscores (standard format)
+  local sanitized
+  sanitized=$(echo "$paper_name" | tr '[:upper:]' '[:lower:]' | tr ' -' '_' | sed 's/[^a-z0-9_]/_/g' | sed 's/__*/_/g' | sed 's/^_\|_$//g')
+  
+  # Check if sanitization resulted in empty string
+  if [ -z "$sanitized" ]; then
+    echo "Error: Paper name results in empty directory name after sanitization." >&2
+    echo "  Original: '$paper_name'" >&2
+    echo "  After cleanup: empty" >&2
+    echo "  Try using more letters and numbers, avoiding only special characters." >&2
+    echo "  Example: --name \"thermal_analysis\" (uses letters and underscores)" >&2
+    return 1
+  fi
+  
+  # Check if sanitized name is too short after cleanup
+  if [ ${#sanitized} -lt 2 ]; then
+    echo "Error: Paper name becomes too short after sanitization." >&2
+    echo "  Original: '$paper_name'" >&2
+    echo "  After cleanup: '$sanitized' (${#sanitized} characters)" >&2
+    echo "  Use a longer, more descriptive name with letters and numbers." >&2
+    echo "  Example: --name \"thermal_review\" (results in 'thermal_review')" >&2
+    return 1
+  fi
+  
+  # Check for reserved names that might conflict with system directories
+  case "$sanitized" in
+    "admin"|"manuscript"|"reviews"|"correspondence"|"tmp"|"temp"|"test"|"src"|"bin"|"lib"|"etc")
+      echo "Error: Paper name '$sanitized' conflicts with system directory names." >&2
+      echo "  Reserved names: admin, manuscript, reviews, correspondence, tmp, temp, test, src, bin, lib, etc" >&2
+      echo "  Example: Use 'thermal_admin_study' instead of 'admin'" >&2
+      return 1
+      ;;
+  esac
+  
+  # Success: output sanitized name
+  echo "$sanitized"
+  return 0
+}
+
+# Validate year format (4-digit YYYY)
+# Returns 0 if valid, 1 if invalid (with error to stderr)
+# Usage: validate_year_format "2025"
+validate_year_format() {
+  local year="$1"
+  
+  if [ -z "$year" ]; then
+    echo "Error: Year cannot be empty." >&2
+    return 1
+  fi
+  
+  # Check if it's exactly 4 digits
+  if ! echo "$year" | grep -q '^[0-9]\{4\}$'; then
+    echo "Error: Year must be a 4-digit number (YYYY)." >&2
+    return 1
+  fi
+  
+  # Basic sanity check for reasonable year range
+  if [ "$year" -lt 1990 ] || [ "$year" -gt 2030 ]; then
+    echo "Warning: Year '$year' seems unusual (expected 1990-2030)." >&2
+  fi
+  
+  return 0
+}
+
+# Validate journal name for service structure
+# Returns 0 if valid, 1 if invalid (with detailed error to stderr)
+# Outputs sanitized journal name to stdout
+# Usage: sanitized_journal=$(validate_journal_name "Journal Name")
+validate_journal_name() {
+  local journal_name="$1"
+  
+  # Check for empty input
+  if [ -z "$journal_name" ]; then
+    echo "Error: Journal name cannot be empty." >&2
+    echo "  Expected format: descriptive journal name like 'nature_geoscience' or 'journal_structural_geology'" >&2
+    echo "  Example: --name \"nature_geoscience\"" >&2
+    return 1
+  fi
+  
+  # Check minimum length (at least 3 characters for meaningful names)
+  if [ ${#journal_name} -lt 3 ]; then
+    echo "Error: Journal name must be at least 3 characters long." >&2
+    echo "  Current: '$journal_name' (${#journal_name} characters)" >&2
+    echo "  Example: --name \"nature\" (short journal name)" >&2
+    return 1
+  fi
+  
+  # Check maximum length (filesystem limits and readability)
+  if [ ${#journal_name} -gt 100 ]; then
+    echo "Error: Journal name is too long (${#journal_name} characters, maximum 100)." >&2
+    echo "  Try using a shorter journal name or abbreviation." >&2
+    echo "  Example: Use 'nature_geosci' instead of full journal title" >&2
+    return 1
+  fi
+  
+  # Check for invalid characters with specific guidance
+  if echo "$journal_name" | grep -q '[<>:"|?*\\]'; then
+    echo "Error: Journal name contains invalid filesystem characters." >&2
+    echo "  Invalid characters found: $(echo "$journal_name" | grep -o '[<>:"|?*\\]' | tr '\n' ' ')" >&2
+    echo "  These characters are not allowed in directory names: < > : \" | ? * \\" >&2
+    echo "  Example: Use 'nature_geoscience' instead of 'nature:geoscience'" >&2
+    return 1
+  fi
+  
+  # Convert to lowercase with underscores, removing special chars
+  local sanitized
+  sanitized=$(echo "$journal_name" | tr '[:upper:]' '[:lower:]' | tr ' -' '_' | sed 's/[^a-z0-9_]/_/g' | sed 's/__*/_/g' | sed 's/^_\|_$//g')
+  
+  # Check if sanitization resulted in empty string
+  if [ -z "$sanitized" ]; then
+    echo "Error: Journal name results in empty directory name after sanitization." >&2
+    echo "  Original: '$journal_name'" >&2
+    echo "  After cleanup: empty" >&2
+    echo "  Try using more letters and numbers, avoiding only special characters." >&2
+    echo "  Example: --name \"nature_geoscience\" (uses letters and underscores)" >&2
+    return 1
+  fi
+  
+  # Check if sanitized name is too short after cleanup
+  if [ ${#sanitized} -lt 2 ]; then
+    echo "Error: Journal name becomes too short after sanitization." >&2
+    echo "  Original: '$journal_name'" >&2
+    echo "  After cleanup: '$sanitized' (${#sanitized} characters)" >&2
+    echo "  Use a longer, more descriptive journal name with letters and numbers." >&2
+    echo "  Example: --name \"nature\" (results in 'nature')" >&2
+    return 1
+  fi
+  
+  # Success: output sanitized name
+  echo "$sanitized"
+  return 0
+}
+
+# Validate manuscript ID format for service structure
+# Returns 0 if valid, 1 if invalid (with detailed error to stderr)
+# Usage: validate_manuscript_id "GJI-S-25-0928"
+validate_manuscript_id() {
+  local manuscript_id="$1"
+  
+  # Check for empty input
+  if [ -z "$manuscript_id" ]; then
+    echo "Error: Manuscript ID cannot be empty." >&2
+    echo "  Expected format: journal manuscript ID like 'GJI-S-25-0928' or 'NATURE-2024-12345'" >&2
+    echo "  Example: --id \"GJI-S-25-0928\"" >&2
+    return 1
+  fi
+  
+  # Check minimum length (at least 3 characters for meaningful IDs)
+  if [ ${#manuscript_id} -lt 3 ]; then
+    echo "Error: Manuscript ID must be at least 3 characters long." >&2
+    echo "  Current: '$manuscript_id' (${#manuscript_id} characters)" >&2
+    echo "  Example: --id \"ABC123\" (short manuscript ID)" >&2
+    return 1
+  fi
+  
+  # Check maximum length (filesystem limits)
+  if [ ${#manuscript_id} -gt 50 ]; then
+    echo "Error: Manuscript ID is too long (${#manuscript_id} characters, maximum 50)." >&2
+    echo "  Try using a shorter manuscript ID." >&2
+    echo "  Example: Use 'GJI-2025-123' instead of very long IDs" >&2
+    return 1
+  fi
+  
+  # Check for invalid filesystem characters
+  if echo "$manuscript_id" | grep -q '[<>:"|?*\\]'; then
+    echo "Error: Manuscript ID contains invalid filesystem characters." >&2
+    echo "  Invalid characters found: $(echo "$manuscript_id" | grep -o '[<>:"|?*\\]' | tr '\n' ' ')" >&2
+    echo "  These characters are not allowed in directory names: < > : \" | ? * \\" >&2
+    echo "  Example: Use 'GJI-S-25-0928' instead of 'GJI:S:25:0928'" >&2
+    return 1
+  fi
+  
+  # Check for characters beyond the allowed set: letters, numbers, dots, hyphens, underscores
+  if echo "$manuscript_id" | grep -q '[^a-zA-Z0-9._-]'; then
+    echo "Error: Manuscript ID contains characters beyond the allowed set." >&2
+    echo "  Allowed: letters, numbers, dots, hyphens, underscores" >&2
+    echo "  Invalid characters found: $(echo "$manuscript_id" | grep -o '[^a-zA-Z0-9._-]' | tr '\n' ' ' | sed 's/ *$//')" >&2
+    echo "  Example: Use 'GJI-S-25-0928' instead of 'GJI@S@25@0928'" >&2
+    return 1
+  fi
+  
+  # Validate that it contains at least some letters or numbers (not just separators)
+  if ! echo "$manuscript_id" | grep -q '[a-zA-Z0-9]'; then
+    echo "Error: Manuscript ID must contain at least one letter or number." >&2
+    echo "  Current: '$manuscript_id' (only separators)" >&2
+    echo "  Example: --id \"GJI-123\" (contains letters and numbers)" >&2
+    return 1
+  fi
+  
+  return 0
+}
+
+# Create role-based JOURNAL_WORLD directory structure
+# Returns 0 if successful, 1 if error (with error to stderr)
+# Usage: create_journal_role_structure
+create_journal_role_structure() {
+  # Find or create JOURNAL_WORLD root
+  local journal_root
+  journal_root="$(find_journal_world_root)"
+  
+  if [ -z "$journal_root" ]; then
+    # Create JOURNAL_WORLD parent directory
+    do_mkdir_p "JOURNAL_WORLD"
+    journal_root="$(pwd)/JOURNAL_WORLD"
+    
+    if [ "$DRY_RUN" = true ]; then
+      if [ "$JSON_OUTPUT" = false ]; then
+        echo "DRY RUN: would create JOURNAL_WORLD structure"
+      fi
+    else
+      echo "Created JOURNAL_WORLD directory"
+    fi
+  fi
+  
+  # Create all role directories
+  local role_dirs=("00_admin" "01_primary_authorship" "02_coauthor_invites" "03_journal_service")
+  for role in "${role_dirs[@]}"; do
+    do_mkdir_p "$journal_root/$role"
+  done
+  
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create role-based structure in $journal_root"
+    fi
+  else
+    echo "Created role-based directory structure in $journal_root"
+  fi
+  
+  return 0
+}
+
+# Create primary authorship project directory with standard subdirectories
+# Returns 0 if successful, 1 if error (with error to stderr)
+# Usage: create_primary_authorship_project <paper_name> <year>
+create_primary_authorship_project() {
+  local paper_name="$1"
+  local year="$2"
+  
+  # Use path construction utility to build project path
+  local project_path
+  if ! project_path="$(construct_primary_authorship_path "$paper_name" "$year")"; then
+    return 1
+  fi
+  
+  # Check for conflicts (only in non-dry-run mode)
+  if [ "$DRY_RUN" = false ] && [ -d "$project_path" ]; then
+    echo "Error: Primary authorship project already exists: $project_path" >&2
+    return 1
+  fi
+  
+  # Create project directory first
+  do_mkdir_p "$project_path"
+  
+  # Create standard subdirectories with comprehensive validation
+  if ! create_standard_subdirectories "$project_path"; then
+    return 1
+  fi
+  
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create primary authorship project: $project_path"
+    fi
+  else
+    echo "Created primary authorship project: $project_path"
+  fi
+  
+  return 0
+}
+
+# Create co-author collaboration project directory with standard subdirectories  
+# Returns 0 if successful, 1 if error (with error to stderr)
+# Usage: create_coauthor_project <paper_name> <year>
+create_coauthor_project() {
+  local paper_name="$1"
+  local year="$2"
+  
+  # Use path construction utility to build project path
+  local project_path
+  if ! project_path="$(construct_coauthor_path "$paper_name" "$year")"; then
+    return 1
+  fi
+  
+  # Check for conflicts (only in non-dry-run mode)
+  if [ "$DRY_RUN" = false ] && [ -d "$project_path" ]; then
+    echo "Error: Co-author project already exists: $project_path" >&2
+    return 1
+  fi
+  
+  # Create project directory first
+  do_mkdir_p "$project_path"
+  
+  # Create standard subdirectories with comprehensive validation
+  if ! create_standard_subdirectories "$project_path"; then
+    return 1
+  fi
+  
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create co-author project: $project_path"
+    fi
+  else
+    echo "Created co-author project: $project_path"
+  fi
+  
+  return 0
+}
+
+# Create journal service project directory with two-level structure
+# Returns 0 if successful, 1 if error (with error to stderr)
+# Usage: create_journal_service_project <journal_name> <manuscript_id>
+create_journal_service_project() {
+  local journal_name="$1"
+  local manuscript_id="$2"
+  
+  # Use path construction utility to build project path
+  local project_path
+  if ! project_path="$(construct_service_path "$journal_name" "$manuscript_id")"; then
+    return 1
+  fi
+  
+  # Check for conflicts (only in non-dry-run mode)
+  if [ "$DRY_RUN" = false ] && [ -d "$project_path" ]; then
+    echo "Error: Journal service project already exists: $project_path" >&2
+    return 1
+  fi
+  
+  # Create project directory first
+  do_mkdir_p "$project_path"
+  
+  # Create standard subdirectories with comprehensive validation
+  if ! create_standard_subdirectories "$project_path"; then
+    return 1
+  fi
+  
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would create journal service project: $project_path"
+    fi
+  else
+    echo "Created journal service project: $project_path"
+  fi
+  
+  return 0
+}
+
+# Extract year from paper name if embedded (YYYY_ prefix format)
+# Returns extracted year or current year as fallback
+# Usage: year=$(extract_year_from_paper_name "2021_elastic_properties")
+extract_year_from_paper_name() {
+  local paper_name="$1"
+  
+  # Check for YYYY_ prefix pattern
+  if echo "$paper_name" | grep -q '^[0-9]\{4\}_'; then
+    # Extract the year prefix
+    echo "$paper_name" | cut -d'_' -f1
+  else
+    # Return current year as default
+    date +%Y
+  fi
+}
+
+# Strip year prefix from paper name if present
+# Returns paper name without year prefix
+# Usage: clean_name=$(strip_year_from_paper_name "2021_elastic_properties")
+strip_year_from_paper_name() {
+  local paper_name="$1"
+  
+  # Check for YYYY_ prefix pattern
+  if echo "$paper_name" | grep -q '^[0-9]\{4\}_'; then
+    # Remove the year prefix
+    echo "$paper_name" | sed 's/^[0-9]\{4\}_//'
+  else
+    # Return unchanged if no year prefix
+    echo "$paper_name"
+  fi
+}
+
+# Role-based path construction utilities
+# These functions implement the Path Resolution Algorithm from the contracts
+
+# Construct primary authorship project path
+# Returns the full path to the project directory
+# Usage: path=$(construct_primary_authorship_path <paper_name> <year>)
+construct_primary_authorship_path() {
+  local paper_name="$1"
+  local year="$2"
+  local journal_root="${3:-}"
+  
+  # Validate inputs
+  local sanitized_name
+  if ! sanitized_name="$(validate_paper_name "$paper_name")"; then
+    return 1
+  fi
+  
+  if ! validate_year_format "$year"; then
+    return 1
+  fi
+  
+  # Use provided journal root or find it
+  if [ -z "$journal_root" ]; then
+    journal_root="$(find_journal_world_root)"
+    if [ -z "$journal_root" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        journal_root="$(pwd)/JOURNAL_WORLD"
+      else
+        echo "Error: JOURNAL_WORLD not found" >&2
+        return 1
+      fi
+    fi
+  fi
+  
+  # Algorithm: "01_primary_authorship/{year}_{paper_name}/"
+  echo "$journal_root/01_primary_authorship/${year}_${sanitized_name}"
+  return 0
+}
+
+# Construct co-author collaboration project path
+# Returns the full path to the project directory  
+# Usage: path=$(construct_coauthor_path <paper_name> <year>)
+construct_coauthor_path() {
+  local paper_name="$1"
+  local year="$2"
+  local journal_root="${3:-}"
+  
+  # Validate inputs
+  local sanitized_name
+  if ! sanitized_name="$(validate_paper_name "$paper_name")"; then
+    return 1
+  fi
+  
+  if ! validate_year_format "$year"; then
+    return 1
+  fi
+  
+  # Use provided journal root or find it
+  if [ -z "$journal_root" ]; then
+    journal_root="$(find_journal_world_root)"
+    if [ -z "$journal_root" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        journal_root="$(pwd)/JOURNAL_WORLD"
+      else
+        echo "Error: JOURNAL_WORLD not found" >&2
+        return 1
+      fi
+    fi
+  fi
+  
+  # Algorithm: "02_coauthor_invites/{year}_{paper_name}/"
+  echo "$journal_root/02_coauthor_invites/${year}_${sanitized_name}"
+  return 0
+}
+
+# Construct journal service project path
+# Returns the full path to the project directory
+# Usage: path=$(construct_service_path <journal_name> <manuscript_id>)
+construct_service_path() {
+  local journal_name="$1"
+  local manuscript_id="$2"
+  local journal_root="${3:-}"
+  
+  # Validate inputs
+  local sanitized_journal
+  if ! sanitized_journal="$(validate_journal_name "$journal_name")"; then
+    return 1
+  fi
+  
+  if ! validate_manuscript_id "$manuscript_id"; then
+    return 1
+  fi
+  
+  # Use provided journal root or find it
+  if [ -z "$journal_root" ]; then
+    journal_root="$(find_journal_world_root)"
+    if [ -z "$journal_root" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        journal_root="$(pwd)/JOURNAL_WORLD"
+      else
+        echo "Error: JOURNAL_WORLD not found" >&2
+        return 1
+      fi
+    fi
+  fi
+  
+  # Algorithm: "03_journal_service/{journal_lower}/{manuscript_id}/"
+  echo "$journal_root/03_journal_service/${sanitized_journal}/${manuscript_id}"
+  return 0
+}
+
+# Construct standard subdirectory paths for any journal project
+# Returns array of subdirectory paths  
+# Usage: subdirs=($(construct_standard_subdirs <project_path>))
+construct_standard_subdirs() {
+  local project_path="$1"
+  
+  if [ -z "$project_path" ]; then
+    echo "Error: Project path cannot be empty" >&2
+    return 1
+  fi
+  
+  # Standard subdirectories according to contracts
+  echo "$project_path/01_manuscript"
+  echo "$project_path/02_reviews"
+  echo "$project_path/03_correspondence"
+  return 0
+}
+
+# Create standard subdirectories with comprehensive permission and conflict validation
+# Returns 0 if successful, 1 if error (with detailed error messages to stderr)
+# Usage: create_standard_subdirectories <project_path> [--force-overwrite]
+create_standard_subdirectories() {
+  local project_path="$1"
+  local force_overwrite=false
+  
+  # Parse optional arguments
+  shift
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --force-overwrite)
+        force_overwrite=true
+        ;;
+      *)
+        echo "Error: Unknown argument to create_standard_subdirectories: $1" >&2
+        return 1
+        ;;
+    esac
+    shift
+  done
+  
+  if [ -z "$project_path" ]; then
+    echo "Error: Project path cannot be empty" >&2
+    return 1
+  fi
+  
+  # Validate project path exists or can be created
+  if [ "$DRY_RUN" = false ]; then
+    if [ ! -d "$project_path" ]; then
+      echo "Error: Project directory does not exist: $project_path" >&2
+      return 1
+    fi
+    
+    # Check write permission on project directory
+    if [ ! -w "$project_path" ]; then
+      echo "Error: No write permission for project directory: $project_path" >&2
+      return 1
+    fi
+  fi
+  
+  # Get standard subdirectory paths
+  local subdirs
+  subdirs=($(construct_standard_subdirs "$project_path"))
+  if [ $? -ne 0 ]; then
+    return 1
+  fi
+  
+  # Check for conflicts and permission issues
+  local conflicts=()
+  local permission_issues=()
+  
+  for subdir in "${subdirs[@]}"; do
+    if [ "$DRY_RUN" = false ]; then
+      # Check if subdirectory already exists
+      if [ -d "$subdir" ]; then
+        if [ "$force_overwrite" = false ]; then
+          conflicts+=("$subdir")
+        fi
+      fi
+      
+      # Check if parent directory is writable
+      local parent_dir
+      parent_dir="$(dirname "$subdir")"
+      if [ -d "$parent_dir" ] && [ ! -w "$parent_dir" ]; then
+        permission_issues+=("$parent_dir (cannot create $subdir)")
+      fi
+      
+      # Check if subdirectory exists but is not a directory (e.g., a file)
+      if [ -e "$subdir" ] && [ ! -d "$subdir" ]; then
+        echo "Error: Path exists but is not a directory: $subdir" >&2
+        return 1
+      fi
+    fi
+  done
+  
+  # Report conflicts if any
+  if [ ${#conflicts[@]} -gt 0 ]; then
+    echo "Error: Standard subdirectories already exist:" >&2
+    for conflict in "${conflicts[@]}"; do
+      echo "  $conflict" >&2
+    done
+    echo "Use --force-overwrite to proceed anyway, or remove existing directories." >&2
+    return 1
+  fi
+  
+  # Report permission issues if any
+  if [ ${#permission_issues[@]} -gt 0 ]; then
+    echo "Error: Permission denied for subdirectory creation:" >&2
+    for issue in "${permission_issues[@]}"; do
+      echo "  $issue" >&2
+    done
+    echo "Check directory permissions and ownership." >&2
+    return 1
+  fi
+  
+  # Create subdirectories
+  for subdir in "${subdirs[@]}"; do
+    do_mkdir_p "$subdir"
+  done
+  
+  # Validate creation success (in non-dry-run mode)
+  if [ "$DRY_RUN" = false ]; then
+    local creation_failures=()
+    for subdir in "${subdirs[@]}"; do
+      if [ ! -d "$subdir" ]; then
+        creation_failures+=("$subdir")
+      fi
+    done
+    
+    if [ ${#creation_failures[@]} -gt 0 ]; then
+      echo "Error: Failed to create subdirectories:" >&2
+      for failure in "${creation_failures[@]}"; do
+        echo "  $failure" >&2
+      done
+      return 1
+    fi
+    
+    # Verify permissions on created directories
+    local permission_failures=()
+    for subdir in "${subdirs[@]}"; do
+      if [ ! -w "$subdir" ] || [ ! -r "$subdir" ]; then
+        permission_failures+=("$subdir")
+      fi
+    done
+    
+    if [ ${#permission_failures[@]} -gt 0 ]; then
+      echo "Warning: Created subdirectories have unexpected permissions:" >&2
+      for failure in "${permission_failures[@]}"; do
+        echo "  $failure (check read/write permissions)" >&2
+      done
+      # Don't return error for this - it's a warning
+    fi
+  fi
+  
+  return 0
+}
+
+# Validate role-based path structure
+# Returns 0 if valid role-based path, 1 if invalid  
+# Usage: validate_role_path <path>
+validate_role_path() {
+  local path="$1"
+  
+  if [ -z "$path" ]; then
+    echo "Error: Path cannot be empty" >&2
+    return 1
+  fi
+  
+  # Check if path contains JOURNAL_WORLD
+  if ! echo "$path" | grep -q "JOURNAL_WORLD"; then
+    echo "Error: Path must be within JOURNAL_WORLD structure" >&2
+    return 1
+  fi
+  
+  # Check for valid role directory pattern
+  if echo "$path" | grep -q "JOURNAL_WORLD/01_primary_authorship/[0-9]\{4\}_[a-z0-9_]\+"; then
+    return 0  # Primary authorship path
+  elif echo "$path" | grep -q "JOURNAL_WORLD/02_coauthor_invites/[0-9]\{4\}_[a-z0-9_]\+"; then
+    return 0  # Co-author path
+  elif echo "$path" | grep -q "JOURNAL_WORLD/03_journal_service/[a-z0-9_]\+/[a-zA-Z0-9._-]\+"; then
+    return 0  # Journal service path
+  elif echo "$path" | grep -q "JOURNAL_WORLD/00_admin"; then
+    return 0  # Admin path (manual creation)
+  else
+    echo "Error: Path does not match any valid role-based pattern" >&2
+    return 1
+  fi
+}
+
+# Extract role type from journal path
+# Returns role name (primary_authorship, coauthor_invites, journal_service, admin)
+# Usage: role=$(extract_role_from_path <path>)
+extract_role_from_path() {
+  local path="$1"
+  
+  if [ -z "$path" ]; then
+    echo "Error: Path cannot be empty" >&2
+    return 1
+  fi
+  
+  if echo "$path" | grep -q "/01_primary_authorship/"; then
+    echo "primary_authorship"
+  elif echo "$path" | grep -q "/02_coauthor_invites/"; then
+    echo "coauthor_invites"
+  elif echo "$path" | grep -q "/03_journal_service/"; then
+    echo "journal_service"
+  elif echo "$path" | grep -q "/00_admin/"; then
+    echo "admin"
+  else
+    echo "Error: Cannot determine role from path: $path" >&2
+    return 1
+  fi
+}
+
+# Get the role directory for a given role type
+# Returns the role directory name (e.g., "01_primary_authorship")
+# Usage: role_dir=$(get_role_directory <role_name>)
+get_role_directory() {
+  local role_name="$1"
+  
+  case "$role_name" in
+    primary_authorship|primary|first)
+      echo "01_primary_authorship"
+      ;;
+    coauthor_invites|coauthor|collaboration)
+      echo "02_coauthor_invites" 
+      ;;
+    journal_service|service|editorial)
+      echo "03_journal_service"
+      ;;
+    admin|administrative)
+      echo "00_admin"
+      ;;
+    *)
+      echo "Error: Unknown role name: $role_name" >&2
       return 1
       ;;
   esac
@@ -1056,66 +1952,266 @@ EOF
 }
 
 init_journal() {
-  local journal_name="" id=""
+  # Handle help flags first before processing any other arguments (T034)
+  for arg in "$@"; do
+    case "$arg" in
+      --help|-h)
+        # Short journal help
+        if declare -F show_journal_help >/dev/null 2>&1; then
+          show_journal_help "short"
+        else
+          echo "Usage: $PROG_NAME init journal [OPTIONS]"
+          echo "Options:"
+          echo "  --name <name>       Name for paper (authorship) or journal (service)"
+          echo "  --first             Primary authorship flag"
+          echo "  --coauthor          Co-author collaboration flag"  
+          echo "  --service           Journal service flag (requires --id)"
+          echo "  --year <YYYY>       Year for authorship projects (default: current/extracted)"
+          echo "  --id <id>           Manuscript identifier (required with --service)"
+        fi
+        return 0
+        ;;
+      --help-long)
+        # Detailed journal help
+        if declare -F show_journal_help >/dev/null 2>&1; then
+          show_journal_help "long"
+        else
+          echo "Journal Role-Based Organization (Detailed Help)"
+          echo "============================================="
+          echo ""
+          echo "Creates role-based journal organization for managing academic publishing workflows."
+          echo ""
+          echo "Usage patterns:"
+          echo "  Primary authorship: $PROG_NAME init journal --name <paper_name> --first [--year <YYYY>]"
+          echo "  Co-author project:  $PROG_NAME init journal --name <paper_name> --coauthor [--year <YYYY>]"
+          echo "  Journal service:    $PROG_NAME init journal --name <journal_name> --id <manuscript_id> --service"
+          echo ""
+          echo "For comprehensive help, ensure help system is properly installed."
+        fi
+        return 0
+        ;;
+    esac
+  done
+  
+  # Parse command-line arguments for role-based journal structure
+  local name="" manuscript_id="" year=""
+  local is_first=false is_coauthor=false is_service=false
+  
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --journal|-j) shift; journal_name="$1";;
-      --id|-i) shift; id="$1";;
-      *) echo "Unknown arg for journal: $1"; exit 1;;
+      --name|-n)
+        shift
+        if [ $# -eq 0 ] || [ -z "${1:-}" ]; then
+          echo "Error: --name requires a value (paper name or journal name)" >&2
+          echo "" >&2
+          echo "Examples:" >&2
+          echo "  dirforge init journal --name \"thermal_analysis\" --first" >&2
+          echo "  dirforge init journal --name \"Geophysics\" --id \"GEO-2025-0451\" --service" >&2
+          echo "" >&2
+          echo "For help: dirforge init journal --help" >&2
+          exit 1
+        fi
+        name="$1"
+        ;;
+      --first|-f)
+        is_first=true
+        ;;
+      --coauthor|-c)
+        is_coauthor=true
+        ;;
+      --service|-s)
+        is_service=true
+        ;;
+      --year|-y)
+        shift
+        if [ $# -eq 0 ] || [ -z "${1:-}" ]; then
+          echo "Error: --year requires a 4-digit year (YYYY)" >&2
+          echo "" >&2
+          echo "Examples:" >&2
+          echo "  dirforge init journal --name \"my_paper\" --first --year 2024" >&2
+          echo "  dirforge init journal --name \"collaboration\" --coauthor --year 2023" >&2
+          echo "" >&2
+          echo "Note: If not specified, current year (2025) will be used" >&2
+          echo "      Year can also be embedded in paper name: '2024_paper_name'" >&2
+          exit 1
+        fi
+        year="$1"
+        ;;
+      --id|-i)
+        shift
+        if [ $# -eq 0 ] || [ -z "${1:-}" ]; then
+          echo "Error: --id requires a manuscript identifier" >&2
+          echo "" >&2
+          echo "Examples:" >&2
+          echo "  dirforge init journal --name \"Geophysics\" --id \"GEO-2025-0451\" --service" >&2
+          echo "  dirforge init journal --name \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\" --service" >&2
+          echo "" >&2
+          echo "Valid ID formats: letters, numbers, hyphens, underscores, dots" >&2
+          echo "Example IDs: GEO-2025-0451, REVIEWER_2024_Q4, SPECIAL-ISSUE-2025" >&2
+          exit 1
+        fi
+        manuscript_id="$1"
+        ;;
+      --help|-h|--help-long)
+        # Skip these as they're already handled above
+        echo "Internal error: help flags should have been handled earlier" >&2
+        exit 1
+        ;;
+      *)
+        echo "Error: Unknown argument for journal command: $1" >&2
+        echo "" >&2
+        echo "Valid journal flags:" >&2
+        echo "  --name <name>       Name for paper (authorship) or journal (service)" >&2
+        echo "  --first             Primary authorship flag" >&2
+        echo "  --coauthor          Co-author collaboration flag" >&2
+        echo "  --service           Journal service flag (requires --id)" >&2
+        echo "  --year <YYYY>       Year for authorship projects (optional)" >&2
+        echo "  --id <manuscript_id> Manuscript identifier for service projects" >&2
+        echo "  --help, -h          Show help" >&2
+        echo "  --help-long         Show detailed help" >&2
+        echo "" >&2
+        echo "Usage patterns:" >&2
+        echo "  Primary authorship: $PROG_NAME init journal --name <paper_name> --first [--year <YYYY>]" >&2
+        echo "  Co-author project:  $PROG_NAME init journal --name <paper_name> --coauthor [--year <YYYY>]" >&2
+        echo "  Journal service:    $PROG_NAME init journal --name <journal_name> --id <manuscript_id> --service" >&2
+        echo "" >&2
+        echo "For comprehensive help: $PROG_NAME init journal --help" >&2
+        exit 1
+        ;;
     esac
     shift
   done
   
-  # T009: Error handling for invalid flag combinations
-  if [ -n "$id" ] && [ -z "$journal_name" ]; then
-    echo "Error: --id requires --journal to be specified" >&2
+  # Validate flag combinations and requirements
+  local mode_count=0
+  if [ "$is_first" = true ]; then mode_count=$((mode_count + 1)); fi
+  if [ "$is_coauthor" = true ]; then mode_count=$((mode_count + 1)); fi
+  if [ "$is_service" = true ]; then mode_count=$((mode_count + 1)); fi
+  
+  if [ $mode_count -eq 0 ]; then
+    echo "Error: Must specify one journal role: --first, --coauthor, or --service" >&2
+    echo "" >&2
+    echo "Choose your journal role:" >&2
+    echo "  --first      Primary authorship (your papers as lead author)" >&2
+    echo "  --coauthor   Co-author collaboration (joint projects)" >&2
+    echo "  --service    Journal service (reviews, editorial work)" >&2
+    echo "" >&2
+    echo "Complete command examples:" >&2
+    echo "  $PROG_NAME init journal --name \"thermal_analysis\" --first" >&2
+    echo "  $PROG_NAME init journal --name \"joint_study\" --coauthor" >&2
+    echo "  $PROG_NAME init journal --name \"Geophysics\" --id \"GEO-2025-0451\" --service" >&2
+    echo "" >&2
+    echo "For detailed help: $PROG_NAME init journal --help" >&2
     exit 1
   fi
   
-  if [ -z "$journal_name" ]; then
-    read -r -p "Journal name: " journal_name
-  fi
-  if [ -z "$id" ]; then
-    read -r -p "Manuscript ID: " id
-  fi
-
-  # Convert to UPPER_SNAKE_CASE: transliterate, uppercase, replace non-alnum with underscore
-  local jtmp journal_u
-  if command -v iconv >/dev/null 2>&1; then
-    jtmp=$(printf "%s" "$journal_name" | iconv -f utf8 -t ascii//TRANSLIT 2>/dev/null)
-  else
-    jtmp="$journal_name"
-  fi
-  journal_u=$(printf "%s" "$jtmp" | tr '[:lower:]' '[:upper:]' | sed -E 's/[^A-Z0-9]+/_/g' | sed -E 's/^_+|_+$//g')
-
-  JOURNAL_ROOT="JOURNAL_WORLD/$journal_u/$id"
-  if [ -d "$JOURNAL_ROOT" ]; then
-    echo "Journal manuscript already exists at $JOURNAL_ROOT" >&2
+  if [ $mode_count -gt 1 ]; then
+    echo "Error: Cannot combine multiple journal role flags (--first, --coauthor, --service)" >&2
+    echo "" >&2
+    echo "Journal roles are mutually exclusive. Choose exactly one:" >&2
+    echo "" >&2
+    echo "  For YOUR papers (lead author):" >&2
+    echo "    $PROG_NAME init journal --name \"paper_name\" --first" >&2
+    echo "" >&2
+    echo "  For COLLABORATIVE projects:" >&2
+    echo "    $PROG_NAME init journal --name \"project_name\" --coauthor" >&2
+    echo "" >&2
+    echo "  For JOURNAL SERVICE (reviews/editorial):" >&2
+    echo "    $PROG_NAME init journal --name \"Journal Name\" --id \"MANUSCRIPT_ID\" --service" >&2
+    echo "" >&2
+    echo "Each command creates content in a different organizational directory." >&2
+    echo "For help: $PROG_NAME init journal --help" >&2
     exit 1
   fi
-
-  do_mkdir_p "$JOURNAL_ROOT/manuscript" "$JOURNAL_ROOT/reviews" "$JOURNAL_ROOT/correspondence"
-
-  write_file "$JOURNAL_ROOT/README.md" <<'EOF'
-# $journal_u / $id
-
-Created: $(date --iso-8601=seconds)
-Journal: $journal_name
-Manuscript ID: $id
-EOF
-
-  write_file "$JOURNAL_ROOT/project.yaml" <<'EOF'
-journal_name: "$journal_u"
-manuscript_id: "$id"
-created: "$(date +%Y-%m-%d)"
-EOF
-
-  if [ "$DRY_RUN" = true ]; then
-    if [ "$JSON_OUTPUT" = false ]; then
-      echo "DRY RUN: would create journal manuscript: $JOURNAL_ROOT"
+  
+  # Validate required arguments for each mode
+  if [ "$is_first" = true ] || [ "$is_coauthor" = true ]; then
+    if [ -z "$name" ]; then
+      echo "Error: --name is required for primary authorship and co-author projects" >&2
+      echo "" >&2
+      echo "Provide a descriptive paper name:" >&2
+      echo "  $PROG_NAME init journal --name \"thermal_conductivity_analysis\" --first" >&2
+      echo "  $PROG_NAME init journal --name \"2024_joint_reservoir_study\" --coauthor" >&2
+      echo "" >&2
+      echo "Paper names are automatically formatted for directory structure." >&2
+      echo "Special characters and spaces are converted to underscores." >&2
+      echo "Embedded years (YYYY_) are automatically detected and extracted." >&2
+      exit 1
     fi
-  else
-    echo "Created journal manuscript: $JOURNAL_ROOT"
+    
+    if [ -n "$manuscript_id" ]; then
+      echo "Error: --id flag is only valid for journal service projects (--service)" >&2
+      echo "" >&2
+      echo "You're creating an authorship project. Remove --id and use:" >&2
+      if [ "$is_first" = true ]; then
+        echo "  $PROG_NAME init journal --name \"$name\" --first"
+      else
+        echo "  $PROG_NAME init journal --name \"$name\" --coauthor"
+      fi
+      echo "" >&2
+      echo "Manuscript IDs are only needed for journal service activities:" >&2
+      echo "  $PROG_NAME init journal --name \"Journal Name\" --id \"MANUSCRIPT_ID\" --service" >&2
+      exit 1
+    fi
+  fi
+  
+  if [ "$is_service" = true ]; then
+    if [ -z "$name" ] || [ -z "$manuscript_id" ]; then
+      echo "Error: Journal service requires both --name and --id flags" >&2
+      echo "" >&2
+      echo "Required for journal service:" >&2
+      echo "  --name <journal_name>     Name of the journal (e.g., \"Geophysics\")" >&2
+      echo "  --id <manuscript_id>      Manuscript identifier from journal" >&2
+      echo "" >&2
+      echo "Complete examples:" >&2
+      echo "  $PROG_NAME init journal --name \"Geophysics\" --id \"GEO-2025-0451\" --service" >&2
+      echo "  $PROG_NAME init journal --name \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\" --service" >&2
+      echo "  $PROG_NAME init journal --name \"JGR Solid Earth\" --id \"EDITORIAL_BOARD_2025\" --service" >&2
+      echo "" >&2
+      echo "This creates: 03_journal_service/journal_name/MANUSCRIPT_ID/" >&2
+      exit 1
+    fi
+    
+    if [ -n "$year" ]; then
+      echo "Error: --year flag is only valid for authorship projects (--first, --coauthor)" >&2
+      echo "" >&2
+      echo "Journal service projects don't use --year. Remove it:" >&2
+      echo "  $PROG_NAME init journal --name \"$name\" --id \"$manuscript_id\" --service" >&2
+      echo "" >&2
+      echo "Year specification is for authorship projects only:" >&2
+      echo "  $PROG_NAME init journal --name \"paper_name\" --first --year 2024" >&2
+      echo "  $PROG_NAME init journal --name \"project_name\" --coauthor --year 2023" >&2
+      echo "" >&2
+      echo "Journal service uses manuscript IDs for temporal organization." >&2
+      exit 1
+    fi
+  fi
+  
+  # Ensure JOURNAL_WORLD structure exists
+  if ! is_in_journal_world; then
+    # Create role-based structure
+    create_journal_role_structure || exit 1
+  fi
+  
+  # Handle year logic for authorship projects
+  if [ "$is_first" = true ] || [ "$is_coauthor" = true ]; then
+    local paper_name="$name"
+    if [ -z "$year" ]; then
+      # Extract year from paper name or use current year
+      year=$(extract_year_from_paper_name "$paper_name")
+      paper_name=$(strip_year_from_paper_name "$paper_name")
+    fi
+    
+    # Execute the appropriate creation function for authorship
+    if [ "$is_first" = true ]; then
+      create_primary_authorship_project "$paper_name" "$year" || exit 1
+    elif [ "$is_coauthor" = true ]; then
+      create_coauthor_project "$paper_name" "$year" || exit 1
+    fi
+  elif [ "$is_service" = true ]; then
+    # For service mode, name is the journal name
+    local journal_name="$name"
+    create_journal_service_project "$journal_name" "$manuscript_id" || exit 1
   fi
 }
 
@@ -1344,7 +2440,7 @@ init_all_worlds() {
     echo "  PRIVATE_WORLD/          (with 10 subfolders)"
     echo "  RESEARCH_WORLD/         (empty - use 'dirforge init research' to create projects)"
     echo
-    echo "Constitution version: v1.0.17"
+    echo "Constitution version: v1.0.21"
     echo
     echo "Next steps:"
     echo "  • Create a research project: $PROG_NAME init research --name \"Project Name\""
