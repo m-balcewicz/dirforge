@@ -1,0 +1,22 @@
+# Presentations — {{PROJECT_NAME}}
+
+Project ID: {{PROJECT_ID}}
+
+This folder contains slides, posters, and related presentation materials. By convention this folder should be kept flat (no nested subfolders) so that export tools and web previews can show assets directly.
+
+Guidance:
+- Name files clearly: `YYYYMMDD_event_title_v1.pptx` or `poster_event_title.pdf`.
+- Keep source files and exported PDFs together where helpful, but avoid deep nesting.
+# Presentations for {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+
+This directory contains presentation materials and slides for "{{PROJECT_NAME}}".
+
+## Guidelines
+
+- Store presentation files (PowerPoint, Keynote, PDF) here
+- Include dates and event names in file names
+- Keep both working files and exported PDFs
+- Note: This directory should remain flat (no subdirectories)</content>
+<parameter name="filePath">/Users/martin/Documents/CODING_WORLD/bash/dirforge/templates/research/01_project_management/04_presentations/README.md.template

@@ -95,6 +95,30 @@ write_file() {
   fi
 }
 
+render_template() {
+  # usage: render_template <template_file> <dest> [VAR=value ...]
+  local template_file="$1"
+  local dest="$2"
+  shift 2
+  # Verify template exists
+  if [ ! -f "$template_file" ]; then
+    echo "ERROR: template not found: $template_file" >&2
+    return 1
+  fi
+
+  local content
+  content=$(cat "$template_file")
+  for var in "$@"; do
+    local name="${var%%=*}"
+    local value="${var#*=}"
+    # Escape backslashes, pipes and ampersands for safe sed substitution
+    local esc
+    esc=$(printf '%s' "$value" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\&/g')
+    content=$(printf "%s" "$content" | sed "s|{{${name}}}|${esc}|g")
+  done
+  write_file "$dest" <<< "$content"
+}
+
 to_snake_case() {
   # Convert a string to lower_snake_case: transliterate, lowercase, replace non-alnum with _, trim
   local s="$*"
@@ -317,6 +341,15 @@ init_research_project_only() {
     do_mkdir_p "$RESEARCH_ROOT/$d"
   done
 
+  # Create project management subdirectories
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/01_proposal/01_draft"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/01_proposal/02_submission"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/01_proposal/03_review"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/01_proposal/04_final"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/02_finance"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/03_reports"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/04_presentations"
+
   # Create .integrity directories (constitution v1.0.12)
   do_mkdir_p "$RESEARCH_ROOT/.integrity/checksums"
   do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
@@ -353,6 +386,13 @@ license: "CC-BY-4.0"
 sync_policy: "iCloud: active, External: raw_data_on_nas"
 conda_env: "$CONDA_NAME"
 EOF
+
+  # Render project management templates
+  render_template "$SCRIPT_DIR/../templates/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$SCRIPT_DIR/../templates/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$SCRIPT_DIR/../templates/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$SCRIPT_DIR/../templates/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$SCRIPT_DIR/../templates/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
 
   # Conda
   if [ "$no_conda" = false ]; then

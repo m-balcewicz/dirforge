@@ -1,0 +1,28 @@
+# Reports — {{PROJECT_NAME}}
+
+Project ID: {{PROJECT_ID}}
+
+This folder stores periodic progress reports, technical reports, and final deliverables.
+
+Guidance:
+- Use clear versioning in filenames (e.g., `report_v1_0.pdf`).
+- Include a short README entry describing the contents of each report.
+# Reports for {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+
+This directory contains progress reports, milestone reports, and final reports for "{{PROJECT_NAME}}".
+
+## Report Types
+
+- Progress reports (monthly/quarterly)
+- Milestone completion reports
+- Final project reports
+- Technical reports and deliverables
+
+## Guidelines
+
+- Include dates in report file names (e.g., 2024-01_progress_report.pdf)
+- Keep both draft and final versions when applicable
+- Reference specific milestones or time periods in file names</content>
+<parameter name="filePath">/Users/martin/Documents/CODING_WORLD/bash/dirforge/templates/research/01_project_management/03_reports/README.md.template

@@ -220,6 +220,27 @@ workspace/
 │   ├── 09_installers/
 │   └── 90_archive/
 └── RESEARCH_WORLD/
+	├── <PROJECT_ID>/
+	│   ├── 00_admin/
+	│   ├── 01_project_management/
+	│   │   ├── 01_proposal/
+	│   │   │   ├── 01_draft/
+	│   │   │   ├── 02_submission/
+	│   │   │   ├── 03_review/
+	│   │   │   └── 04_final/
+	│   │   ├── 02_finance/
+	│   │   ├── 03_reports/
+	│   │   └── 04_presentations/
+	│   ├── 02_studies/
+	│   │   ├── <study_name>/
+	│   │   │   ├── 00_protocols/
+	│   │   │   ├── 01_code/
+	│   │   │   ├── 02_data/
+	│   │   │   ├── 03_outputs/
+	│   │   │   ├── 04_publication/
+	│   │   │   ├── 05_presentations/
+	│   │   │   └── .integrity/
+	│   └── .integrity/
 ```
 
 ### Individual World Projects
@@ -292,6 +313,24 @@ Each study contains its own complete research workflow:
 - `03_outputs/`: Results, figures, and processed data
 - `04_publication/`: Manuscripts and supplementary materials
 - `05_presentations/`: Slides and presentation materials
+
+#### Project Management (01_project_management)
+Project-level administrative and management artifacts live in `01_project_management/`. The scaffolder creates a small, opinionated subtree to capture the proposal lifecycle, budgets, reports, and presentation assets:
+
+```
+RESEARCH_WORLD/<PROJECT_ID>/01_project_management/
+├── README.md
+├── 01_proposal/
+│   ├── 01_draft/
+│   ├── 02_submission/
+│   ├── 03_review/
+│   └── 04_final/
+├── 02_finance/
+├── 03_reports/
+└── 04_presentations/  (kept flat for easier previews/exports)
+```
+
+Use descriptive filenames (e.g., `2025-09-01_budget_v1.xlsx`, `proposal_final.pdf`) and avoid committing secrets. The scaffolder renders README templates into these folders with `{{PROJECT_NAME}}` and `{{PROJECT_ID}}` populated from the `--title` you provide.
 
 #### Lecture Projects  
 - `--name "Course Name"`: Lecture/course name (required)

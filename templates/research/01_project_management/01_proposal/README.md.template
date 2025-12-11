@@ -1,0 +1,33 @@
+# Proposal Lifecycle — {{PROJECT_NAME}}
+
+Project ID: {{PROJECT_ID}}
+
+This folder contains proposal materials for the project. Use the nested folders for lifecycle stages:
+
+- `01_draft/` — working drafts and internal notes
+- `02_submission/` — files prepared for submission (final PDFs, forms)
+- `03_review/` — peer-review correspondence and reviewer responses
+- `04_final/` — accepted proposal and final version
+
+Guidance:
+- Keep drafts and reviewer comments separate and document decisions in a changelog.
+- Use clear filenames: `YYYYMMDD_topic_description.ext`.
+# Research Proposal for {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+
+This directory contains the research proposal documents for "{{PROJECT_NAME}}".
+
+## Proposal Lifecycle
+
+- `01_draft/` - Working drafts, outlines, and preliminary versions
+- `02_submission/` - Final submission versions sent to funding agencies or committees
+- `03_review/` - Review feedback, revision notes, and reviewer comments
+- `04_final/` - Approved final proposal documents
+
+## Guidelines
+
+- Store all proposal-related documents in the appropriate lifecycle folder
+- Include version control information in file names (e.g., v1.0_proposal.pdf)
+- Keep original reviewer comments and feedback for reference</content>
+<parameter name="filePath">/Users/martin/Documents/CODING_WORLD/bash/dirforge/templates/research/01_project_management/01_proposal/README.md.template
