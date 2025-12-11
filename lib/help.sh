@@ -746,9 +746,9 @@ show_global_help_short() {
     # Quick usage
     help_content+="$(format_header "Usage" 2)"
     help_content+="\n"
-    help_content+="  $(format_command "dirforge init [path] [--auto]              " "Complete workspace")"
+    help_content+="$(format_command "dirforge init [path] [--auto]              " "Complete workspace")"
     help_content+="\n"
-    help_content+="  $(format_command "dirforge init <world> [options]           " "Individual world")"
+    help_content+="$(format_command "dirforge init <world> [options]           " "Individual world")"
     help_content+="\n"
     help_content+="\n"
     
@@ -894,27 +894,27 @@ show_global_help() {
     # World types detailed reference
     help_content+="$(format_header "World Types" 2)"
     help_content+="\n"
-    help_content+="$(format_command "research" "Academic research projects with data management")\n"
+    help_content+="  research: Academic research projects with data management\n"
     help_content+="  Study-based organization, project management, data lifecycle,\n"
     help_content+="  integrity validation, conda environments, reproducibility\n"
     help_content+="\n"
-    help_content+="$(format_command "lecture" "Educational content with grading workflows")\n"
+    help_content+="  lecture:  Educational content with grading workflows\n"
     help_content+="  Slides, manuscripts, exercises, exams, grading, recordings,\n"
     help_content+="  admin documents, code examples, student submissions\n"
     help_content+="\n"
-    help_content+="$(format_command "coding" "Software development projects")\n"
+    help_content+="  coding:   Software development projects\n"
     help_content+="  Multi-language support (Python, JavaScript, MATLAB, Bash,\n"
     help_content+="  Fortran, C, LaTeX), conda environments, Git integration\n"
     help_content+="\n"
-    help_content+="$(format_command "journal" "Journal-related activities")\n"
+    help_content+="  journal:  Journal-related activities\n"
     help_content+="  Manuscript submissions, peer reviews, editorial work,\n"
     help_content+="  correspondence, revision tracking\n"
     help_content+="\n"
-    help_content+="$(format_command "office" "Administrative and business documents")\n"
+    help_content+="  office:   Administrative and business documents\n"
     help_content+="  Finance, HR, faculty forms, equipment inventory,\n"
     help_content+="  software licenses, public relations, archives\n"
     help_content+="\n"
-    help_content+="$(format_command "private" "Personal projects with privacy controls")\n"
+    help_content+="  private:  Personal projects with privacy controls\n"
     help_content+="  Credentials pointers, contracts, finance, documents,\n"
     help_content+="  photos, movies, hiking logs, installers, archives\n"
     help_content+="\n"
@@ -1123,7 +1123,7 @@ show_research_help() {
     # Purpose and compliance
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized research project with study-based organization. Each project contains independent studies with complete data analysis workflows. Follows project-by-activity principle with co-located provenance for reproducible research." 0)\n"
+    help_content+="$(wrap_text "Creates standardized research project with study-based organization. Each project contains independent studies with complete data analysis workflows. Follows project-by-activity principle with co-located provenance for reproducible research." 1)\n"
     help_content+="\n"
     
     # Usage
@@ -1151,7 +1151,16 @@ show_research_help() {
     
     # Naming conventions
     help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="$(format_key_value "Project ID Format:YYYY_<snake_case_title>\nExample Input:Thermal Model Analysis\nGenerated ID:2025_thermal_model_analysis\nConda Environment:research_thermal_model_analysis\n\nStudy ID Format:snake_case_name\nExample Input:My First Study\nGenerated ID:my_first_study\nRules:ASCII lowercase [a-z0-9_-] only")\n"
+    help_content+="\n"
+    help_content+="  Project ID Format:  YYYY_<snake_case_title>\n"
+    help_content+="  Example Input:      Thermal Model Analysis\n"
+    help_content+="  Generated ID:       2025_thermal_model_analysis\n"
+    help_content+="  Conda Environment:  research_thermal_model_analysis\n"
+    help_content+="\n"
+    help_content+="  Study ID Format:    snake_case_name\n"
+    help_content+="  Example Input:      My First Study\n"
+    help_content+="  Generated ID:       my_first_study\n"
+    help_content+="  Rules:              ASCII lowercase [a-z0-9_-] only\n"
     help_content+="\n"
     
     # Directory structure
@@ -1166,12 +1175,12 @@ show_research_help() {
     # Examples
     help_content+="$(format_header "Examples" 2)"
     
-    local examples="# Create new research project\ndirforge init research --name \"Thermal Analysis\"\n\n# Add study to existing project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Combined: create project and first study\ndirforge init research --name \"Thermal Analysis\" --study \"Initial Model\"\n\n# Custom Python version\ndirforge init research --name \"ML Study\" --python 3.12\n\n# Skip conda environment (theory-only)\ndirforge init research --name \"Theory Work\" --no-conda\n\n# Preview structure without creating\ndirforge --dry-run init research --name \"Test Project\"\n\n# Backup existing project before overwrite\ndirforge init research --name \"Existing\" --backup"
+    local examples="  # Create new research project\n  dirforge init research --name \"Thermal Analysis\"\n\n  # Add study to existing project\n  dirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n  # Combined: create project and first study\n  dirforge init research --name \"Thermal Analysis\" --study \"Initial Model\"\n\n  # Custom Python version\n  dirforge init research --name \"ML Study\" --python 3.12\n\n  # Skip conda environment (theory-only)\n  dirforge init research --name \"Theory Work\" --no-conda\n\n  # Preview structure without creating\n  dirforge --dry-run init research --name \"Test Project\"\n\n  # Backup existing project before overwrite\n  dirforge init research --name \"Existing\" --backup"
     
     # Add examples directly without title - format them manually
     help_content+="\n"
     while IFS= read -r line; do
-        help_content+="  $(gray "$line")\n"
+        help_content+="$(gray "$line")\n"
     done <<< "$examples"
     help_content+="\n"
     
@@ -1257,7 +1266,12 @@ show_lecture_help() {
     
     # Naming conventions
     help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="$(format_key_value "Project ID Format:YYYY-TERM_<snake_case_name>\nExample Input:Digital Rock Physics\nGenerated ID:2025-spring_digital_rock_physics\nCourse Code:Optional institutional identifier\nRules:ASCII lowercase [a-z0-9_-] with term prefix")\n"
+    help_content+="\n"
+    help_content+="  Project ID Format:  YYYY-TERM_<snake_case_name>\n"
+    help_content+="  Example Input:      Digital Rock Physics\n"
+    help_content+="  Generated ID:       2025-spring_digital_rock_physics\n"
+    help_content+="  Course Code:        Optional institutional identifier\n"
+    help_content+="  Rules:              ASCII lowercase [a-z0-9_-] with term prefix\n"
     help_content+="\n"
     
     # Directory structure
@@ -1336,7 +1350,7 @@ show_coding_help() {
     # Purpose and compliance
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 0)\n"
+    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 1)\n"
     help_content+="\n"
     
     help_content+="$(format_header "Usage" 2)"
@@ -1370,10 +1384,10 @@ show_coding_help() {
 
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
-    local examples="# Python machine learning toolkit\ndirforge init coding --language python --project ml_toolkit\n\n# MATLAB seismic processing\ndirforge init coding --language matlab --project seismic_processing\n\n# Fortran wave solver\ndirforge init coding --language fortran --project wave_solver --python 3.10\n\n# Bash admin scripts\ndirforge init coding --language bash --project admin_scripts"
+    local examples="  # Python machine learning toolkit\n  dirforge init coding --language python --project ml_toolkit\n\n  # MATLAB seismic processing\n  dirforge init coding --language matlab --project seismic_processing\n\n  # Fortran wave solver\n  dirforge init coding --language fortran --project wave_solver --python 3.10\n\n  # Bash admin scripts\n  dirforge init coding --language bash --project admin_scripts"
     
     while IFS= read -r line; do
-        help_content+="  $(gray "$line")\n"
+        help_content+="$(gray "$line")\n"
     done <<< "$examples"
     help_content+="\n"
 
@@ -1465,9 +1479,13 @@ show_journal_help() {
     help_content+="• Conference abstracts and journal correspondence\n"
     help_content+="\n"
     
-    local examples="# Your manuscript submission\ndirforge init journal --journal \"Geophysics\" --id \"GEO-2025-0451\"\n\n# Reviewer batch work\ndirforge init journal --journal \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\"\n\n# Editorial responsibilities\ndirforge init journal --journal \"JGR Solid Earth\" --id \"ASSOC_EDITOR_2024\"\n\n# Special issue coordination\ndirforge init journal --journal \"IEEE TGRS\" --id \"SPECIAL_ISSUE_ML\""
+    local examples="  # Your manuscript submission\n  dirforge init journal --journal \"Geophysics\" --id \"GEO-2025-0451\"\n\n  # Reviewer batch work\n  dirforge init journal --journal \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\"\n\n  # Editorial responsibilities\n  dirforge init journal --journal \"JGR Solid Earth\" --id \"ASSOC_EDITOR_2024\"\n\n  # Special issue coordination\n  dirforge init journal --journal \"IEEE TGRS\" --id \"SPECIAL_ISSUE_ML\""
     
-    help_content+="$(format_example "$examples" "Examples")\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    while IFS= read -r line; do
+        help_content+="$(gray "$line")\n"
+    done <<< "$examples"
+    help_content+="\n"
     
     # Display with automatic pager integration
     display_with_pager "$help_content"
@@ -1515,12 +1533,16 @@ show_office_help() {
     
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates administrative project for business documents, contracts, finance tracking, and equipment management." 0)\n"
+    help_content+="$(wrap_text "Creates administrative project for business documents, contracts, finance tracking, and equipment management." 1)\n"
     help_content+="\n"
     
-    local examples="# Budget tracking\ndirforge init office --name \"2025-budget\"\n\n# Equipment inventory\ndirforge init office --name \"lab-equipment\"\n\n# Contract management\ndirforge init office --name \"vendor-contracts\""
+    local examples="  # Budget tracking\n  dirforge init office --name \"2025-budget\"\n\n  # Equipment inventory\n  dirforge init office --name \"lab-equipment\"\n\n  # Contract management\n  dirforge init office --name \"vendor-contracts\""
     
-    help_content+="$(format_example "$examples" "Examples")\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    while IFS= read -r line; do
+        help_content+="$(gray "$line")\n"
+    done <<< "$examples"
+    help_content+="\n"
     
     # Display with automatic pager integration
     display_with_pager "$help_content"
@@ -1568,12 +1590,16 @@ show_private_help() {
     
     help_content+="$(format_header "Purpose" 2)"
     help_content+="\n"
-    help_content+="$(wrap_text "Creates private project for personal files, photos, finance, and sensitive documents with enhanced security." 0)\n"
+    help_content+="$(wrap_text "Creates private project for personal files, photos, finance, and sensitive documents with enhanced security." 1)\n"
     help_content+="\n"
     
-    local examples="# Personal finance\ndirforge init private --name \"finance-2025\" --encrypted\n\n# Photo archive\ndirforge init private --name \"family-photos\"\n\n# Personal documents\ndirforge init private --name \"documents\" --backup-enabled"
+    local examples="  # Personal finance\n  dirforge init private --name \"finance-2025\" --encrypted\n\n  # Photo archive\n  dirforge init private --name \"family-photos\"\n\n  # Personal documents\n  dirforge init private --name \"documents\" --backup-enabled"
     
-    help_content+="$(format_example "$examples" "Examples")\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    while IFS= read -r line; do
+        help_content+="$(gray "$line")\n"
+    done <<< "$examples"
+    help_content+="\n"
     
     # Display with automatic pager integration
     display_with_pager "$help_content"
