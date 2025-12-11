@@ -995,6 +995,15 @@ handle_help_request() {
   
   case "$cmd" in
     ""|"help"|"--help"|"-h")
+      # Default to short help for quick reference
+      if declare -F show_global_help_short >/dev/null 2>&1; then
+        show_global_help_short
+      else
+        show_global_help
+      fi
+      ;;
+    "--help-long")
+      # Detailed comprehensive help
       show_global_help
       ;;
     "init")

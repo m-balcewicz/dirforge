@@ -721,6 +721,96 @@ format_box() {
 }
 
 # Show global help - top-level help overview for dirforge
+# Show short/quick reference help (default for --help)
+show_global_help_short() {
+    local constitution_version="v1.0.19"
+    
+    # Check cache first
+    local cache_key
+    cache_key=$(_cache_key "global_help_short" "$constitution_version")
+    local cached_content
+    if cached_content=$(_cache_get "$cache_key"); then
+        echo -e "$cached_content"
+        return
+    fi
+    
+    # Build short help content - no pager needed for compact output
+    local help_content=""
+    
+    # Main header
+    help_content+="$(format_header "dirforge — workspace scaffolder" 1)"
+    help_content+="\n"
+    help_content+="Constitution Version: $(cyan "$constitution_version")\n"
+    help_content+="\n"
+    
+    # Quick usage
+    help_content+="$(format_header "Usage" 2)"
+    help_content+="\n"
+    help_content+="  $(format_command "dirforge init [path] [--auto]              " "Complete workspace")"
+    help_content+="\n"
+    help_content+="  $(format_command "dirforge init <world> [options]           " "Individual world")"
+    help_content+="\n"
+    help_content+="\n"
+    
+    # Essential commands
+    help_content+="$(format_header "World Types" 2)"
+    help_content+="\n"
+    help_content+="$(format_command "research" "Research projects    (flags: -t title, -p project, -s study)")"
+    help_content+="\n"
+    help_content+="$(format_command "lecture" "Lecture materials    (flags: -n name)")"
+    help_content+="\n"
+    help_content+="$(format_command "coding" "Software projects    (flags: -l language, -p project)")"
+    help_content+="\n"
+    help_content+="$(format_command "journal" "Journal activities   (flags: -j journal, -i id)")"
+    help_content+="\n"
+    help_content+="$(format_command "office" "Admin documents")"
+    help_content+="\n"
+    help_content+="$(format_command "private" "Personal projects")"
+    help_content+="\n"
+    help_content+="\n"
+    
+    # Key flags
+    help_content+="$(format_header "Common Flags" 2)"
+    help_content+="\n"
+    help_content+="$(format_command "-h, --help" "Show this help    (use --help-long for detailed help)")"
+    help_content+="\n"
+    help_content+="$(format_command "--dry-run" "Preview only")"
+    help_content+="\n"
+    help_content+="$(format_command "--force" "Overwrite existing")"
+    help_content+="\n"
+    help_content+="$(format_command "-y, --yes" "Skip prompts")"
+    help_content+="\n"
+    help_content+="$(format_command "--version" "Show version")"
+    help_content+="\n"
+    help_content+="\n"
+    
+    # Quick examples
+    help_content+="$(format_header "Quick Examples" 2)"
+    help_content+="\n"
+    help_content+="  dirforge init --here --auto                $(dim "# Complete workspace here")"
+    help_content+="\n"
+    help_content+="  dirforge init research -t \"My Project\"      $(dim "# Research project")"
+    help_content+="\n"
+    help_content+="  dirforge init coding -l python -p mytool   $(dim "# Python project")"
+    help_content+="\n"
+    help_content+="  dirforge init lecture -n \"My Course\"        $(dim "# Lecture materials")"
+    help_content+="\n"
+    help_content+="\n"
+    
+    # Footer
+    help_content+="$(dim "Use 'dirforge init <world> --help' for world-specific help")"
+    help_content+="\n"
+    help_content+="$(dim "Use 'dirforge --help-long' for comprehensive documentation")"
+    help_content+="\n"
+    
+    # Cache the content
+    _cache_set "$cache_key" "$help_content"
+    
+    # Display directly (no pager for short help)
+    echo -e "$help_content"
+}
+
+# Show comprehensive/long help (for --help-long)
 show_global_help() {
     local constitution_version="v1.0.19"
     
@@ -737,7 +827,7 @@ show_global_help() {
     local help_content=""
     
     # Main header
-    help_content+="$(format_header "dirforge" 1)"
+    help_content+="$(format_header "dirforge — workspace scaffolder" 1)"
     help_content+="\n"
     
     help_content+="Create standardized directory structures per DirForge Constitution\n"
@@ -747,52 +837,103 @@ show_global_help() {
     help_content+="$(printf "%s: %s\n" "$(bold "Constitution Version")" "$(cyan "$constitution_version")")\n"
     help_content+="\n"
     
+    # Key features overview
+    help_content+="$(format_header "Key Features" 2)"
+    help_content+="\n"
+    help_content+="  • Complete workspace initialization (all 6 world types at once)\n"
+    help_content+="  • Individual world creation (research, lecture, coding, journal, office, private)\n"
+    help_content+="  • Interactive and automated modes (prompts or flags)\n"
+    help_content+="  • Dry-run preview (see changes before creation)\n"
+    help_content+="  • JSON output (machine-readable plans for automation)\n"
+    help_content+="  • Multi-language coding support (Python, MATLAB, Bash, Fortran, etc.)\n"
+    help_content+="  • Constitution compliance (consistent structures across teams)\n"
+    help_content+="\n"
+    
     # Usage pattern
     help_content+="$(format_header "Usage" 2)"
     help_content+="\n"
-    help_content+="$(format_command "dirforge <command> [options]")\n"
+    help_content+="  $(format_command "dirforge <command> [options]")\n"
+    help_content+="  $(format_command "dirforge init [path] [--auto|--yes]              " "Complete workspace")\n"
+    help_content+="  $(format_command "dirforge init <world-type> [world-options]      " "Individual world")\n"
     help_content+="\n"
     
     # Available commands
     help_content+="$(format_header "Commands" 2)"
     help_content+="\n"
-    help_content+="$(format_command "init <world-type>" "Create new project structure")\n"
+    help_content+="$(format_command "init [path]" "Initialize complete workspace with all world types")\n"
+    help_content+="$(format_command "init research" "Create research project with study-based organization")\n"
+    help_content+="$(format_command "init lecture" "Create lecture/course project with grading workflows")\n"
+    help_content+="$(format_command "init coding" "Create software development project (multi-language)")\n"
+    help_content+="$(format_command "init journal" "Create journal activity structure (submissions/reviews)")\n"
+    help_content+="$(format_command "init office" "Create administrative/business document structure")\n"
+    help_content+="$(format_command "init private" "Create personal project with privacy controls")\n"
     help_content+="\n"
     
     # Global options
     help_content+="$(format_header "Global Options" 2)"
     help_content+="\n"
     help_content+="$(format_command "--help, -h" "Show this help message")\n"
-    help_content+="$(format_command "--version" "Show version information")\n"
-    help_content+="$(format_command "--dry-run, --preview" "Preview changes without writing to filesystem")\n"
-    help_content+="$(format_command "--json" "Output machine-readable JSON plan (requires --dry-run)")\n"
+    help_content+="$(format_command "--version" "Show version and constitution information")\n"
+    help_content+="$(format_command "--dry-run, --preview" "Preview changes without creating files")\n"
+    help_content+="$(format_command "--json" "Output machine-readable JSON plan (with --dry-run)")\n"
+    help_content+="$(format_command "--force" "Overwrite existing directories without prompting")\n"
+    help_content+="$(format_command "--backup" "Create timestamped backups before overwriting")\n"
+    help_content+="$(format_command "--yes, -y" "Skip interactive prompts and proceed")\n"
+    help_content+="$(format_command "--quiet, -q" "Suppress non-error output")\n"
+    help_content+="$(format_command "--verbose, -v" "Show detailed progress information")\n"
     help_content+="\n"
     
-    # World types quick reference
+    # Workspace initialization options
+    help_content+="$(format_header "Workspace Options" 2)"
+    help_content+="\n"
+    help_content+="$(format_command "--auto" "Create automatically without prompts (same as --yes)")\n"
+    help_content+="$(format_command "--here" "Explicitly use current directory")\n"
+    help_content+="$(format_command "--path=PATH" "Specify target directory with explicit flag")\n"
+    help_content+="\n"
+    
+    # World types detailed reference
     help_content+="$(format_header "World Types" 2)"
     help_content+="\n"
     help_content+="$(format_command "research" "Academic research projects with data management")\n"
+    help_content+="  Study-based organization, project management, data lifecycle,\n"
+    help_content+="  integrity validation, conda environments, reproducibility\n"
+    help_content+="\n"
     help_content+="$(format_command "lecture" "Educational content with grading workflows")\n"
+    help_content+="  Slides, manuscripts, exercises, exams, grading, recordings,\n"
+    help_content+="  admin documents, code examples, student submissions\n"
+    help_content+="\n"
     help_content+="$(format_command "coding" "Software development projects")\n"
-    help_content+="$(format_command "journal" "Journal-related activities: submissions, reviews, editorial work")\n"
+    help_content+="  Multi-language support (Python, JavaScript, MATLAB, Bash,\n"
+    help_content+="  Fortran, C, LaTeX), conda environments, Git integration\n"
+    help_content+="\n"
+    help_content+="$(format_command "journal" "Journal-related activities")\n"
+    help_content+="  Manuscript submissions, peer reviews, editorial work,\n"
+    help_content+="  correspondence, revision tracking\n"
+    help_content+="\n"
     help_content+="$(format_command "office" "Administrative and business documents")\n"
+    help_content+="  Finance, HR, faculty forms, equipment inventory,\n"
+    help_content+="  software licenses, public relations, archives\n"
+    help_content+="\n"
     help_content+="$(format_command "private" "Personal projects with privacy controls")\n"
+    help_content+="  Credentials pointers, contracts, finance, documents,\n"
+    help_content+="  photos, movies, hiking logs, installers, archives\n"
     help_content+="\n"
     
     # Common usage examples
     help_content+="$(format_header "Examples" 2)"
     help_content+="\n"
     
-    local examples="# Create research project with interactive prompts\ndirforge init research --title \"Thermal Analysis\"\n\n# Add study to existing research project\ndirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n# Create lecture project structure\ndirforge init lecture --name \"Digital Rock Physics\"\n\n# Preview project creation with JSON output\ndirforge --dry-run init research --title \"Test\" | jq ."
+    local examples="# Initialize complete workspace in current directory\ndirforge init --here --auto\n\n# Initialize workspace in specific directory\ndirforge init ~/my-workspace\ndirforge init --path=/opt/workspaces/team1\n\n# Create research project with short flags\ndirforge init research -t \"Thermal Analysis\"\ndirforge init research -t \"ML Study\" --python 3.12\n\n# Add study to existing research project\ndirforge init research -p 2025_thermal_analysis -s \"Heat Transfer\"\n\n# Create lecture project\ndirforge init lecture -n \"Digital Rock Physics\"\n\n# Create coding project with language\ndirforge init coding -l python -p ml_toolkit\ndirforge init coding -l matlab -p functions\n\n# Create journal activity\ndirforge init journal -j \"Geophysics\" -i \"GEO-2025-0451\"\n\n# Preview with JSON output for automation\ndirforge init ~/test --dry-run --json | jq .\ndirforge init research -t \"Test\" --dry-run --json"
     
     help_content+="$(format_example "$examples" "Common Usage")\n"
     
     # Footer with additional help info
     help_content+="$(format_header "More Information" 3)"
-    help_content+="$(wrap_text "Use 'dirforge <command> --help' for detailed command information." 0)\n"
-    help_content+="$(wrap_text "See constitution.md for governance and naming rules." 0)\n"
+    help_content+="$(wrap_text "Use 'dirforge init --help' to see all world types and options." 0)\n"
+    help_content+="$(wrap_text "Use 'dirforge init <world-type> --help' for detailed world-specific help." 0)\n"
+    help_content+="$(wrap_text "See constitution.md for governance, naming rules, and structural principles." 0)\n"
     help_content+="\n"
-    help_content+="$(wrap_text "Constitution compliance ensures consistent project structures across teams and organizations." 0)\n"
+    help_content+="$(wrap_text "Constitution compliance ensures consistent project structures, reproducibility, and team collaboration." 0)\n"
     help_content+="\n"
     
     # Cache the content before displaying
