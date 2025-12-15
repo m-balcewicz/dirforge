@@ -1,0 +1,6 @@
+# Invalid manifest: missing required key 'checksum'
+storage_location: "iCloud"
+server_or_nas: "iCloud Drive"
+path_on_store: "/Documents/Research/SampleProject"
+naming: "sample_project_data.tar.gz"
+access: "read-write"

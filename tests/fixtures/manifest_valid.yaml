@@ -1,0 +1,7 @@
+# Valid manifest (constitution v1.0.12)
+storage_location: "iCloud"
+server_or_nas: "iCloud Drive"
+path_on_store: "/Documents/Research/SampleProject"
+naming: "sample_project_data.tar.gz"
+checksum: ".integrity/checksums/sample.sha256"
+access: "read-write"

@@ -1,0 +1,217 @@
+# Primary Authorship Test Fixtures for JOURNAL_WORLD Role-Based Organization
+# Test data for validating the 01_primary_authorship/ directory structure
+# Created for Task T014: Validate structure creation and path construction
+
+# Test Case 1: Basic primary authorship project (current year)
+test_case_basic_current_year:
+  description: "Basic paper creation with current year default"
+  input:
+    paper_name: "thermal_conductivity_review"
+    flags: "--paper thermal_conductivity_review --first"
+    year: "2025"  # Default to current year
+  expected_output:
+    directory_path: "JOURNAL_WORLD/01_primary_authorship/2025_thermal_conductivity_review"
+    subdirectories:
+      - "01_manuscript"
+      - "02_reviews"
+      - "03_correspondence"
+    command_display: "dirforge init journal --paper \"thermal_conductivity_review\" --first"
+
+# Test Case 2: Primary authorship with explicit year
+test_case_explicit_year:
+  description: "Paper creation with explicitly specified year"
+  input:
+    paper_name: "ai_geophysics_survey"
+    flags: "--paper ai_geophysics_survey --first --year 2024"
+    year: "2024"  # Explicitly provided
+  expected_output:
+    directory_path: "JOURNAL_WORLD/01_primary_authorship/2024_ai_geophysics_survey"
+    subdirectories:
+      - "01_manuscript"
+      - "02_reviews"
+      - "03_correspondence"
+    command_display: "dirforge init journal --paper \"ai_geophysics_survey\" --first --year 2024"
+
+# Test Case 3: Paper with embedded year (automatic extraction)
+test_case_embedded_year:
+  description: "Paper name with YYYY_ prefix, automatic year extraction"
+  input:
+    paper_name: "2021_elastic_properties_of_carbonates"
+    flags: "--paper 2021_elastic_properties_of_carbonates --first"
+    year: "2021"  # Extracted from paper name
+  expected_output:
+    directory_path: "JOURNAL_WORLD/01_primary_authorship/2021_elastic_properties_of_carbonates"
+    subdirectories:
+      - "01_manuscript"
+      - "02_reviews"
+      - "03_correspondence"
+    command_display: "dirforge init journal --paper \"2021_elastic_properties_of_carbonates\" --first"
+    note: "Year 2021 extracted automatically from paper name"
+
+# Test Case 4: Complex paper name sanitization
+test_case_complex_name:
+  description: "Complex paper name requiring sanitization"
+  input:
+    paper_name: "Biot Coefficient Analysis in Porous Media"
+    flags: "--paper \"Biot Coefficient Analysis in Porous Media\" --first"
+    year: "2025"
+    sanitized_name: "biot_coefficient_analysis_in_porous_media"
+  expected_output:
+    directory_path: "JOURNAL_WORLD/01_primary_authorship/2025_biot_coefficient_analysis_in_porous_media"
+    subdirectories:
+      - "01_manuscript"
+      - "02_reviews"
+      - "03_correspondence"
+    command_display: "dirforge init journal --paper \"Biot Coefficient Analysis in Porous Media\" --first"
+
+# Test Case 5: Conflict detection (existing directory)
+test_case_conflict_detection:
+  description: "Validate conflict detection for existing project"
+  setup:
+    pre_existing_directory: "JOURNAL_WORLD/01_primary_authorship/2025_existing_paper"
+  input:
+    paper_name: "existing_paper"
+    flags: "--paper existing_paper --first"
+    year: "2025"
+  expected_output:
+    should_fail: true
+    error_message: "Error: Primary authorship project already exists: JOURNAL_WORLD/01_primary_authorship/2025_existing_paper"
+    exit_code: 1
+
+# Test Case 6: Dry run mode validation
+test_case_dry_run:
+  description: "Validate dry run mode displays correct preview"
+  input:
+    paper_name: "test_paper_dry_run"
+    flags: "--paper test_paper_dry_run --first --dry-run"
+    year: "2025"
+    dry_run: true
+  expected_output:
+    directory_path: "JOURNAL_WORLD/01_primary_authorship/2025_test_paper_dry_run"
+    dry_run_message: "DRY RUN: would create primary authorship project: JOURNAL_WORLD/01_primary_authorship/2025_test_paper_dry_run"
+    no_actual_creation: true
+
+# Test Case 7: Invalid paper name validation
+test_case_invalid_paper_name:
+  description: "Validate rejection of invalid paper names"
+  input:
+    paper_name: "Invalid@Paper#Name!"
+    flags: "--paper \"Invalid@Paper#Name!\" --first"
+  expected_output:
+    should_fail: true
+    error_message: "Error: Paper name can only contain letters, numbers, spaces, hyphens, and underscores."
+    exit_code: 1
+
+# Test Case 8: Year validation edge cases
+test_case_year_validation:
+  description: "Validate year format requirements"
+  test_variants:
+    invalid_year_short:
+      input:
+        paper_name: "test_paper"
+        flags: "--paper test_paper --first --year 25"
+      expected_output:
+        should_fail: true
+        error_message: "Error: Year must be a 4-digit number (YYYY)."
+    invalid_year_text:
+      input:
+        paper_name: "test_paper"
+        flags: "--paper test_paper --first --year abcd"
+      expected_output:
+        should_fail: true
+        error_message: "Error: Year must be a 4-digit number (YYYY)."
+    valid_historical_year:
+      input:
+        paper_name: "historical_paper"
+        flags: "--paper historical_paper --first --year 2000"
+      expected_output:
+        directory_path: "JOURNAL_WORLD/01_primary_authorship/2000_historical_paper"
+        should_fail: false
+
+# Test Case 9: Path construction validation
+test_case_path_construction:
+  description: "Validate internal path construction utilities"
+  function_tests:
+    construct_primary_authorship_path:
+      inputs:
+        - paper_name: "example_paper"
+          year: "2025"
+      expected_path: "JOURNAL_WORLD/01_primary_authorship/2025_example_paper"
+    validate_paper_name:
+      inputs:
+        - valid: "simple_paper_name"
+        - valid: "paper_with_numbers_123"
+        - valid: "paper-with-hyphens"
+        - invalid: "paper with spaces"
+        - invalid: "paper@with!symbols"
+    extract_year_from_paper_name:
+      inputs:
+        - paper_name: "2020_historical_paper"
+          expected_year: "2020"
+        - paper_name: "no_year_prefix"
+          expected_year: null
+
+# Test Case 10: JOURNAL_WORLD root detection
+test_case_journal_world_detection:
+  description: "Validate JOURNAL_WORLD root finding and creation"
+  scenarios:
+    existing_journal_world:
+      setup:
+        pre_existing: "JOURNAL_WORLD/"
+      expected:
+        root_path: "./JOURNAL_WORLD"
+        should_create: false
+    missing_journal_world:
+      setup:
+        pre_existing: null
+      expected:
+        root_path: "./JOURNAL_WORLD"
+        should_create: true
+        creation_message: "Created JOURNAL_WORLD directory"
+
+# Validation Functions for Test Framework
+validation_functions:
+  verify_directory_structure:
+    description: "Verify created directory structure matches expected"
+    parameters:
+      - "project_path"
+      - "expected_subdirectories[]"
+    checks:
+      - "Directory exists: $project_path"
+      - "Each subdirectory exists: $project_path/{subdirectory}"
+      - "No extra subdirectories present"
+      - "Directory permissions are correct"
+
+  verify_path_construction:
+    description: "Verify path construction utilities work correctly"
+    parameters:
+      - "paper_name"
+      - "year" 
+      - "expected_path"
+    checks:
+      - "construct_primary_authorship_path returns expected path"
+      - "Path follows JOURNAL_WORLD/01_primary_authorship/YYYY_paper_name pattern"
+      - "Path validation passes"
+
+  verify_error_handling:
+    description: "Verify error conditions are handled properly"
+    parameters:
+      - "invalid_input"
+      - "expected_error_message"
+      - "expected_exit_code"
+    checks:
+      - "Command fails with expected exit code"
+      - "Error message matches expected content"
+      - "No partial directory creation occurs on failure"
+
+# Integration with existing test framework
+test_framework_integration:
+  test_file: "tests/test_journal_primary_authorship.sh"
+  fixture_usage:
+    - "Source this fixture file for test data"
+    - "Use test_case_* data for individual test scenarios"
+    - "Use validation_functions for consistent checking"
+  dependencies:
+    - "tests/bootstrap_tests.sh"
+    - "lib/constitution_parser.sh"
+    - "tools/dirforge"
