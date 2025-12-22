@@ -6,10 +6,13 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Complete workspace initialization**: Create all 6 world types at once
 - **Individual world creation**: Research, lecture, coding (with multi-language support), journal, office, private projects
 - **Parent-only mode**: Create just the parent directory (e.g., RESEARCH_WORLD/) for any world type
-- **Interactive and automated modes**: Prompts or automatic creation with flags
-- **Dry-run preview**: See what will be created before making changes
+- **Safe project updates**: Upgrade existing projects with additive-only migrations
+- **Flexible path specification**: Use `--here`, `--path=`, or positional arguments to specify targets
+- **Subdirectory-aware**: Run update from any location within project hierarchy; automatically finds project root
+- **Interactive and automated modes**: Prompts or automatic creation with flags; safe handling of unknown versions
+- **Dry-run preview**: See what will be created or updated before making changes
 - **JSON output**: Machine-readable plans for automation
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.21
+- **Constitution compliance**: All structures follow DirForge Constitution v1.0.22
 
 ## Installation
 
@@ -122,6 +125,95 @@ dirforge --version
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
 
+
+## Update Existing Projects
+
+The `dirforge update` command upgrades an existing DirForge project structure to the latest constitution version. It is safe, additive-only (never deletes or overwrites), and supports preview, backup, and automation modes.
+
+### Syntax
+```bash
+# Update current directory to latest version
+dirforge update
+
+# Update from project subdirectory to project root
+dirforge update --here
+
+# Update specific directory
+dirforge update /path/to/project
+dirforge update --path=/path/to/project
+
+# Preview changes without making modifications
+dirforge update --dry-run
+
+# Output machine-readable JSON summary
+dirforge update --json
+
+# Create a timestamped backup before updating
+dirforge update --backup
+
+# Update all nested subprojects recursively
+dirforge update [path] [options]
+```
+
+### Path Specification
+
+The update command supports multiple ways to specify the target directory:
+
+- **Default (no path)**: Updates current directory if it's a valid project root, or walks up directory tree to find the project root
+- **`--here`**: Explicitly use current directory; finds project root if in subdirectory (recommended for subdirectory updates)
+- **`--path=PATH`**: Specify target directory explicitly
+- **Positional argument**: `dirforge update /path/to/project` updates that directory
+
+All four methods support recursive subproject updates and work from any location in the project hierarchy.
+
+### Options
+- `--dry-run`: Preview changes without making modifications
+- `--json`: Output machine-readable JSON summary of planned changes
+- `--backup`: Create a timestamped backup before updating
+- `--force`: Override version/world detection errors (use with caution)
+- `--here`: Explicitly use current directory; finds project root if in subdirectory
+- `--path=PATH`: Specify target directory with explicit flag
+
+### Behavior
+- Only adds missing directories/files (never deletes or overwrites)
+- Validates structure before and after update
+- Supports nested subprojects (recursively updates all detected projects)
+- Provides clear user messaging and error handling
+- Intelligently finds project root when called from subdirectories
+- Handles unknown versions/world-types with interactive prompting (TTY) or safe defaults (non-TTY)
+
+### Examples
+```bash
+# Update current directory
+dirforge update
+
+# Update with dry-run preview
+dirforge update --dry-run
+
+# Update from project subdirectory
+cd RESEARCH_WORLD/2025_my_project/01_project_management
+dirforge update --here
+
+# Update specific path
+dirforge update /path/to/project
+dirforge update --path=/path/to/project
+
+# Backup before updating
+dirforge update --backup
+
+# Get JSON summary for automation
+dirforge update --json
+
+# Combine flags
+dirforge update --here --dry-run
+dirforge update /path --backup --dry-run
+```
+
+### Migration Notes
+- Manual migration steps may be required for some world types/versions.
+- See the migration guide in `docs/` for details.
+
+---
 ## Usage
 
 ### Complete Workspace Initialization

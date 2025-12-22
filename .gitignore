@@ -13,13 +13,23 @@
 
 # Development and infrastructure directories (local only)
 .github/
-.specify/
+.specify/*
+!.specify/memory/
+!.specify/memory/constitution.md
 report/
 specs/
-tests/
-fixtures/
 examples/
 .backup/
+
+# Test structure - track test functions and runner, ignore temporary workspaces
+!tests/
+!tests/run_tests.sh
+!tests/test-functions/
+!tests/test-functions/**
+!tests/fixtures/
+!tests/fixtures/**
+!tests/README.md
+tests/
 
 # Test artifacts and temporary files
 tests/dirforge_test_workspace_*/

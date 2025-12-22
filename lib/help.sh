@@ -750,6 +750,8 @@ show_global_help_short() {
     help_content+="\n"
     help_content+="$(format_command "dirforge init <world> [options]           " "Individual world")"
     help_content+="\n"
+    help_content+="$(format_command "dirforge update [options]                 " "Update structure")"
+    help_content+="\n"
     help_content+="\n"
     
     # Essential commands
@@ -946,10 +948,12 @@ show_global_help() {
 # Show command-specific help for the init command
 show_command_help() {
     local command="$1"
-    
     case "$command" in
         "init")
             show_init_command_help
+            ;;
+        "update")
+            show_update_command_help
             ;;
         *)
             echo "$(red "Error: Unknown command '$command'")"
@@ -957,6 +961,47 @@ show_command_help() {
             return 1
             ;;
     esac
+}
+
+# Show detailed help for the update command
+show_update_command_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge update" 1)\n"
+    help_content+="\n"
+    help_content+="Upgrade an existing DirForge project structure to the latest constitution version.\n"
+    help_content+="Safely adds new directories/files as required by the latest standards.\n"
+    help_content+="\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge update [path] [options]")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Options" 2)\n"
+    help_content+="$(format_command "--here" "Explicitly use current directory (same as '.')")\n"
+    help_content+="$(format_command "--path=PATH" "Specify target directory as a flag")\n"
+    help_content+="$(format_command "--dry-run" "Preview changes without making modifications")\n"
+    help_content+="$(format_command "--json" "Output machine-readable JSON summary of planned changes")\n"
+    help_content+="$(format_command "--backup" "Create a timestamped backup before updating")\n"
+    help_content+="$(format_command "--force" "Override version/world detection errors (use with caution)")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Behavior" 2)\n"
+    help_content+="- Only adds missing directories/files (never deletes or overwrites).\n"
+    help_content+="- Validates structure before and after update.\n"
+    help_content+="- Supports nested subprojects (recursively updates all detected projects).\n"
+    help_content+="- Provides clear user messaging and error handling.\n"
+    help_content+="\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="$(format_command "dirforge update" "Update current directory to latest version")\n"
+    help_content+="$(format_command "dirforge update --here" "Explicitly update current directory")\n"
+    help_content+="$(format_command "dirforge update /path/to/project" "Update specific project by path")\n"
+    help_content+="$(format_command "dirforge update --path=/path/to/project" "Update using --path flag")\n"
+    help_content+="$(format_command "dirforge update --dry-run" "Preview changes without modifying files")\n"
+    help_content+="$(format_command "dirforge update --backup" "Backup before updating")\n"
+    help_content+="$(format_command "dirforge update --json" "Get JSON summary for automation")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Notes" 2)\n"
+    help_content+="- Manual migration steps may be required for some world types/versions.\n"
+    help_content+="- See migration guide in docs/ for details.\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
 }
 
 # Show detailed help for the init command
@@ -1026,438 +1071,6 @@ show_init_command_help() {
     help_content+="\n"
     
     # Display with automatic pager integration
-    display_with_pager "$help_content"
-}
-
-# Show world-specific help with routing to appropriate world type
-show_world_help() {
-    local world_type="$1"
-    local mode="${2:-short}"  # default to short, support 'long'
-    
-    case "$world_type" in
-        "research")
-            show_research_help "$mode"
-            ;;
-        "lecture")
-            show_lecture_help "$mode"
-            ;;
-        "coding")
-            show_coding_help "$mode"
-            ;;
-        "journal")
-            show_journal_help "$mode"
-            ;;
-        "office")
-            show_office_help "$mode"
-            ;;
-        "private")
-            show_private_help "$mode"
-            ;;
-        *)
-            echo "$(red "Error: Unknown world type '$world_type'")"
-            echo "Available world types: research, lecture, coding, journal, office, private"
-            echo "Use 'dirforge init --help' to see all available world types."
-            return 1
-            ;;
-    esac
-}
-
-# Short help for research projects
-show_research_help_short() {
-    local constitution_version="$1"
-    local help_content=""
-    
-    help_content+="$(format_header "Research Projects" 1)"
-    help_content+="\nConstitution $constitution_version\n\n"
-    
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="  dirforge init research                           # Parent-only mode: create RESEARCH_WORLD/\n"
-    help_content+="  dirforge init research -n \"Project Name\"          # New project\n"
-    help_content+="  dirforge init research -p PROJECT_ID -s \"Study\"   # Add study\n\n"
-    
-    help_content+="$(format_header "Key Flags" 2)\n"
-    help_content+="  -n, --name          Project name (creates YYYY_snake_case_id)\n"
-    help_content+="  -p, --project       Existing project ID\n"
-    help_content+="  -s, --study         Study name\n"
-    help_content+="  --python VERSION    Python version for conda (default: 3.11)\n"
-    help_content+="  --no-conda          Skip conda environment\n\n"
-    
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="  dirforge init research                           # Create RESEARCH_WORLD/ only\n"
-    help_content+="  dirforge init research -n \"Thermal Analysis\"\n"
-    help_content+="  dirforge init research -n \"ML Study\" -s \"Initial Model\"\n"
-    help_content+="  dirforge init research -p 2025_thermal_analysis -s \"Validation\"\n\n"
-    
-    help_content+="Use 'dirforge init research --help-long' for detailed documentation\n"
-    
-    echo -e "$help_content"
-}
-
-# Research project help with directory structure and examples
-show_research_help() {
-    local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.20"
-    
-    if [ "$mode" = "short" ]; then
-        show_research_help_short "$constitution_version"
-        return
-    fi
-    
-    # Long/detailed help follows
-    # Check cache first
-    local cache_key
-    cache_key=$(_cache_key "research_help_long" "$constitution_version")
-    local cached_content
-    if cached_content=$(_cache_get "$cache_key"); then
-        display_with_pager "$cached_content"
-        return
-    fi
-    
-    # Build help content first, then display with pager (force pager for long content)
-    local help_content=""
-    
-    help_content+="$(format_header "Research Project Creation (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Academic research projects with study-based organization\n"
-    help_content+="Updated: 2025-12-10 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    # Purpose and compliance
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized research project with study-based organization. Each project contains independent studies with complete data analysis workflows. Follows project-by-activity principle with co-located provenance for reproducible research." 1)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Structure" 2)"
-    help_content+="\n"
-    help_content+="RESEARCH_WORLD/PROJECT_ID/\n"
-    help_content+="├── 00_admin/                    # Project contracts, ethics, agreements\n"
-    help_content+="├── 01_project_management/       # Proposals, reports, budgets\n"
-    help_content+="│   ├── 01_proposal/\n"
-    help_content+="│   ├── 02_finance/\n"
-    help_content+="│   ├── 03_reports/\n"
-    help_content+="│   └── 04_presentations/\n"
-    help_content+="├── 02_studies/                  # Individual research studies\n"
-    help_content+="│   └── <study_name>/\n"
-    help_content+="│       ├── 01_code/            # Analysis scripts and notebooks\n"
-    help_content+="│       ├── 02_data/            # Raw and processed data\n"
-    help_content+="│       ├── 03_results/         # Outputs, figures, tables\n"
-    help_content+="│       └── 04_publication/     # Papers, drafts, reviews\n"
-    help_content+="├── .integrity/                  # Data integrity and manifests\n"
-    help_content+="└── environment.yml              # Conda environment\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Structure" 2)"
-    help_content+="\n"
-    help_content+="RESEARCH_WORLD/PROJECT_ID/\n"
-    help_content+="├── 00_admin/                    # Project contracts, ethics, agreements\n"
-    help_content+="├── 01_project_management/       # Proposals, reports, budgets\n"
-    help_content+="│   ├── 01_proposal/\n"
-    help_content+="│   ├── 02_finance/\n"
-    help_content+="│   ├── 03_reports/\n"
-    help_content+="│   └── 04_presentations/\n"
-    help_content+="├── 02_studies/                  # Individual research studies\n"
-    help_content+="│   └── <study_name>/\n"
-    help_content+="│       ├── 01_code/            # Analysis scripts and notebooks\n"
-    help_content+="│       ├── 02_data/            # Raw and processed data\n"
-    help_content+="│       ├── 03_results/         # Outputs, figures, tables\n"
-    help_content+="│       └── 04_publication/     # Papers, drafts, reviews\n"
-    help_content+="├── .integrity/                  # Data integrity and manifests\n"
-    help_content+="└── environment.yml              # Conda environment\n"
-    help_content+="\n"
-    
-    # Usage
-    help_content+="$(format_header "Usage" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "dirforge init research [options]")\n"
-    help_content+="$(format_command "dirforge init research --name \"Project Name\"")\n"
-    help_content+="$(format_command "dirforge init research --project \"PROJECT_ID\" --study \"Study Name\"")\n"
-    help_content+="\n"
-    
-    # Required inputs
-    help_content+="$(format_header "Required Options" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--name \"Project Name\"" "Create new project (converted to PROJECT-ID)")\n"
-    help_content+="$(format_command "--project \"PROJECT_ID\" --study \"Study Name\"" "Add study to existing project")\n"
-    help_content+="\n"
-    
-    # Optional inputs
-    help_content+="$(format_header "Optional Options" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--python 3.11" "Python version for conda environment (default: 3.11)")\n"
-    help_content+="$(format_command "--no-conda" "Skip conda environment creation")\n"
-    help_content+="$(format_command "--conda-packages \"pkg1 pkg2\"" "Additional packages beyond base set")\n"
-    help_content+="\n"
-    
-    # Naming conventions
-    help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="\n"
-    help_content+="  Project ID Format:  YYYY_<snake_case_title>\n"
-    help_content+="  Example Input:      Thermal Model Analysis\n"
-    help_content+="  Generated ID:       2025_thermal_model_analysis\n"
-    help_content+="  Conda Environment:  research_thermal_model_analysis\n"
-    help_content+="\n"
-    help_content+="  Study ID Format:    snake_case_name\n"
-    help_content+="  Example Input:      My First Study\n"
-    help_content+="  Generated ID:       my_first_study\n"
-    help_content+="  Rules:              ASCII lowercase [a-z0-9_-] only\n"
-    help_content+="\n"
-    
-    # Directory structure
-    help_content+="$(format_header "Directory Structure" 2)"
-    
-    # Generate dynamic directory tree from scaffolder code
-    local tree_content
-    tree_content=$(generate_dynamic_tree "research" "project_name")
-    
-    help_content+="$(format_directory_tree "$tree_content")\n"
-    
-    # Examples
-    help_content+="$(format_header "Examples" 2)"
-    
-    local examples="  # Create new research project\n  dirforge init research --name \"Thermal Analysis\"\n\n  # Add study to existing project\n  dirforge init research --project \"2025_thermal_analysis\" --study \"Initial Model\"\n\n  # Combined: create project and first study\n  dirforge init research --name \"Thermal Analysis\" --study \"Initial Model\"\n\n  # Custom Python version\n  dirforge init research --name \"ML Study\" --python 3.12\n\n  # Skip conda environment (theory-only)\n  dirforge init research --name \"Theory Work\" --no-conda\n\n  # Preview structure without creating\n  dirforge --dry-run init research --name \"Test Project\"\n\n  # Backup existing project before overwrite\n  dirforge init research --name \"Existing\" --backup"
-    
-    # Add examples directly without title - format them manually
-    help_content+="\n"
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$examples"
-    help_content+="\n"
-    
-    # Best practices
-    help_content+="$(format_header "Best Practices" 2)"
-    help_content+="$(format_list "Use descriptive PROJECT-ID that will make sense in 5 years\nInclude year prefix for chronological organization\nCreate independent studies within 02_studies/ for different research questions\nUse study-specific conda environments for reproducibility\nPlace large datasets in study 02_data/ with manifests\nUse .integrity/checksums/ for data validation\nVersion control study 01_code/ with Git\nArchive final results in study 04_publication/" "")\n"
-    help_content+="\n"
-    
-    # Cache the content before displaying
-    _cache_set "$cache_key" "$help_content"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
-}
-
-# Short help for lecture projects
-show_lecture_help_short() {
-    local constitution_version="$1"
-    local help_content=""
-    
-    help_content+="$(format_header "Lecture Projects" 1)"
-    help_content+="\nConstitution $constitution_version\n\n"
-    
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="  dirforge init lecture                       # Parent-only mode: create LECTURE_WORLD/\n"
-    help_content+="  dirforge init lecture -n \"Course Name\"    # New lecture project\n\n"
-    
-    help_content+="$(format_header "Key Flags" 2)\n"
-    help_content+="  -n, --name          Course or lecture series name\n"
-    help_content+="  --term \"2025-spring\" Academic term\n"
-    help_content+="  --code \"PHYS101\"    Course code\n\n"
-    
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="  dirforge init lecture                           # Create LECTURE_WORLD/ only\n"
-    help_content+="  dirforge init lecture -n \"Digital Rock Physics\"\n"
-    help_content+="  dirforge init lecture -n \"Physics 101\" --code \"PHYS101\"\n\n"
-    
-    help_content+="Use 'dirforge init lecture --help-long' for detailed documentation\n"
-    
-    echo -e "$help_content"
-}
-
-# Lecture project help with grading workflow documentation
-show_lecture_help() {
-    local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.20"
-    
-    if [ "$mode" = "short" ]; then
-        show_lecture_help_short "$constitution_version"
-        return
-    fi
-    
-    # Long/detailed help follows
-    # Build help content first, then display with pager (force pager for long content)
-    local help_content=""
-    
-    help_content+="$(format_header "Lecture Project Creation (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Educational content with grading workflows\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    # Purpose
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="$(wrap_text "Creates standardized lecture project for course materials, assignments, and student grading workflows with academic integrity tracking." 0)\n"
-    help_content+="\n"
-    
-    # Usage
-    help_content+="$(format_header "Usage" 2)"
-    help_content+="$(format_command "dirforge init lecture [options]")\n"
-    help_content+="$(format_command "dirforge init lecture --name \"Course Name\"")\n"
-    help_content+="\n"
-    
-    # Required inputs
-    help_content+="$(format_header "Required Options" 2)"
-    help_content+="$(format_command "--name \"Course Name\"" "Course or lecture series name")\n"
-    help_content+="\n"
-    
-    # Optional inputs
-    help_content+="$(format_header "Optional Options" 2)"
-    help_content+="$(format_command "--term \"2025-spring\"" "Academic term (default: current year-semester)")\n"
-    help_content+="$(format_command "--code \"PHYS101\"" "Course code for institutional tracking")\n"
-    help_content+="$(format_command "--no-gradebook" "Skip gradebook template creation")\n"
-    help_content+="\n"
-    
-    # Naming conventions
-    help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="\n"
-    help_content+="  Project ID Format:  YYYY-TERM_<snake_case_name>\n"
-    help_content+="  Example Input:      Digital Rock Physics\n"
-    help_content+="  Generated ID:       2025-spring_digital_rock_physics\n"
-    help_content+="  Course Code:        Optional institutional identifier\n"
-    help_content+="  Rules:              ASCII lowercase [a-z0-9_-] with term prefix\n"
-    help_content+="\n"
-    
-    # Directory structure
-    help_content+="$(format_header "Directory Structure" 2)"
-    
-    # Generate dynamic directory tree from scaffolder code
-    local tree_content
-    tree_content=$(generate_dynamic_tree "lecture" "course_name")
-    
-    help_content+="$(format_directory_tree "$tree_content")\n"
-    
-    # Examples
-    help_content+="$(format_header "Examples" 2)"
-    
-    local examples="# Interactive mode\ndirforge init lecture\n# Prompts for: Course name, term, code\n\n# Direct specification\ndirforge init lecture --name \"Digital Rock Physics\"\n\n# With course code and term\ndirforge init lecture --name \"Intro Physics\" --code \"PHYS101\" --term \"2025-fall\"\n\n# Skip gradebook template\ndirforge init lecture --name \"Workshop\" --no-gradebook\n\n# Preview structure\ndirforge --dry-run init lecture --name \"Test Course\""
-    
-    help_content+="$(format_example "$examples" "Common Usage")\n"
-    
-    # Best practices
-    help_content+="$(format_header "Best Practices" 2)"
-    help_content+="$(format_list "Use consistent naming across terms for multi-semester courses\nStore sensitive student data in 05_exercises/submissions/ and 06_exams/submissions/ with appropriate permissions\nVersion control course materials in 01_code/ and 03_slides/\nUse standardized rubrics and grading workflows in 05_exercises/ and 06_exams/\nStore large recordings externally and reference via 02_data/recordings.manifest.yaml\nKeep instructor solutions separate in solutions/ directories with appropriate access controls\nArchive completed courses with final grades in 07_grades/" "")\n"
-    help_content+="\n"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
-}
-
-# Short help for coding projects
-show_coding_help_short() {
-    local constitution_version="$1"
-    local help_content=""
-    
-    help_content+="$(format_header "Coding Projects" 1)"
-    help_content+="\nConstitution $constitution_version\n\n"
-    
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="  dirforge init coding                               # Parent-only mode: create CODING_WORLD/\n"
-    help_content+="  dirforge init coding -l <language> -p <project>    # New coding project\n\n"
-    
-    help_content+="$(format_header "Languages" 2)\n"
-    help_content+="  python, matlab, fortran, bash\n\n"
-    
-    help_content+="$(format_header "Key Flags" 2)\n"
-    help_content+="  -l, --language      Programming language\n"
-    help_content+="  -p, --project       Project name\n"
-    help_content+="  --python VERSION    Python version (default: 3.11)\n"
-    help_content+="  --no-conda          Skip conda environment\n\n"
-    
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="  dirforge init coding                            # Create CODING_WORLD/ only\n"
-    help_content+="  dirforge init coding -l python -p ml_toolkit\n"
-    help_content+="  dirforge init coding -l matlab -p seismic_processing\n"
-    help_content+="  dirforge init coding -l fortran -p wave_solver\n\n"
-    
-    help_content+="Use 'dirforge init coding --help-long' for detailed documentation\n"
-    
-    echo -e "$help_content"
-}
-
-# Coding project help
-show_coding_help() {
-    local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.20"
-
-    if [ "$mode" = "short" ]; then
-        show_coding_help_short "$constitution_version"
-        return
-    fi
-    
-    # Long/detailed help follows
-    local help_content=""
-    help_content+="$(format_header "Coding Projects (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Software development projects with language-specific tooling. Supports python, matlab, fortran, bash.\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    # Purpose and compliance
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates standardized coding projects with language-specific tooling and best practices. Ensures consistent project structures across different programming languages." 0)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Usage" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "dirforge init coding --language <lang> --project <name> [options]")\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Supported Languages" 2)"
-    help_content+="\n"
-    help_content+="  python:     Python project with conda env, pyproject.toml, tests\n"
-    help_content+="  matlab:     MATLAB project with functions/, tests/, data/\n"
-    help_content+="  fortran:    Fortran project with Makefile and optional conda env (gfortran)\n"
-    help_content+="  bash:       Shell project with executable scripts and lib/\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Required Arguments" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--language <lang>" "One of: python|matlab|fortran|bash (case-insensitive)")\n"
-    help_content+="$(format_command "--project <name>" "Project name (converted to lower_snake_case)")\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Optional Arguments" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--python <version>" "Python version for conda env (python/fortran). Default: 3.11")\n"
-    help_content+="$(format_command "--no-conda" "Skip conda environment creation (applies to python/fortran)")\n"
-    help_content+="$(format_command "--no-git" "Skip git initialization")\n"
-    help_content+="$(format_command "--dry-run" "Preview structure without creating (use with --json for machine-readable plan)")\n"
-    help_content+="$(format_command "--force" "Overwrite existing project without prompting")\n"
-    help_content+="$(format_command "--backup" "Create timestamped backup before overwriting")\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Examples" 2)"
-    help_content+="\n"
-    local examples="  # Python machine learning toolkit\n  dirforge init coding --language python --project ml_toolkit\n\n  # MATLAB seismic processing\n  dirforge init coding --language matlab --project seismic_processing\n\n  # Fortran wave solver\n  dirforge init coding --language fortran --project wave_solver --python 3.10\n\n  # Bash admin scripts\n  dirforge init coding --language bash --project admin_scripts"
-    
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$examples"
-    help_content+="\n"
-
-
-    help_content+="$(format_header "Structure" 2)"
-    help_content+="\n"
-    help_content+="CODING_WORLD/<language>/<project>/\n"
-    help_content+="├── src/               # Source code and modules\n"
-    help_content+="├── tests/             # Unit tests and test data\n"
-    help_content+="├── docs/              # Documentation and examples\n"
-    help_content+="├── config/            # Configuration files\n"
-    help_content+="├── environment.yml    # Conda environment specification\n"
-    help_content+="└── README.md          # Project documentation\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Conda Environments" 2)"
-    help_content+="\n"
-    help_content+="Python and Fortran projects create conda env named: coding_<project_name> (unless --no-conda).\n"
-    help_content+="Activate with: conda activate coding_<project_name>\n"
-    help_content+="\n"
-
-    help_content+="$(format_header "Constitution Compliance" 2)"
-    help_content+="\n"
-    help_content+="Constitution $constitution_version, Section III.I — CODING_WORLD\n"
-    help_content+="Language directories: python, matlab, bash, fortran\n"
-
     display_with_pager "$help_content"
 }
 
@@ -1866,7 +1479,7 @@ show_journal_help() {
     help_content+="   # Before: JOURNAL_WORLD/carbonate_study/ (contains both authorship and review content)\n"
     help_content+="   # After: Split into appropriate role directories\n"
     help_content+="   mkdir -p JOURNAL_WORLD/01_primary_authorship/2024_carbonate_study\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/03_journal_service/geophysics/CARB-REV-2024\n"
+    help_content+="   mkdir -p JOURNAL_WORLD/03_journal_service/geophysics/GEO-2024-0123\n"
     help_content+="   # Move manuscript content to authorship, review content to service\n"
     help_content+="\n"
     help_content+="Scenario 2: Year-embedded names\n"

@@ -14,6 +14,16 @@ Track feature requests and enhancement ideas for DirForge. Quick notes that can 
   - `02_studies/<study_name>/03_outputs/`
   - `02_studies/<study_name>/04_publication/`
 3. Create a consistent `--help` output. Therefore, we need to define which sections in each `--help` and `--help-long` should be shown. In the next step remove all intendations and keep the formatting somehow "simple".
+4. Refactor the current use of `init` to only create the initial <world-type> structure. Add the command `create` for creating additional subdirectories, e.g.:
+   - `dirforge init [path] [--auto]`
+   - `dirforge create journal --name "thermal_analysis" --first`
+5. Implement a more detailed structure on conferences. Needed is the dir on (1) a`abstract`, (2) `presentation` (3) `conference_paper`. Maybe it makes sense to merge (1) and (3) into `/writting` and keep `conference_paper` in the `JOURNAL_WORLD`.
+6. Implement an `archive` function and send this directory into `90_archive`:
+   - `dirforge archive <dir>
+7. Implement an `update` function that will check the current directory structure and update the current one the the most recent update
+   - Make sure not to delete existing files
+8. Set and define some proper testing definitions in the constitution.md
+9. Consider adding [DVC](https://doc.dvc.org) to the workflow
 ---
 
 ## Under Review

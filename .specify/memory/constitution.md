@@ -1,123 +1,10 @@
-<!-- Sync Impact Report
-
-- Version change: 1.0.20 -> 1.0.21
-- Modified principles: III.II Journal — complete restructuring from journal-name organization to role-based organization
-- Changed paths:
-  - Old: `JOURNAL_WORLD/<JOURNAL_NAME>/<ID>/` with flexible ID patterns
-  - New: `JOURNAL_WORLD/00_admin/`, `01_primary_authorship/`, `02_coauthor_invites/`, `03_journal_service/`
-  - Each role directory contains project-specific subdirectories with standard `01_manuscript/`, `02_reviews/`, `03_correspondence/`
-- Rationale:
-  - Role-based organization improves workflow clarity and separates different academic activities
-  - Clearer separation between lead authorship, collaborative work, and journal service
-  - Aligns with user workflow patterns (author vs reviewer vs editor roles)
-- Templates requiring updates:
-  - `tools/dirforge`: ✅ updated to create role-based structure with new flag handling (--first, --coauthor, --service)
-  - `lib/help.sh`: ✅ updated all constitution version references to v1.0.21
-  - `templates/help/world_help_journal.txt`: ✅ updated with role-based examples and migration guidance
-  - `README.md`: ✅ updated journal examples with new command syntax
-  - `CHANGELOG.md`: ✅ added v1.0.21 entry with role-based journal changes
-- Migration: Manual migration required for existing v1.0.20 JOURNAL_WORLD projects
-- Breaking change: YES — structural reorganization required for journal projects
-
-Previous changes (1.0.19 -> 1.0.20):
-- Modified principles: None (usability enhancement only)
-- Changed paths: None
-- Rationale: 
-  - Two-tier help system: short (`--help`) vs detailed (`--help-long`) for improved UX
-  - Consistent flag naming: all world types now use `--name`/`-n` for creation
-- Templates requiring updates:
-  - `tools/dirforge`: ✅ updated CONSTITUTION_VERSION to v1.0.20
-  - `lib/help.sh`: ✅ updated all constitution version references to v1.0.20
-  - `README.md`: ✅ updated constitution references
-  - `CHANGELOG.md`: ✅ added v1.0.20 entry with help system and flag naming changes
-- Migration: No migration required - backward compatible (long flags still work)
-- Breaking change: NO — `--title` removed but functionality replaced with `--name` (same semantics)
-
-Previous changes (1.0.18 -> 1.0.19):
-- Modified principles: None (usability enhancement only)
-- Changed paths: None
-- Rationale: Add short flag support (`-t`, `-p`, `-s`, `-n`, `-l`, `-j`, `-i`) for improved CLI ergonomics
-- Templates requiring updates:
-  - `README.md`: ✅ updated with short flag examples
-  - `CHANGELOG.md`: ✅ updated with v1.0.19 entry
-  - `tools/dirforge`: ✅ updated all world type parsers to accept short flags
-  - `lib/help.sh`: ✅ updated constitution version references to v1.0.19
-  - Help content templates: ⚠️ update examples to show short flag usage
-- Migration: No migration required - backward compatible (long flags still work)
-- Breaking change: NO — short flags are additive, all existing commands continue to work
-
-Previous changes (1.0.17 -> 1.0.18):
-- Modified principles: Error handling architecture
-- Changed paths: None (code organization only)
-- Rationale: Modular error handling system with `lib/error.sh` for consistent, maintainable error messages
-- Templates requiring updates: `tools/dirforge`, installation scripts, CHANGELOG.md
-- Migration: No user-facing changes - internal refactoring only
-- Breaking change: NO
-
-Previous changes (1.0.16 -> 1.0.17):
-- Modified principles: III.V Research — introduce study-based organization with 02_studies/ container
-- Changed paths:
-  - Project-level: 02_admin/ → 00_admin/, 01_project_management/ unchanged
-  - Removed: 03_design_protocols/, 04_data/, 05_data_analysis/, 06_data_outputs/, 07_publication/, 08_documentation/
-  - Added: 02_studies/<study_name>/ with substructure 00-04 + .integrity/
-- Rationale: Enable self-contained studies within projects for better organization, independent reproducibility, and clearer provenance
-- Templates requiring updates: tools/dirforge, lib/help.sh, tests/test_init_outputs.sh, examples/research/, README.md
-- Migration: Manual migration required for existing v1.0.16 projects (see Migration Guide)
-- Breaking change: YES — structural incompatibility with v1.0.16
-
-Previous changes (1.0.15 -> 1.0.16):
-- Modified principles: III.V Research, III.VI Lecture — remove CONSTITUTION_CHECK.md requirement
-- Removed sections:
-  - `CONSTITUTION_CHECK.md` is no longer created by scaffolder or required for projects
-  - Removed from minimum required files for both research and lecture projects
-- Rationale: Manual checklist adds overhead without automated validation benefit; constitution compliance is enforced via `tools/manifest.sh` and project structure
-- Templates requiring updates:
-	- `tools/dirforge`: ✅ updated to remove CONSTITUTION_CHECK.md creation from init_research() and init_lecture()
-	- `tests/test_init_outputs.sh`: ⚠️ update to remove CONSTITUTION_CHECK.md assertions
-	- `examples/README.md`: ⚠️ update to remove CONSTITUTION_CHECK.md references
-
-Previous changes (1.0.14 -> 1.0.15):
-- Modified principles: III.VI Lecture — standardize grading workflow across exercises and exams
-- Changed paths:
-  - Exercises: Added `05_exercises/submissions/` and `05_exercises/graded/`; clarified `solutions/` is instructor-only
-  - Exams: `06_exams/originals/` → `06_exams/problems/` and `06_exams/solutions/`; added `06_exams/submissions/` and `06_exams/graded/`
-- Templates requiring updates:
-	- `tools/dirforge`: ✅ updated to create consistent grading workflow (problems/solutions/submissions/graded) for both exercises and exams
-	- Existing lecture projects: ⚠️ manual migration required if using old folder structure
-
-Previous changes (1.0.13 -> 1.0.14):
-- Modified principles: III.VI Lecture — enforce numbered folder convention for exercises, exams, grades
-- Changed paths:
-  - `exercises/` → `05_exercises/`
-  - `exams/` → `06_exams/`
-  - `grades/` → `07_grades/`
-- Templates requiring updates:
-	- `tools/dirforge`: ✅ updated to create `05_exercises/problems`, `05_exercises/solutions`, `06_exams`, `07_grades`
-	- Existing lecture projects: ⚠️ manual migration required if using old `exercises/`, `exams/`, `grades/` paths
-
-Previous changes (1.0.11 -> 1.0.12):
-- Modified principles: III.V Research — introduce `.integrity/` directory for centralized validation artifacts
-- Added sections: 
-  - `.integrity/checksums/` — centralized checksum storage (replaces inline `checksums/` in `04_data/`)
-  - `.integrity/manifests/` — optional manifest index/backup for auditing
-- Removed sections: inline `checksums/` directory from `04_data/` (now centralized in `.integrity/`)
-- Templates requiring updates:
-	- `templates/project.yaml.template`: ⚠ update checksum references to `.integrity/checksums/`
-	- `tools/dirforge`: ✅ updated scaffolder to create `.integrity/checksums/` and `.integrity/manifests/`
-	- `tools/manifest.sh`: ✅ updated validator to expect checksums at `.integrity/checksums/`
-	- `tests/fixtures/sample_manifest.yaml`: ✅ updated checksum path references
-	- `.specify/templates/plan-template.md`: ✅ aligned (no changes needed)
-	- `.specify/templates/spec-template.md`: ✅ aligned (no changes needed)
-	- `.specify/templates/tasks-template.md`: ✅ aligned (no changes needed)
--->
-
 # DirForge Constitution
 
 ## Core Principles
 
 ### I. Research-Activity First (Project-by-Activity)
 All research work MUST be organized by research activity or project (project/grant/topic) rather than by document type alone.
-Each project root MUST contain a short `README.md` and a machine-readable metadata file (`project.yaml`) describing scope, owner, and key dates.
+Each project root MUST contain a short `README.md` and a machine-readable metadata file (`.integrity/project.yaml`) describing scope, owner, and key dates.
 Rationale: Unifies administrative artifacts and scientific outputs so that deliverables, provenance, and responsibilities are co-located and discoverable.
 
 ### II. Single Source of Truth & Sync Policy
@@ -137,24 +24,143 @@ Rationale: Prevents fragmentation and accidental edits across devices while enab
 
 ### III. Data Lifecycle & Integrity
 Parental structure: The top-level workspace folders remain as configured under `iCloud/Documents`: 
-- `CODING_WORLD`
-- `JOURNAL_WORLD`
-- `LECTURE_WORLD`
-- `LITERATURE_WORLD`
-- `OFFICE_WORLD`
-- `PRIVATE_WORLD`
-- `RESEARCH_WORLD`
+- `CODING_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `JOURNAL_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `LECTURE_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `LITERATURE_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `OFFICE_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `PRIVATE_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+- `RESEARCH_WORLD` (with `.integrity/world.yaml` for world-level metadata)
+
+The workspace root (containing all worlds) MUST have `.integrity/workspace.yaml` with workspace-level configuration (workspace_name, world_types, constitution_version).
+Each world MUST contain `.integrity/world.yaml` with world-specific configuration (world_type, creation_date, sync_policies).
+
+### III.A The .integrity Directory System
+
+The `.integrity/` directory is a centralized metadata and validation system used at every organizational level (workspace, world, project, study) to maintain data consistency, provenance tracking, and automated validation.
+
+#### III.A.I Directory Structure and Hierarchy
+
+The `.integrity/` system follows a hierarchical structure that mirrors the organizational levels:
+
+**Workspace Level** (`/.integrity/`):
+- `workspace.yaml` — workspace-wide configuration and metadata
+- `checksums/` — workspace-level checksum validation files
+- `manifests/` — workspace-level manifest indices and backups
+
+**World Level** (`/<WORLD_TYPE>/.integrity/`):
+- `world.yaml` — world-specific configuration and metadata
+- `checksums/` — world-level checksum files for world-wide assets
+- `manifests/` — world-level manifest indices and validation logs
+
+**Project Level** (`/<WORLD_TYPE>/<PROJECT_ID>/.integrity/`):
+- `project.yaml` — project-specific metadata (owner, contact, license, sync_policy)
+- `checksums/` — project-level checksum files (.sha256, .sha512, .md5)
+- `manifests/` — project manifest indices and backup copies for auditing
+
+**Study Level** (`/RESEARCH_WORLD/<PROJECT_ID>/02_studies/<study_name>/.integrity/`) — RESEARCH_WORLD only:
+- `study.yaml` — study-specific metadata (methodology, datasets, protocols, expected_outcomes)
+- `checksums/` — study-specific checksum files for datasets
+- `manifests/` — study-level manifest indices and validation logs
+
+#### III.A.II File Specifications
+
+**Metadata Files (.yaml)**:
+- `workspace.yaml` — Contains workspace_name, world_types list, constitution_version, creation_date
+- `world.yaml` — Contains world_type, creation_date, sync_policies, project_count (varies by world type)
+- `project.yaml` — Contains owner, contact, license, sync_policy, project-specific metadata
+- `study.yaml` — Contains methodology, datasets, protocols, expected_outcomes, research-specific metadata
+
+**Checksum Subdirectory (`checksums/`)**:
+- Stores cryptographic hash files for data validation
+- Supported formats: `.sha256`, `.sha512`, `.md5`
+- Files named to match corresponding datasets: `<dataset_name>.sha256`
+- Referenced by manifests using relative paths: `checksum: ".integrity/checksums/dataset.sha256"`
+
+**Manifests Subdirectory (`manifests/`)**:
+- Stores backup copies of manifest files for auditing
+- Contains manifest indices for large dataset tracking
+- Validation logs and manifest verification results
+- Optional subdirectory — created when external dataset manifests are used
+
+#### III.A.III Access Policies and Security
+
+- `.integrity/` directories are hidden by default (dot-prefix)
+- Metadata files MUST be human-readable YAML format
+- Checksum files MUST be automatically generated and validated
+- NO credentials or sensitive information in any `.integrity/` files
+- External dataset access credentials MUST reference secure credential stores
+
+#### III.A.IV Integration with Manifest System
+
+The `.integrity/` system integrates with the manifest policy (Section II) for external datasets:
+
+- Large datasets stored externally MUST have manifest files (`<dataset>.manifest.yaml`) in project directories
+- Manifests MUST reference checksums using `.integrity/checksums/` paths
+- Manifest validation tools MUST verify checksum file existence and integrity
+- Backup copies of manifests MAY be stored in `.integrity/manifests/` for auditing
+
+#### III.A.V Automation and Tooling
+
+The `.integrity/` system enables automated validation:
+
+- Project scaffolders MUST create appropriate `.integrity/` directories and metadata files
+- Validation tools MUST verify checksum integrity and manifest consistency
+- Migration tools MUST preserve `.integrity/` data across version updates
+- Backup systems MUST include `.integrity/` directories for complete restoration
+
+**Rationale**: Centralized `.integrity/` system provides consistent metadata organization, enables automated validation, supports data provenance tracking, and maintains project integrity across all organizational levels while remaining hidden from day-to-day workflows.
 
 #### III.I CODING_WORLD
 This is the substructure of `CODING_WORLD`:
-- `matlab`
-- `python`
-- `bash`
-- `fortran`
-- `latex`
-- `clusters`
-- `github`
-- `c`
+- `matlab/` (language-specific directory with project metadata)
+- `python/` (language-specific directory with project metadata)
+- `bash/` (language-specific directory with project metadata)
+- `fortran/` (language-specific directory with project metadata)
+- `latex/` (language-specific directory with project metadata)
+- `clusters/` (cluster configuration directory)
+- `github/` (repository management directory)
+- `c/` (language-specific directory with project metadata)
+
+Each language subdirectory contains individual coding projects. See Section III.A for complete `.integrity/` directory specifications at world, project, and organizational levels.
+
+**Example structure:**
+
+CODING_WORLD/
+├── .integrity/
+│   └── world.yaml
+├── python/
+│   ├── .integrity/
+│   │   └── project.yaml
+│   ├── ml_toolkit/
+│   │   ├── .integrity/
+│   │   │   └── project.yaml
+│   │   ├── src/
+│   │   ├── tests/
+│   │   ├── docs/
+│   │   └── requirements.txt
+│   └── data_analysis/
+│       ├── .integrity/
+│       │   └── project.yaml
+│       ├── notebooks/
+│       ├── scripts/
+│       └── environment.yml
+├── matlab/
+│   ├── .integrity/
+│   │   └── project.yaml
+│   └── signal_processing/
+│       ├── .integrity/
+│       │   └── project.yaml
+│       ├── functions/
+│       └── examples/
+└── bash/
+    ├── .integrity/
+    │   └── project.yaml
+    └── automation_scripts/
+        ├── .integrity/
+        │   └── project.yaml
+        ├── deployment/
+        └── monitoring/
 
 #### III.II Journal
 This is the substructure of `JOURNAL_WORLD` for all journal-related activities and publication workflows. The structure organizes work by **role** rather than by journal name, providing clearer separation between different types of academic activities:
@@ -184,6 +190,8 @@ This is the substructure of `JOURNAL_WORLD` for all journal-related activities a
     - `02_reviews/` — review reports, editorial decisions, reviewer feedback
     - `03_correspondence/` — editorial communications, review invitations, decision letters
 
+See Section III.A for complete `.integrity/` directory specifications including project-specific metadata, checksums, and manifests.
+
 **Identifier Conventions:**
 
 - Primary authorship: Use paper title (e.g., `thermal_analysis`, `2024_seismic_modeling`)
@@ -195,30 +203,93 @@ This is the substructure of `JOURNAL_WORLD` for all journal-related activities a
 
 **Usage Examples:**
 
+**Example structure:**
+
 JOURNAL_WORLD/
+├── .integrity/
+│   ├── world.yaml
+│   ├── checksums/
+│   └── manifests/
 ├── 00_admin/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
 │   ├── AGU_membership/
 │   └── SEG_subscription/
 ├── 01_primary_authorship/
 │   ├── thermal_conductivity_study/
+│   │   ├── .integrity/
+│   │   │   ├── project.yaml
+│   │   │   ├── checksums/
+│   │   │   └── manifests/
 │   │   ├── 01_manuscript/
 │   │   ├── 02_reviews/
 │   │   └── 03_correspondence/
 │   └── 2024_digital_rock_physics/
+│       ├── .integrity/
+│       │   ├── project.yaml
+│       │   ├── checksums/
+│       │   └── manifests/
 │       ├── 01_manuscript/
 │       ├── 02_reviews/
 │       └── 03_correspondence/
 ├── 02_coauthor_invites/
 │   ├── 2021_elastic_properties/
+│   │   ├── .integrity/
+│   │   │   ├── project.yaml
+│   │   │   ├── checksums/
+│   │   │   └── manifests/
 │   │   ├── 01_manuscript/
 │   │   ├── 02_reviews/
 │   │   └── 03_correspondence/
 │   └── international_consortium/
+│       ├── .integrity/
+│       │   ├── project.yaml
+│       │   ├── checksums/
+│       │   └── manifests/
 │       ├── 01_manuscript/
 │       ├── 02_reviews/
 │       └── 03_correspondence/
 └── 03_journal_service/
     ├── GEOPHYSICS/
+    │   ├── GEO-2025-0451/
+    │   │   ├── .integrity/
+    │   │   │   ├── project.yaml
+    │   │   │   ├── checksums/
+    │   │   │   └── manifests/
+    │   │   ├── 01_manuscript/
+    │   │   ├── 02_reviews/
+    │   │   └── 03_correspondence/
+    │   └── REVIEWER_2024_Q4/
+    │       ├── .integrity/
+    │       │   ├── project.yaml
+    │       │   ├── checksums/
+    │       │   └── manifests/
+    │       ├── 01_manuscript/
+    │       ├── 02_reviews/
+    │       └── 03_correspondence/
+    ├── NATURE_GEOSCIENCE/
+    │   └── REVIEWER_2024_Q4/
+    │       ├── .integrity/
+    │       │   ├── project.yaml
+    │       │   ├── checksums/
+    │       │   └── manifests/
+    │       ├── 01_manuscript/
+    │       ├── 02_reviews/
+    │       └── 03_correspondence/
+    └── JGR_SOLID_EARTH/
+        └── ASSOC_EDITOR_2024/
+            ├── .integrity/
+            │   ├── project.yaml
+            │   ├── checksums/
+            │   └── manifests/
+            ├── 01_manuscript/
+            ├── 02_reviews/
+            └── 03_correspondence/
+            ├── 01_manuscript/
+            ├── 02_reviews/
+            └── 03_correspondence/
     │   ├── GEO-2025-0451/
     │   │   ├── 01_manuscript/
     │   │   ├── 02_reviews/
@@ -256,6 +327,70 @@ This is the substructure of `OFFICE_WORLD` (project-independent office-level fol
 - `05_software_licenses/` — software licenses, MATLAB/QGIS/ImageJ notes, software invoices
 - `06_public_relations/` — press releases, interviews, PR items
 
+See Section III.A for complete `.integrity/` directory specifications including world-level and project-level metadata.
+
+**Example structure:**
+
+OFFICE_WORLD/
+├── .integrity/
+│   ├── world.yaml
+│   ├── checksums/
+│   └── manifests/
+├── 00_admin/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── inbox/
+│   └── meeting_notes/
+├── 01_finance/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── 2025_budget/
+│   ├── invoices/
+│   └── funding_documents/
+├── 02_hr_administration/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── vacation_requests/
+│   ├── business_trips/
+│   └── faculty_meetings/
+├── 03_faculty/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── university_forms/
+│   └── compliance_docs/
+├── 04_inventory_equipment/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── equipment_inventory.xlsx
+│   ├── zeiss_manuals/
+│   └── maintenance_schedules/
+├── 05_software_licenses/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── MATLAB_license.txt
+│   ├── QGIS_documentation/
+│   └── renewal_calendar.xlsx
+└── 06_public_relations/
+    ├── .integrity/
+    │   ├── project.yaml
+    │   ├── checksums/
+    │   └── manifests/
+    ├── press_releases/
+    ├── interviews/
+    └── media_contacts.yaml
+
 #### III.IV Private
 - `00_admin/` (optional) — quick inbox and transient admin notes (keep or omit)
 - `01_credentials` – pointers only — do NOT store passwords; keep 1Password exports OUTSIDE (or better: do not export). Use 1Password app or encrypted store.
@@ -275,12 +410,103 @@ This is the substructure of `OFFICE_WORLD` (project-independent office-level fol
 	- `07_hiking/<YYYY-MM>_trip/01_logs/` — personal logs, notes, equipment checklists
 - `09_installers/` — OS installers, offline application installers, driver packages, and installation notes (versioned). Use for reproducible reinstalls; avoid storing personal credentials in this folder.
 - `90_archive/` — archived personal files (long-term)
+
+See Section III.A for complete `.integrity/` directory specifications including privacy-level metadata and security considerations.
+  
+**Example structure:**
+
+PRIVATE_WORLD/
+├── .integrity/
+│   ├── world.yaml
+│   ├── checksums/
+│   └── manifests/
+├── 00_admin/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── inbox/
+│   └── meeting_notes/
+├── 01_credentials/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   └── 1password_export_pointers.md
+├── 02_id_contracts/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── personal_contracts/
+│   └── identification_documents/
+├── 03_finance/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── banks/
+│   ├── bafoeg/
+│   └── budget/
+├── 04_documents/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── scans/
+│   ├── templates/
+│   └── cv_versions/
+├── 05_photos/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── 01_raw/
+│   ├── 02_lightroom_catalog/
+│   ├── 03_exports/
+│   └── 04_projects/
+├── 06_movies/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── handbrake/
+│   ├── make_mkv/
+│   ├── ready4plex/
+│   └── gopro/
+├── 07_hiking/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── 2025-01_winter_trip/
+│   │   └── 01_logs/
+│   └── 2025-06_summer_expedition/
+│       └── 01_logs/
+├── 09_installers/
+│   ├── .integrity/
+│   │   ├── project.yaml
+│   │   ├── checksums/
+│   │   └── manifests/
+│   ├── macos_installers/
+│   ├── application_installers/
+│   └── driver_packages/
+└── 90_archive/
+    ├── .integrity/
+    │   ├── project.yaml
+    │   ├── checksums/
+    │   └── manifests/
+    └── archived_documents/
   
 #### III.V Research
 
 Project identifier policy: Every project MUST be created with a pre-defined, stable PROJECT-ID that becomes the canonical directory name under RESEARCH_WORLD/ (for example RESEARCH_WORLD/<PROJECT-ID>/).
 
-Each research activity or project under RESEARCH_WORLD/ MUST follow a consistent, numbered subfolder layout. Every project root MUST contain at minimum a README.md and a project.yaml (machine meta owner, contact, license, sync policy).
+Each research activity or project under RESEARCH_WORLD/ MUST follow a consistent, numbered subfolder layout. Every project root MUST contain at minimum a README.md and `.integrity/project.yaml` (machine meta owner, contact, license, sync policy).
+
+**World-level structure**:
+
+- RESEARCH_WORLD/.integrity/world.yaml — world-level metadata (world_type: research, project_count, default_sync_policy)
 
 **Project-level structure** (top-level folders within RESEARCH_WORLD/<PROJECT-ID>/):
 
@@ -299,9 +525,7 @@ Each research activity or project under RESEARCH_WORLD/ MUST follow a consistent
 
 - RESEARCH_WORLD/<PROJECT-ID>/02_studies/ — container directory for all individual research studies within this project. Each study is self-contained with its own protocols, code, data, outputs, and publications. Study names MUST use lower_snake_case format.
 
-- RESEARCH_WORLD/<PROJECT-ID>/.integrity/ — project-level validation and integrity artifacts (checksums, manifests index, validation logs). This hidden directory centralizes project-wide data validation files:
-  - .integrity/checksums/ — project-level checksum files (.sha256, .sha512, .md5)
-  - .integrity/manifests/ — optional index or backup copies of manifest files for auditing
+- RESEARCH_WORLD/<PROJECT-ID>/.integrity/ — project-level validation and integrity artifacts centralized in this hidden directory
 
 **Study-level structure** (within 02_studies/<study_name>/):
 
@@ -326,10 +550,10 @@ Each study directory MUST follow this standard structure:
   - Provide here a standard LaTeX style based on beamer.
   - Make a one-pager LaTeX document based on provided templates/latex/
 
-- 02_studies/<study_name>/.integrity/ — study-specific validation and integrity artifacts (checksums, manifests, validation logs):
-  - .integrity/checksums/ — checksum files (.sha256, .sha512, .md5) for datasets in this study
-  - .integrity/manifests/ — optional manifest index or backup for this study
+- 02_studies/<study_name>/.integrity/ — study-specific validation and integrity artifacts
   - Manifests in 02_data/ reference checksums as: checksum: ".integrity/checksums/dataset.sha256"
+
+See Section III.A for complete `.integrity/` directory specifications including project-level and study-level metadata, checksums, and manifests.
 
 **Study organization rationale:**
 
@@ -346,6 +570,10 @@ This prevents mixing data and results from different studies, enables independen
 **Example structure:**
 
 RESEARCH_WORLD/2025_geotwins/
+├── .integrity/
+│   ├── world.yaml
+│   ├── checksums/
+│   └── manifests/
 ├── 00_admin/
 │   ├── contracts/
 │   ├── ethics/
@@ -375,6 +603,7 @@ RESEARCH_WORLD/2025_geotwins/
 │   │   ├── 05_presentations/
 │   │   │   └── slides/
 │   │   └── .integrity/
+│   │       ├── study.yaml
 │   │       ├── checksums/
 │   │       └── manifests/
 │   ├── ultrasonic_wave_propagation/
@@ -385,6 +614,9 @@ RESEARCH_WORLD/2025_geotwins/
 │   │   ├── 04_publication/
 │   │   ├── 05_presentations/
 │   │   └── .integrity/
+│   │       ├── study.yaml
+│   │       ├── checksums/
+│   │       └── manifests/
 │   └── digital_twin_validation/
 │       ├── 00_protocols/
 │       ├── 01_code/
@@ -393,15 +625,19 @@ RESEARCH_WORLD/2025_geotwins/
 │       ├── 04_publication/
 │       ├── 05_presentations/
 │       └── .integrity/
+│           ├── study.yaml
+│           ├── checksums/
+│           └── manifests/
 └── .integrity/
+    ├── project.yaml
     ├── checksums/
     └── manifests/
 
 **Requirements:**
 
-- Project creation MUST add project.yaml and README.md to the project root
+- Project creation MUST add README.md to the project root and project.yaml to .integrity/
 - Project creation MUST also create the `01_project_management/` directory and include the standardized subdirectories listed above (`01_proposal/` with `01_draft/`, `02_submission/`, `03_review/`, `04_final/`, plus `02_finance/`, `03_reports/`, and `04_presentations/`). Tooling and templates SHOULD populate these when creating a new research project.
-- Study creation MUST add README.md to the study root describing the specific research question, methods, and expected outcomes
+- Study creation MUST add README.md to the study root and study.yaml to .integrity/ describing the specific research question, methods, and expected outcomes
 - Any dataset added to 02_data/ MUST include a metadata.yaml entry; checksums MUST be stored in .integrity/checksums/ and referenced from manifests. Manifests MUST be validated (see tooling suggestions)
 - Large raw files SHOULD remain external to iCloud when necessary; keep a small YAML manifest in 02_data/ that points to the archival location and lists checksums
 
@@ -417,7 +653,9 @@ Lecture identifier policy: Every lecture project MUST be created with a pre-defi
 
 The scaffolder MUST create `LECTURE_WORLD/<lecture-id>/` and MUST display a confirmation message: `Lecture name converted to ID: <lecture-id>`. The `lecture-id` MUST use only characters in the set `a-z`, `0-9`, `_`, `-` and SHOULD include a short course code or term prefix for uniqueness (for example: `gphy101_fall2026`). Project creators are responsible for choosing a unique `lecture-id` within the workspace.
 
-Minimum project files: every lecture root MUST contain at minimum `README.md` and `project.yaml` (machine meta `course_code`, `title`, `term`, `instructor`, `sync_policy`).
+Minimum project files: every lecture root MUST contain at minimum `README.md` and appropriate metadata (see Section III.A for `.integrity/` specifications).
+
+See Section III.A for complete `.integrity/` directory specifications including world-level and project-level metadata.
 
 Mandatory folder layout (create all top-level folders even if empty):
 - `00_admin/` — schedule, contact info, syllabus, quick links, README
@@ -449,6 +687,120 @@ Exercises, lab practicals, and field exercises
 - Organize exercises by language/type under `05_exercises/` (e.g., `05_exercises/matlab/`, `05_exercises/python/`, `05_exercises/lab_practicals/`, `05_exercises/field_exercises/`). Each exercise package SHOULD include a `README.md`, `problem.md`, any sample data under a `data/` subfolder, and an optional `tests/` harness for autograding.
 - Solutions MUST be stored separately from public problem statements in the `solutions/` directory with appropriate access controls.
 
+**Example structure:**
+
+LECTURE_WORLD/
+├── .integrity/
+│   └── world.yaml
+└── digital_rock_physics/
+    ├── .integrity/
+    │   └── project.yaml
+    ├── README.md
+    ├── 00_admin/
+    │   ├── syllabus.md
+    │   ├── schedule.xlsx
+    │   └── contact_info.md
+    ├── 01_code/
+    │   ├── matlab_exercises/
+    │   ├── python_notebooks/
+    │   └── environment.yml
+    ├── 02_data/
+    │   ├── experimental_recordings/
+    │   ├── recordings.manifest.yaml
+    │   └── reference/
+    ├── 03_slides/
+    │   ├── lecture_01.tex
+    │   ├── lecture_02.tex
+    │   └── public/
+    │       ├── lecture_01.pdf
+    │       └── lecture_02.pdf
+    ├── 04_manuscript/
+    │   ├── main.tex
+    │   ├── references.bib
+    │   └── chapters/
+    ├── 05_exercises/
+    │   ├── problems/
+    │   │   ├── exercise_01.md
+    │   │   └── exercise_02.md
+    │   ├── solutions/
+    │   │   ├── exercise_01_solution.md
+    │   │   └── exercise_02_solution.md
+    │   ├── submissions/
+    │   │   └── student_submissions/
+    │   └── graded/
+    │       └── graded_submissions/
+    ├── 06_exams/
+    │   ├── problems/
+    │   │   ├── midterm_exam.pdf
+    │   │   └── final_exam.pdf
+    │   ├── solutions/
+    │   │   ├── midterm_solution.pdf
+    │   │   └── final_solution.pdf
+    │   ├── submissions/
+    │   │   └── student_exams/
+    │   └── graded/
+    │       └── graded_exams/
+    └── 07_grades/
+        ├── gradebook.xlsx
+        └── rubrics/
+
+**Example structure:**
+
+LECTURE_WORLD/
+├── .integrity/
+│   └── world.yaml
+└── digital_rock_physics/
+    ├── .integrity/
+    │   └── project.yaml
+    ├── README.md
+    ├── 00_admin/
+    │   ├── syllabus.md
+    │   ├── schedule.xlsx
+    │   └── contact_info.md
+    ├── 01_code/
+    │   ├── matlab_exercises/
+    │   ├── python_notebooks/
+    │   └── environment.yml
+    ├── 02_data/
+    │   ├── experimental_recordings/
+    │   ├── recordings.manifest.yaml
+    │   └── reference/
+    ├── 03_slides/
+    │   ├── lecture_01.tex
+    │   ├── lecture_02.tex
+    │   └── public/
+    │       ├── lecture_01.pdf
+    │       └── lecture_02.pdf
+    ├── 04_manuscript/
+    │   ├── main.tex
+    │   ├── references.bib
+    │   └── chapters/
+    ├── 05_exercises/
+    │   ├── problems/
+    │   │   ├── exercise_01.md
+    │   │   └── exercise_02.md
+    │   ├── solutions/
+    │   │   ├── exercise_01_solution.md
+    │   │   └── exercise_02_solution.md
+    │   ├── submissions/
+    │   │   └── student_submissions/
+    │   └── graded/
+    │       └── graded_submissions/
+    ├── 06_exams/
+    │   ├── problems/
+    │   │   ├── midterm_exam.pdf
+    │   │   └── final_exam.pdf
+    │   ├── solutions/
+    │   │   ├── midterm_solution.pdf
+    │   │   └── final_solution.pdf
+    │   ├── submissions/
+    │   │   └── student_exams/
+    │   └── graded/
+    │       └── graded_exams/
+    └── 07_grades/
+        ├── gradebook.xlsx
+        └── rubrics/
+
 Rationale: This structure keeps lecture materials reproducible, protects student privacy and third-party rights, and makes large media manageable by referencing archival storage rather than syncing large binaries through iCloud.
 
 ### IV. Project-ID, Naming, Metadata, and Provenance
@@ -460,12 +812,11 @@ The `PROJECT-ID` MUST be specified at project creation time (scaffolder paramete
 
 - File naming: prefix time-scoped files and folders with ISO dates: `YYYY-MM-DD_description[_instrument]_[version]`.
 
-- Required machine-readable meta
-	- Project root MUST contain `README.md` and `project.yaml` (fields: `owner`, `contact`, `license`, `sync_policy`).
-	- Each dataset in `04_data/` MUST have `metadata.yaml` and corresponding checksum files in `.integrity/checksums/` (`.sha256` or `.sha512`).
-	- External datasets referenced from iCloud MUST have a `*.manifest.yaml` in `04_data/` (see Section II for required manifest fields). Manifests reference checksums using relative paths: `checksum: ".integrity/checksums/dataset.sha256"`.
+- Required machine-readable meta: See Section III.A for complete `.integrity/` directory specifications including all required metadata files.
 
-- Automation note: following these conventions enables simple validation and tooling (scripts that parse `project.yaml`, verify `checksums.sha256`, and expand `*.manifest.yaml`).
+- Dataset requirements: Each dataset in data directories MUST have corresponding entries in `.integrity/checksums/`. External datasets referenced from iCloud MUST have a `*.manifest.yaml` in the appropriate data directory (see Section II for required manifest fields).
+
+- Automation note: following these conventions enables simple validation and tooling that can parse metadata files, verify checksums, and expand manifests.
 
 Rationale: stable, machine-readable naming makes automation, discovery, and long-term reuse reliable across platforms and tools.
 
@@ -499,7 +850,11 @@ All reusable templates, boilerplate content, and reference materials MUST be sto
 
 - `templates/` — project templates, configuration files, and reference materials
   - `templates/help/` — help system output examples and reference documentation
-  - `templates/*.yaml.template` — project configuration templates (project.yaml, manifest templates)
+  - `templates/workspace.yaml.template` — workspace-level configuration template
+  - `templates/world.yaml.template` — world-level configuration template
+  - `templates/project.yaml.template` — project-level configuration template
+  - `templates/study.yaml.template` — study-level configuration template
+  - `templates/*.manifest.yaml.template` — dataset manifest templates
   - `templates/*.md.template` — documentation templates and boilerplate content
 - `examples/` — actual working project demonstrations and usage examples only
   - Example scaffolds showing real project structures
@@ -516,6 +871,71 @@ Report files generated for project tracking and status documentation MUST follow
 
 Reports MUST be stored in the `report/` directory and excluded from version control (`.gitignore` compliance).
 
+### Testing Environment and Infrastructure
+All testing for DirForge functionality MUST be conducted within a standardized testing environment to ensure consistency, maintainability, and comprehensive feature validation.
+
+**Testing Location Requirements:**
+- ALL test files and test directories MUST be located exclusively in `tests/` within the local repository root
+- For DirForge development: `tests/` directory located at repository root (e.g., `/Users/[username]/Documents/CODING_WORLD/bash/dirforge/tests/`)
+- NO test files or testing infrastructure SHALL be created outside this designated directory
+- Private development paths or user-specific information MUST NOT be exposed in repository commits
+
+**Test Directory Structure:**
+The `tests/` directory MUST follow this mandatory structure:
+
+```
+tests/
+├── run_tests.sh                         # Main test runner (discovers and executes all tests)
+├── test-functions/                      # Individual feature test scripts
+│   ├── test_<feature_name>_v<version>.sh # One test script per feature/functionality with version
+│   ├── test_version_detection_v1.0.21.sh # Example: version detection tests (developed in v1.0.21)
+│   ├── test_migration_logic_v1.0.21.sh   # Example: migration system tests (developed in v1.0.21)
+│   └── test_world_type_aware_v1.0.21.sh  # Example: world-type awareness tests (developed in v1.0.21)
+├── fixtures/                           # Test data and mock structures
+│   ├── sample_projects/                # Sample project structures for testing
+│   └── expected_outputs/               # Expected test outputs for validation
+└── README.md                           # Testing documentation and guidelines
+```
+
+**Test Implementation Requirements:**
+
+1. **Feature Coverage**: Every new feature or functionality added to DirForge MUST have a corresponding test script in `tests/test-functions/`
+
+2. **Test Script Naming**: Test scripts MUST follow the pattern `test_<feature_name>_v<version>.sh` where `<feature_name>` describes the specific functionality being tested and `<version>` indicates the DirForge version when the test was developed (e.g., `test_version_detection_v1.0.21.sh`, `test_migration_logic_v1.0.21.sh`)
+
+3. **Main Test Runner**: The `tests/run_tests.sh` script MUST:
+   - Automatically discover all test scripts in `tests/test-functions/`
+   - Execute each test script in a controlled environment
+   - Provide consolidated pass/fail reporting
+   - Support both individual test execution and full test suite runs
+   - Clean up test artifacts after execution
+
+4. **Test Script Standards**: Each individual test script MUST:
+   - Be executable and self-contained
+   - Use consistent exit codes (0 for pass, non-zero for fail)
+   - Provide clear output indicating test results
+   - Clean up any temporary files or directories created during testing
+   - Include descriptive test names and failure messages
+
+5. **Regression Testing**: The test infrastructure MUST validate that:
+   - All previously implemented features continue to work after updates
+   - New features do not break existing functionality
+   - Migration logic preserves data integrity across version updates
+   - All world types maintain proper structure and behavior
+
+**Test Environment Isolation:**
+- Tests MUST run in isolated temporary directories to prevent interference with development workspace
+- Test fixtures MUST be self-contained and not rely on external dependencies
+- Tests MUST NOT modify or access user's actual project directories during execution
+- All test data MUST be cleaned up automatically after test completion
+
+**Continuous Integration Requirements:**
+- The complete test suite MUST pass before any code changes are considered complete
+- New features MUST include corresponding tests before implementation is accepted
+- Test failures MUST be investigated and resolved before proceeding with development
+
+**Rationale**: Comprehensive testing infrastructure ensures DirForge reliability, prevents regression bugs, validates all functionality across updates, and maintains code quality standards. Centralized testing in `tests/` directory provides clear organization and prevents scattered test files throughout the codebase. Version tracking in test names enables prioritization of failing tests based on implementation timeline and feature criticality.
+
 ## Governance
 - No contribution by other owners. Only main author: Martin Balcewicz
 - No further commands needed.
@@ -525,4 +945,4 @@ Versioning policy (semantic):
 - MINOR: New principle or materially expanded guidance.
 - PATCH: Wording clarifications, typos, or non-semantic refinements.
 
-**Version**: 1.0.21 | **Ratified**: 2025-12-11 | **Last Amended**: 2025-12-11
+**Version**: 1.0.22 | **Ratified**: 2025-12-15 | **Last Amended**: 2025-12-15
