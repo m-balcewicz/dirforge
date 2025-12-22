@@ -1,3 +1,38 @@
+## [1.0.22] - 2025-12-15
+
+### Added
+- **Dedicated .integrity Directory System**: Comprehensive centralized metadata and validation system (Section III.A)
+  - Hierarchical structure across all organizational levels (workspace/world/project/study)
+  - Standardized file specifications for workspace.yaml, world.yaml, project.yaml, study.yaml
+  - Centralized checksums/ and manifests/ subdirectories at every level
+  - Complete access policies and security guidelines
+  - Integration specifications with manifest system for external datasets
+  - Automation and tooling requirements for validation
+
+### Changed
+- **Constitution Restructuring**: Major reorganization to eliminate duplication and improve clarity
+  - Created dedicated Section III.A for complete .integrity/ directory specifications
+  - Cleaned up all WORLD-TYPE sections to reference centralized .integrity chapter
+  - Removed redundant metadata explanations throughout individual world sections
+  - Streamlined Project-ID section to focus on naming conventions
+  - Enhanced tree structures to show complete checksums/ and manifests/ organization
+
+- **Documentation Architecture**: Improved constitution organization
+  - Single source of truth for all .integrity/ specifications
+  - Better separation of concerns between world-specific structure and metadata system
+  - Comprehensive coverage of security, automation, and integration requirements
+  - Cleaner world-type sections focusing on organizational structure
+
+### Fixed
+- **Redundancy Elimination**: Removed duplicated .integrity/ references across all sections
+- **Consistency**: Standardized .integrity/ documentation across all WORLD-TYPEs
+- **Clarity**: Centralized complex metadata system documentation for better maintainability
+
+### Migration Notes
+- **Constitution Update**: All .integrity/ specifications now centralized in Section III.A
+- **No Breaking Changes**: Structural organization remains unchanged
+- **Enhanced Documentation**: Complete specifications for checksums/ and manifests/ subdirectories
+
 ## [1.0.21] - 2025-12-11
 
 ### Added

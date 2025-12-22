@@ -1,0 +1,7 @@
+# Invalid manifest: uses old checksum path (not .integrity/)
+storage_location: "iCloud"
+server_or_nas: "iCloud Drive"
+path_on_store: "/Documents/Research/SampleProject"
+naming: "sample_project_data.tar.gz"
+checksum: "checksums/sample.sha256"
+access: "read-write"

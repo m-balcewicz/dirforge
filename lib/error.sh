@@ -205,3 +205,352 @@ show_unknown_arg_error() {
         echo "Unknown arg: $arg" >&2
     fi
 }
+
+# ============================================================================
+# UPDATE COMMAND ERROR HANDLING - T032 Implementation
+# ============================================================================
+
+# Show corrupted YAML file error with diagnosis and recovery
+# Usage: show_corrupted_yaml_error "file_path" "yaml_error" "json_flag"
+show_corrupted_yaml_error() {
+    local file_path="$1"
+    local yaml_error="$2"
+    local json_flag="${3:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Corrupted YAML file: $file_path\",\"details\":\"$yaml_error\"}"
+    else
+        echo "❌ Error: Corrupted YAML file detected" >&2
+        echo "   File: $file_path" >&2
+        echo "   Issue: $yaml_error" >&2
+        echo "" >&2
+        echo "💡 Recovery suggestions:" >&2
+        echo "   1. Check file permissions: ls -la \"$file_path\"" >&2
+        echo "   2. View file content: cat \"$file_path\"" >&2
+        echo "   3. Validate YAML syntax online or with tools like 'yq'" >&2
+        echo "   4. Restore from backup if available" >&2
+        echo "   5. Use --force flag to skip corrupted metadata (if safe)" >&2
+    fi
+}
+
+# Show file system permission error with detailed diagnosis
+# Usage: show_permission_error "operation" "file_path" "username" "json_flag"
+show_permission_error() {
+    local operation="$1"
+    local file_path="$2"
+    local username="$(whoami)"
+    local json_flag="${3:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Permission denied\",\"operation\":\"$operation\",\"path\":\"$file_path\"}"
+    else
+        echo "❌ Error: Permission denied for $operation" >&2
+        echo "   Path: $file_path" >&2
+        echo "   User: $username" >&2
+        echo "" >&2
+        
+        # Provide context-specific suggestions
+        case "$operation" in
+            "write")
+                echo "💡 Solutions for write permission:" >&2
+                echo "   1. Check ownership: ls -la \"$(dirname "$file_path")\"" >&2
+                echo "   2. Fix ownership: sudo chown -R $username \"$file_path\"" >&2
+                echo "   3. Fix permissions: chmod u+w \"$file_path\"" >&2
+                echo "   4. Check parent directory write permission" >&2
+                echo "   5. Ensure no immutable attributes: lsattr \"$file_path\" (Linux)" >&2
+                ;;
+            "read")
+                echo "💡 Solutions for read permission:" >&2
+                echo "   1. Check file permissions: ls -la \"$file_path\"" >&2
+                echo "   2. Fix permissions: chmod u+r \"$file_path\"" >&2
+                echo "   3. Check if file is a broken symlink: file \"$file_path\"" >&2
+                ;;
+            "create")
+                echo "💡 Solutions for create permission:" >&2
+                echo "   1. Check parent directory permissions: ls -la \"$(dirname "$file_path")\"" >&2
+                echo "   2. Fix parent directory: chmod u+w \"$(dirname "$file_path")\"" >&2
+                echo "   3. Check disk space: df -h \"$file_path\"" >&2
+                ;;
+        esac
+        
+        echo "" >&2
+        echo "⚠️  If this is intentional (write-protected files), consider:" >&2
+        echo "   • Using --dry-run to preview changes" >&2
+        echo "   • Temporarily adjusting permissions for the update" >&2
+    fi
+}
+
+# Show disk space error with usage information
+# Usage: show_disk_space_error "path" "required_mb" "available_mb" "json_flag"
+show_disk_space_error() {
+    local path="$1"
+    local required_mb="$2"
+    local available_mb="$3"
+    local json_flag="${4:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Insufficient disk space\",\"path\":\"$path\",\"required_mb\":$required_mb,\"available_mb\":$available_mb}"
+    else
+        echo "❌ Error: Insufficient disk space" >&2
+        echo "   Location: $path" >&2
+        echo "   Required: ${required_mb}MB" >&2
+        echo "   Available: ${available_mb}MB" >&2
+        echo "" >&2
+        echo "💡 Solutions:" >&2
+        echo "   1. Free up space: df -h to check usage" >&2
+        echo "   2. Clean temporary files: rm -rf /tmp/*" >&2
+        echo "   3. Remove old backups: find . -name '*.backup*' -type d" >&2
+        echo "   4. Move to different location with more space" >&2
+        echo "   5. Skip backup with update (not recommended): update without --backup" >&2
+    fi
+}
+
+# Show backup creation error
+# Usage: show_backup_error "source_path" "backup_path" "error_msg" "json_flag"
+show_backup_error() {
+    local source_path="$1"
+    local backup_path="$2"
+    local error_msg="$3"
+    local json_flag="${4:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Backup creation failed\",\"source\":\"$source_path\",\"destination\":\"$backup_path\",\"details\":\"$error_msg\"}"
+    else
+        echo "❌ Error: Backup creation failed" >&2
+        echo "   Source: $source_path" >&2
+        echo "   Destination: $backup_path" >&2
+        echo "   Details: $error_msg" >&2
+        echo "" >&2
+        echo "💡 Solutions:" >&2
+        echo "   1. Check disk space in destination: df -h \"$(dirname "$backup_path")\"" >&2
+        echo "   2. Check write permissions: ls -la \"$(dirname "$backup_path")\"" >&2
+        echo "   3. Try different backup location" >&2
+        echo "   4. Proceed without backup (use with caution): update without --backup" >&2
+    fi
+}
+
+# Show directory traversal error
+# Usage: show_traversal_error "path" "error_msg" "json_flag"
+show_traversal_error() {
+    local path="$1"
+    local error_msg="$2"
+    local json_flag="${3:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Directory traversal failed\",\"path\":\"$path\",\"details\":\"$error_msg\"}"
+    else
+        echo "❌ Error: Cannot access directory" >&2
+        echo "   Path: $path" >&2
+        echo "   Issue: $error_msg" >&2
+        echo "" >&2
+        echo "💡 Possible causes and solutions:" >&2
+        echo "   1. Symlink issues: ls -la \"$path\" to check" >&2
+        echo "   2. Permission denied: check directory permissions" >&2
+        echo "   3. Network mount issues: check mount status" >&2
+        echo "   4. Corrupted filesystem: check with fsck (if safe)" >&2
+    fi
+}
+
+# Show migration step error
+# Usage: show_migration_error "step" "version_from" "version_to" "error_msg" "json_flag"
+show_migration_error() {
+    local step="$1"
+    local version_from="$2"
+    local version_to="$3"
+    local error_msg="$4"
+    local json_flag="${5:-false}"
+    
+    if [[ "$json_flag" == "true" ]]; then
+        echo "{\"ok\":false,\"error\":\"Migration step failed\",\"step\":\"$step\",\"from_version\":\"$version_from\",\"to_version\":\"$version_to\",\"details\":\"$error_msg\"}"
+    else
+        echo "❌ Error: Migration step failed" >&2
+        echo "   Step: $step" >&2
+        echo "   Version: $version_from → $version_to" >&2
+        echo "   Details: $error_msg" >&2
+        echo "" >&2
+        echo "💡 Recovery options:" >&2
+        echo "   1. Check if backup was created and restore if needed" >&2
+        echo "   2. Retry with --dry-run to see what went wrong" >&2
+        echo "   3. Check file permissions and disk space" >&2
+        echo "   4. Report bug with details above if issue persists" >&2
+    fi
+}
+
+# ============================================================================
+# UTILITY FUNCTIONS FOR ERROR DETECTION - T032 Implementation
+# ============================================================================
+
+# Check available disk space in MB
+# Usage: check_disk_space "path" "required_mb"
+# Returns: 0 if sufficient space, 1 if not, 2 if cannot determine
+check_disk_space() {
+    local path="$1"
+    local required_mb="${2:-100}"  # Default 100MB requirement
+    
+    # Get available space in MB (works on macOS and Linux)
+    local available_mb
+    if command -v df >/dev/null 2>&1; then
+        # Try different df formats
+        available_mb=$(df -m "$path" 2>/dev/null | awk 'NR==2 {print $4}' || df "$path" 2>/dev/null | awk 'NR==2 {print int($4/1024)}' || echo "0")
+    else
+        echo "2"  # Cannot determine
+        return 2
+    fi
+    
+    if [[ "$available_mb" -ge "$required_mb" ]]; then
+        return 0  # Sufficient space
+    else
+        echo "$available_mb"  # Return available space for error reporting
+        return 1  # Insufficient space
+    fi
+}
+
+# Validate YAML file syntax
+# Usage: validate_yaml_file "file_path"
+# Returns: 0 if valid, 1 if invalid, sets $YAML_ERROR with error details
+validate_yaml_file() {
+    local file_path="$1"
+    YAML_ERROR=""  # Global variable for error details
+    
+    # Check if file exists and is readable
+    if [[ ! -f "$file_path" ]]; then
+        YAML_ERROR="File does not exist"
+        return 1
+    fi
+    
+    if [[ ! -r "$file_path" ]]; then
+        YAML_ERROR="File is not readable"
+        return 1
+    fi
+    
+    # Check for common YAML issues
+    local line_num=1
+    local yaml_content
+    
+    # Read file line by line to catch encoding issues
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Check for non-printable characters (basic validation)
+        if [[ "$line" =~ [[:cntrl:]] ]] && [[ ! "$line" =~ ^[[:space:]]*$ ]]; then
+            YAML_ERROR="Line $line_num contains non-printable characters"
+            return 1
+        fi
+        
+        # Check for common YAML syntax issues
+        if [[ "$line" =~ ^[[:space:]]*[^#]*:[[:space:]]*$ ]]; then
+            YAML_ERROR="Line $line_num has key without value: ${line// /}"
+            return 1
+        fi
+        
+        ((line_num++))
+    done < "$file_path" 2>/dev/null || {
+        YAML_ERROR="Cannot read file (encoding issue or file corruption)"
+        return 1
+    }
+    
+    # Try to parse with basic tools (if available)
+    if command -v python3 >/dev/null 2>&1; then
+        local python_result
+        python_result=$(python3 -c "import yaml; yaml.safe_load(open('$file_path'))" 2>&1) || {
+            YAML_ERROR="YAML syntax error: $python_result"
+            return 1
+        }
+    elif command -v yq >/dev/null 2>&1; then
+        local yq_result
+        yq_result=$(yq eval . "$file_path" 2>&1) >/dev/null || {
+            YAML_ERROR="YAML syntax error: $yq_result"
+            return 1
+        }
+    fi
+    
+    # Basic sanity check: ensure it looks like project.yaml
+    if [[ "$(basename "$file_path")" == "project.yaml" ]]; then
+        if ! grep -q "^name:" "$file_path" 2>/dev/null; then
+            YAML_ERROR="Missing required 'name:' field in project.yaml"
+            return 1
+        fi
+        if ! grep -q "^version:" "$file_path" 2>/dev/null; then
+            YAML_ERROR="Missing required 'version:' field in project.yaml"
+            return 1
+        fi
+    fi
+    
+    return 0  # Valid YAML
+}
+
+# Check if path has potential traversal issues
+# Usage: check_path_safety "path"
+# Returns: 0 if safe, 1 if potentially unsafe
+check_path_safety() {
+    local path="$1"
+    
+    # Check for directory traversal patterns
+    if [[ "$path" =~ \.\./  ]] || [[ "$path" =~ /\.\.$  ]] || [[ "$path" =~ /\.\./  ]]; then
+        return 1  # Potentially unsafe
+    fi
+    
+    # Check for absolute paths outside safe zones (basic check)
+    case "$path" in
+        /etc/*|/sys/*|/proc/*|/dev/*)
+            return 1  # System directories
+            ;;
+        /*)
+            # Allow absolute paths but be cautious
+            if [[ "$path" =~ ^/(home|Users)/  ]] || [[ "$path" =~ ^/(tmp|var/tmp)/  ]] || [[ "$path" =~ ^/opt/  ]]; then
+                return 0  # Common safe locations
+            else
+                return 1  # Potentially unsafe absolute path
+            fi
+            ;;
+    esac
+    
+    return 0  # Seems safe
+}
+
+# Test file/directory permissions comprehensively
+# Usage: test_permissions "path" "operation"
+# Operations: read, write, create, traverse
+# Returns: 0 if has permission, 1 if not, 2 if cannot determine
+test_permissions() {
+    local path="$1"
+    local operation="$2"
+    
+    case "$operation" in
+        "read")
+            if [[ -f "$path" ]] && [[ -r "$path" ]]; then
+                return 0
+            elif [[ -d "$path" ]] && [[ -r "$path" ]] && [[ -x "$path" ]]; then
+                return 0
+            else
+                return 1
+            fi
+            ;;
+        "write")
+            if [[ -f "$path" ]] && [[ -w "$path" ]]; then
+                return 0
+            elif [[ -d "$path" ]] && [[ -w "$path" ]]; then
+                return 0
+            else
+                return 1
+            fi
+            ;;
+        "create")
+            local parent_dir
+            parent_dir=$(dirname "$path")
+            if [[ -d "$parent_dir" ]] && [[ -w "$parent_dir" ]]; then
+                return 0
+            else
+                return 1
+            fi
+            ;;
+        "traverse")
+            if [[ -d "$path" ]] && [[ -x "$path" ]]; then
+                return 0
+            else
+                return 1
+            fi
+            ;;
+        *)
+            return 2  # Unknown operation
+            ;;
+    esac
+}

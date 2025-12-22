@@ -1,0 +1,282 @@
+# Journal Role-Based Structure Test Examples
+# Comprehensive test fixtures for the complete JOURNAL_WORLD role-based organization
+# Used for integration testing and structure validation
+
+# Expected Role-Based Directory Structure
+role_based_structure:
+  base_directory: "JOURNAL_WORLD"
+  roles:
+    administrative:
+      directory_name: "00_admin"
+      creation_method: "manual"
+      subdirectories:
+        - "subscriptions"
+        - "memberships"
+        - "general"
+      note: "Not created by dirforge commands - manual organization"
+      
+    primary_authorship:
+      directory_name: "01_primary_authorship"
+      creation_method: "dirforge init journal --paper <name> --first"
+      pattern: "YYYY_paper_name/"
+      subdirectories:
+        - "01_manuscript"
+        - "02_reviews" 
+        - "03_correspondence"
+        
+    coauthor_collaboration:
+      directory_name: "02_coauthor_invites"
+      creation_method: "dirforge init journal --paper <name> --coauthor"
+      pattern: "YYYY_paper_name/"
+      subdirectories:
+        - "01_manuscript"
+        - "02_reviews"
+        - "03_correspondence"
+        
+    journal_service:
+      directory_name: "03_journal_service"
+      creation_method: "dirforge init journal --journal <name> --id <manuscript_id>"
+      pattern: "journal_name/MANUSCRIPT_ID/"
+      subdirectories:
+        - "01_manuscript"
+        - "02_reviews"
+        - "03_correspondence"
+
+# Complete Example Structures for Testing
+example_structures:
+  minimal_journal_world:
+    description: "Empty JOURNAL_WORLD with just role directories"
+    structure: |
+      JOURNAL_WORLD/
+      ├── 00_admin/
+      ├── 01_primary_authorship/
+      ├── 02_coauthor_invites/
+      └── 03_journal_service/
+    creation_commands:
+      - "dirforge init journal"  # Creates base structure
+      
+  full_primary_authorship_example:
+    description: "Complete primary authorship project example"
+    structure: |
+      JOURNAL_WORLD/
+      ├── 00_admin/
+      ├── 01_primary_authorship/
+      │   ├── 2024_seismic_inversion_methods/
+      │   │   ├── 01_manuscript/
+      │   │   ├── 02_reviews/
+      │   │   └── 03_correspondence/
+      │   ├── 2025_thermal_conductivity_review/
+      │   │   ├── 01_manuscript/
+      │   │   ├── 02_reviews/
+      │   │   └── 03_correspondence/
+      │   └── 2025_biot_coefficient_analysis/
+      │       ├── 01_manuscript/
+      │       ├── 02_reviews/
+      │       └── 03_correspondence/
+      ├── 02_coauthor_invites/
+      └── 03_journal_service/
+    creation_commands:
+      - "dirforge init journal --paper \"seismic_inversion_methods\" --first --year 2024"
+      - "dirforge init journal --paper \"thermal_conductivity_review\" --first"
+      - "dirforge init journal --paper \"Biot Coefficient Analysis\" --first"
+
+  full_coauthor_example:
+    description: "Complete co-author collaboration example"
+    structure: |
+      JOURNAL_WORLD/
+      ├── 00_admin/
+      ├── 01_primary_authorship/
+      ├── 02_coauthor_invites/
+      │   ├── 2021_elastic_properties_of_carbonates/
+      │   │   ├── 01_manuscript/
+      │   │   ├── 02_reviews/
+      │   │   └── 03_correspondence/
+      │   ├── 2024_seismic_hazard_forge/
+      │   │   ├── 01_manuscript/
+      │   │   ├── 02_reviews/
+      │   │   └── 03_correspondence/
+      │   └── 2025_digital_rock_physics/
+      │       ├── 01_manuscript/
+      │       ├── 02_reviews/
+      │       └── 03_correspondence/
+      └── 03_journal_service/
+    creation_commands:
+      - "dirforge init journal --paper \"2021_elastic_properties_of_carbonates\" --coauthor"
+      - "dirforge init journal --paper \"seismic_hazard_forge\" --coauthor --year 2024"
+      - "dirforge init journal --paper \"digital_rock_physics\" --coauthor"
+
+  full_journal_service_example:
+    description: "Complete journal service example"
+    structure: |
+      JOURNAL_WORLD/
+      ├── 00_admin/
+      ├── 01_primary_authorship/
+      ├── 02_coauthor_invites/
+      └── 03_journal_service/
+          ├── geophysics/
+          │   ├── GEO-2025-0451/
+          │   │   ├── 01_manuscript/
+          │   │   ├── 02_reviews/
+          │   │   └── 03_correspondence/
+          │   └── GEO-2024-1234/
+          │       ├── 01_manuscript/
+          │       ├── 02_reviews/
+          │       └── 03_correspondence/
+          ├── nature_geoscience/
+          │   └── REVIEWER_2024_Q4/
+          │       ├── 01_manuscript/
+          │       ├── 02_reviews/
+          │       └── 03_correspondence/
+          └── jgr_solid_earth/
+              └── ASSOC_EDITOR_2024/
+                  ├── 01_manuscript/
+                  ├── 02_reviews/
+                  └── 03_correspondence/
+    creation_commands:
+      - "dirforge init journal --journal \"Geophysics\" --id \"GEO-2025-0451\""
+      - "dirforge init journal --journal \"Geophysics\" --id \"GEO-2024-1234\""
+      - "dirforge init journal --journal \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\""
+      - "dirforge init journal --journal \"JGR Solid Earth\" --id \"ASSOC_EDITOR_2024\""
+
+  complete_mixed_example:
+    description: "Complete mixed example with all role types"
+    structure: |
+      JOURNAL_WORLD/
+      ├── 00_admin/
+      │   ├── subscriptions/
+      │   ├── memberships/
+      │   └── general/
+      ├── 01_primary_authorship/
+      │   ├── 2024_seismic_methods/
+      │   │   ├── 01_manuscript/
+      │   │   ├── 02_reviews/
+      │   │   └── 03_correspondence/
+      │   └── 2025_thermal_review/
+      │       ├── 01_manuscript/
+      │       ├── 02_reviews/
+      │       └── 03_correspondence/
+      ├── 02_coauthor_invites/
+      │   └── 2021_elastic_carbonates/
+      │       ├── 01_manuscript/
+      │       ├── 02_reviews/
+      │       └── 03_correspondence/
+      └── 03_journal_service/
+          ├── geophysics/
+          │   └── GEO-2025-0451/
+          │       ├── 01_manuscript/
+          │       ├── 02_reviews/
+          │       └── 03_correspondence/
+          └── nature_geoscience/
+              └── REVIEWER_2024_Q4/
+                  ├── 01_manuscript/
+                  ├── 02_reviews/
+                  └── 03_correspondence/
+
+# Path Validation Test Data
+path_validation_tests:
+  valid_primary_authorship_paths:
+    - "JOURNAL_WORLD/01_primary_authorship/2025_example_paper"
+    - "JOURNAL_WORLD/01_primary_authorship/2020_historical_study"
+    - "JOURNAL_WORLD/01_primary_authorship/2030_future_research"
+    
+  valid_coauthor_paths:
+    - "JOURNAL_WORLD/02_coauthor_invites/2021_collaboration_project"
+    - "JOURNAL_WORLD/02_coauthor_invites/2025_joint_research"
+    
+  valid_service_paths:
+    - "JOURNAL_WORLD/03_journal_service/geophysics/GEO-2025-0451"
+    - "JOURNAL_WORLD/03_journal_service/nature_geoscience/NG-2024-12345"
+    - "JOURNAL_WORLD/03_journal_service/ieee_tgrs/TGRS-2025-0789"
+    
+  invalid_paths:
+    - "JOURNAL_WORLD/invalid_role/test_paper"
+    - "JOURNAL_WORLD/01_primary_authorship/invalid_year_format"
+    - "JOURNAL_WORLD/01_primary_authorship/abc_invalid_year"
+    - "JOURNAL_WORLD/03_journal_service/missing_manuscript_id"
+
+# Name Sanitization Test Data
+name_sanitization_tests:
+  paper_names:
+    input_output_pairs:
+      - input: "Simple Paper Name"
+        output: "simple_paper_name"
+      - input: "Complex-Title with Multiple Issues!"
+        output: "complex_title_with_multiple_issues"
+      - input: "Numbers123 and Symbols@#$"
+        output: "numbers123_and_symbols"
+      - input: "Already_lowercase_with_underscores"
+        output: "already_lowercase_with_underscores"
+      - input: "Spaces    With   Multiple   Gaps"
+        output: "spaces_with_multiple_gaps"
+  
+  journal_names:
+    input_output_pairs:
+      - input: "Geophysics"
+        output: "geophysics"
+      - input: "Nature Geoscience"
+        output: "nature_geoscience"
+      - input: "JGR Solid Earth"
+        output: "jgr_solid_earth"
+      - input: "IEEE Transactions on Geoscience and Remote Sensing"
+        output: "ieee_transactions_on_geoscience_and_remote_sensing"
+
+# Year Extraction Test Data
+year_extraction_tests:
+  papers_with_embedded_years:
+    - input: "2021_elastic_properties_of_carbonates"
+      extracted_year: "2021"
+      cleaned_name: "elastic_properties_of_carbonates"
+    - input: "2020_seismic_inversion_methods"
+      extracted_year: "2020"
+      cleaned_name: "seismic_inversion_methods"
+    - input: "1999_historical_geophysics_study"
+      extracted_year: "1999"
+      cleaned_name: "historical_geophysics_study"
+      
+  papers_without_embedded_years:
+    - input: "thermal_conductivity_review"
+      extracted_year: null
+      cleaned_name: "thermal_conductivity_review"
+    - input: "modern_seismic_methods"
+      extracted_year: null
+      cleaned_name: "modern_seismic_methods"
+
+# Command Line Flag Test Data
+command_line_tests:
+  primary_authorship_commands:
+    valid:
+      - "--paper \"example_paper\" --first"
+      - "--paper \"example_paper\" --first --year 2024"
+      - "--paper \"2020_historical_paper\" --first"
+    invalid:
+      - "--paper \"example_paper\""  # Missing role flag
+      - "--first"  # Missing paper name
+      - "--paper \"example_paper\" --first --coauthor"  # Conflicting roles
+      
+  coauthor_commands:
+    valid:
+      - "--paper \"collaboration_paper\" --coauthor"
+      - "--paper \"collaboration_paper\" --coauthor --year 2023"
+    invalid:
+      - "--paper \"collaboration_paper\""  # Missing role flag
+      - "--coauthor"  # Missing paper name
+      
+  journal_service_commands:
+    valid:
+      - "--journal \"Geophysics\" --id \"GEO-2025-0451\""
+      - "--journal \"Nature Geoscience\" --id \"NG-REVIEW-2024\""
+    invalid:
+      - "--journal \"Geophysics\""  # Missing manuscript ID
+      - "--id \"GEO-2025-0451\""  # Missing journal name
+      - "--journal \"Geophysics\" --id \"GEO-2025-0451\" --paper \"test\""  # Mixed flags
+
+# Error Message Validation
+expected_error_messages:
+  invalid_paper_name: "Error: Paper name can only contain letters, numbers, spaces, hyphens, and underscores."
+  invalid_year: "Error: Year must be a 4-digit number (YYYY)."
+  invalid_manuscript_id: "Error: Manuscript ID can only contain letters, numbers, dots, hyphens, and underscores."
+  missing_journal_world: "Error: JOURNAL_WORLD not found"
+  project_already_exists: "Error: Primary authorship project already exists:"
+  conflicting_flags: "Error: Cannot use --first and --coauthor flags together."
+  missing_paper_flag: "Error: --paper flag is required for primary authorship and co-author projects."
+  missing_journal_flags: "Error: --journal and --id flags are required for journal service projects."

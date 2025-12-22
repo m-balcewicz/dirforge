@@ -1,0 +1,220 @@
+# Expected world structures per DirForge Constitution v1.0.16
+# This file defines the canonical folder structures for constitutional compliance validation
+
+worlds:
+  CODING_WORLD:
+    description: "Language-specific coding projects and development environments"
+    structure_type: "flat_categories"
+    required_folders:
+      - name: "matlab"
+        description: "MATLAB projects and scripts"
+      - name: "python"
+        description: "Python projects and scripts"
+      - name: "bash"
+        description: "Bash scripts and shell utilities"
+      - name: "fortran"
+        description: "Fortran projects and numerical computing"
+      - name: "latex"
+        description: "LaTeX documents and templates"
+      - name: "clusters"
+        description: "Cluster computing and HPC projects"
+      - name: "github"
+        description: "GitHub repositories and Git-related projects"
+      - name: "c"
+        description: "C programming projects"
+
+  JOURNAL_WORLD:
+    description: "Role-based journal activities: primary authorship, co-author collaboration, journal service"
+    structure_type: "role_based_organization"
+    constitution_version: "v1.0.21"
+    roles:
+      00_admin:
+        description: "Administrative organization (manual creation)"
+        structure_type: "manual"
+        subdirectories:
+          - "subscriptions"
+          - "memberships" 
+          - "general"
+      01_primary_authorship:
+        description: "Your papers as lead author"
+        structure_type: "year_paper_pattern"
+        pattern: "YYYY_paper_name/"
+        command: "dirforge init journal --paper <name> --first [--year YYYY]"
+        required_subfolders:
+          - name: "01_manuscript"
+            description: "manuscript drafts, revisions, final versions"
+          - name: "02_reviews"
+            description: "peer review reports, reviewer comments, review responses"
+          - name: "03_correspondence"
+            description: "editorial communications, acceptance letters, publication correspondence"
+      02_coauthor_invites:
+        description: "Collaborative projects as co-author"
+        structure_type: "year_paper_pattern"
+        pattern: "YYYY_paper_name/"
+        command: "dirforge init journal --paper <name> --coauthor [--year YYYY]"
+        required_subfolders:
+          - name: "01_manuscript"
+            description: "manuscript drafts, revisions, final versions"
+          - name: "02_reviews"
+            description: "peer review reports, reviewer comments, review responses"
+          - name: "03_correspondence"
+            description: "editorial communications, acceptance letters, publication correspondence"
+      03_journal_service:
+        description: "Reviews and editorial work"
+        structure_type: "journal_manuscript_pattern"
+        pattern: "journal_name/MANUSCRIPT_ID/"
+        command: "dirforge init journal --journal <name> --id <manuscript_id>"
+        required_subfolders:
+          - name: "01_manuscript"
+            description: "papers under review or editorial materials"
+          - name: "02_reviews"
+            description: "your review work, editorial decisions"
+          - name: "03_correspondence"
+            description: "reviewer instructions, editorial communications"
+    examples:
+      primary_authorship:
+        - "JOURNAL_WORLD/01_primary_authorship/2025_thermal_conductivity_review/"
+        - "JOURNAL_WORLD/01_primary_authorship/2024_ai_geophysics_survey/"
+        - "JOURNAL_WORLD/01_primary_authorship/2025_biot_coefficient_analysis/"
+      coauthor_collaboration:
+        - "JOURNAL_WORLD/02_coauthor_invites/2021_elastic_properties_of_carbonates/"
+        - "JOURNAL_WORLD/02_coauthor_invites/2024_seismic_hazard_forge/"
+        - "JOURNAL_WORLD/02_coauthor_invites/2025_digital_rock_physics/"
+      journal_service:
+        - "JOURNAL_WORLD/03_journal_service/geophysics/GEO-2025-0451/"
+        - "JOURNAL_WORLD/03_journal_service/nature_geoscience/REVIEWER_2024_Q4/"
+        - "JOURNAL_WORLD/03_journal_service/jgr_solid_earth/ASSOC_EDITOR_2024/"
+
+  LECTURE_WORLD:
+    description: "Lecture projects with identifier, scaffolding, and required artifacts"
+    structure_type: "project_based"
+    pattern: "PROJECT-ID/"
+    required_folders:
+      - name: "00_admin"
+        description: "administrative materials and course management"
+      - name: "01_code"
+        description: "notebooks, scripts, environments/requirements, autograder hooks"
+      - name: "02_data"
+        description: "canonical small data and pointers to large archives"
+      - name: "03_slides"
+        description: "slide sources (Beamer/.pptx) and exported PDFs in public/"
+      - name: "04_manuscript"
+        description: "authoritative written lecture notes in LaTeX and expanded narrative"
+      - name: "05_exercises"
+        description: "exercise packages with grading workflow"
+      - name: "06_exams"
+        description: "exam materials with grading workflow"
+      - name: "07_grades"
+        description: "gradebook and rubrics"
+    required_files:
+      - "README.md"
+      - "project.yaml"
+
+  LITERATURE_WORLD:
+    description: "Literature and reference materials"
+    structure_type: "flexible"
+    note: "No specific structure defined in Constitution v1.0.16"
+
+  OFFICE_WORLD:
+    description: "Project-independent office-level folders"
+    structure_type: "numbered_folders"
+    required_folders:
+      - name: "01_finance"
+        description: "invoices, funding documents, budgets, non-sensitive payroll docs, proposals"
+      - name: "02_hr_administration"
+        description: "vacation requests, business trip forms, faculty meetings, HR correspondence, employment documents"
+      - name: "03_faculty"
+        description: "university forms, faculty paperwork, compliance documents, policy acknowledgments"
+      - name: "04_inventory_equipment"
+        description: "NAS notes, equipment inventories, Zeiss and instrument info, manuals"
+      - name: "05_software_licenses"
+        description: "software licenses, MATLAB/QGIS/ImageJ notes, software invoices"
+      - name: "06_public_relations"
+        description: "press releases, interviews, PR items"
+    archive_folder: "90_archive"
+
+  PRIVATE_WORLD:
+    description: "Personal and private documents and media"
+    structure_type: "numbered_folders"
+    required_folders:
+      - name: "01_credentials"
+        description: "pointers only — do NOT store passwords; keep 1Password exports OUTSIDE"
+      - name: "02_id_contracts"
+        description: "personal contracts, IDs, signed forms (encrypt)"
+      - name: "03_finance"
+        description: "banks, bafoeg, budget records (sensitive — restrict access)"
+      - name: "04_documents"
+        description: "scans and personal document storage"
+      - name: "05_photos"
+        description: "photography and image management"
+        subfolders:
+          - "01_raw"
+          - "02_lightroom_catalog"
+          - "03_exports"
+          - "04_projects"
+      - name: "06_movies"
+        description: "video files and movie management"
+        subfolders:
+          - "handbrake"
+          - "make_mkv"
+          - "ready4plex"
+          - "gopro"
+      - name: "07_hiking"
+        description: "hiking and outdoor activities (trip plans, GPX tracks, maps, field notes)"
+      - name: "09_installers"
+        description: "OS installers, offline application installers, driver packages, and installation notes"
+    archive_folder: "90_archive"
+    note: "Missing 08_ folder in Constitution v1.0.16 - possible formatting issue"
+
+  RESEARCH_WORLD:
+    description: "Research projects with stable PROJECT-ID structure"
+    structure_type: "project_based"
+    pattern: "PROJECT-ID/"
+    required_folders:
+      - name: "01_project_management"
+        description: "project proposals, replies, reviews, project related finance, etc."
+      - name: "02_admin"
+        description: "contracts, agreements, permits, IRB/ethics approvals, data-sharing agreements, and access contacts"
+      - name: "03_design_protocols"
+        description: "experiment protocols, calibration notes, instrument configurations, and acquisition checklists"
+      - name: "04_data"
+        description: "raw and ingested datasets, manifest files, and acquisition metadata"
+      - name: "05_data_analysis"
+        description: "analysis code, scripts, notebooks, and small derived data; should be version-controlled with Git"
+      - name: "06_data_outputs"
+        description: "processed datasets, figures, tables, processed exports, and release artifacts"
+      - name: "07_publication"
+        description: "manuscript drafts, author notes, submission materials, and supplementary files"
+      - name: "08_documentation"
+        description: "methods writeups, provenance records, data dictionaries, and project notes"
+    special_folders:
+      - name: ".integrity"
+        description: "validation and integrity artifacts (checksums, manifests index, validation logs)"
+        hidden: true
+    required_files:
+      - "README.md"
+      - "project.yaml"
+
+validation_rules:
+  - rule: "All numbered folders must follow consistent numbering pattern"
+    applies_to: ["OFFICE_WORLD", "PRIVATE_WORLD", "RESEARCH_WORLD", "LECTURE_WORLD"]
+  
+  - rule: "Project-based worlds require README.md and project.yaml in each project root"
+    applies_to: ["RESEARCH_WORLD", "LECTURE_WORLD"]
+  
+  - rule: "Archive folder 90_archive should be present for long-term storage"
+    applies_to: ["OFFICE_WORLD", "PRIVATE_WORLD"]
+  
+  - rule: "Sensitive folders should have appropriate access restrictions"
+    applies_to: ["PRIVATE_WORLD"]
+    sensitive_folders: ["01_credentials", "02_id_contracts", "03_finance"]
+  
+  - rule: "Data integrity folders (.integrity) must be hidden and contain checksums"
+    applies_to: ["RESEARCH_WORLD"]
+  
+  - rule: "Manifest files must reference checksums in .integrity/checksums/"
+    applies_to: ["RESEARCH_WORLD"]
+
+constitution_version: "v1.0.16"
+generated_by: "DirForge Constitutional Compliance Test Suite"
+date_created: "2024-12-09"

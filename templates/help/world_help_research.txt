@@ -41,7 +41,7 @@ Directory Structure
 
   RESEARCH_WORLD/2025_project_name/
   ├── 00_admin/                   # contracts, ethics, agreements
-  ├── 01_project_management/      # proposals, budgets, reports, presentations
+  ├── 01_project_management/      # proposals, budgets, reports, presentations, supervision
   │   ├── README.md
   │   ├── 01_proposal/
   │   │   ├── 01_draft/
@@ -50,7 +50,11 @@ Directory Structure
   │   │   └── 04_final/
   │   ├── 02_finance/
   │   ├── 03_reports/
-  │   └── 04_presentations/       # kept flat for easy previews
+  │   ├── 04_presentations/       # kept flat for easy previews
+  │   └── 05_supervision/         # organized by degree level
+  │       ├── BSc_Thesis/
+  │       ├── MSc_Thesis/
+  │       └── PhD_Supervision/
   ├── 02_studies/                 # per-study workspaces (study-based organization)
   ├── .integrity/
   │   ├── checksums/
@@ -67,6 +71,7 @@ The `01_project_management/` folder centralizes project-level management artifac
 - `02_finance/`: budgets, grant letters, invoices and financial reports.
 - `03_reports/`: periodic reports and final deliverables.
 - `04_presentations/`: slides, posters and presentation assets (by convention kept flat to simplify previews and exports).
+- `05_supervision/`: organized by degree level with subdirectories for Bachelor (`BSc_Thesis/`), Master (`MSc_Thesis/`), and PhD (`PhD_Supervision/`) supervision materials, including theses, exposés, supervision agreements, and evaluation forms.
 
 Use the README files rendered into each subfolder to document purpose and naming conventions. The scaffolder renders templates with `{{PROJECT_NAME}}` and `{{PROJECT_ID}}` placeholders.
 

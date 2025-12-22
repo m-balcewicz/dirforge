@@ -1,0 +1,6 @@
+storage_location: iCloud
+server_or_nas: iCloudDrive
+path_on_store: /Documents/Research/SampleProject
+naming: sample_project_data
+checksum: .integrity/checksums/sample_project.sha256
+access: institution

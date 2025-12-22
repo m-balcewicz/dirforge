@@ -1,0 +1,36 @@
+# Supervision — {{PROJECT_NAME}}
+
+**Project ID:** {{PROJECT_ID}}
+
+This directory contains all supervision-related documents and materials for "{{PROJECT_NAME}}", including theses, exposés, supervision agreements, and evaluations.
+
+## Contents
+
+- Bachelor (BSc) thesis materials and exposés
+- Master (MSc) thesis materials and exposés
+- PhD thesis materials and exposés
+- Supervision agreements and assignment descriptions
+- Supervision timelines and schedules
+- Evaluation forms and feedback (subject to privacy policies)
+- Supervision protocols and agreements
+
+## Guidelines
+
+- Store thesis PDFs and exposés by degree level and student name
+- Organize by academic year if managing multiple cohorts
+- Keep supervision agreements and contracts organized and current
+- Respect privacy policies when storing evaluation feedback
+- Use clear naming conventions: e.g., `2025_BSc_StudentName_Thesis.pdf`
+
+## Structure Examples
+
+```
+05_supervision/
+├── 2025_BSc_ThesisExposés/
+├── 2025_MSc_ThesisExposés/
+├── PhD_Supervision/
+├── Agreements/
+└── Evaluations/
+```
+
+For study-specific scientific materials (data, code, results), refer to `02_studies/<study_name>/`.

@@ -1,13 +1,874 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# dirforge - create standardized directory structures per DirForge Constitution
-# Minimal, portable bash CLI that implements `dirforge init <world-type>`
-
-PROG_NAME="dirforge"
-
-# Get the directory where this script is located
+# Get the directory where this script is located (works for both symlinks and direct execution)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROG_NAME="$(basename "${BASH_SOURCE[0]}")"
+
+# Helper function to prompt user for world type when it cannot be detected
+# Usage: prompt_for_world_type <target_dir>
+prompt_for_world_type() {
+  local target_dir="$1"
+  
+  echo "⚠️  Could not automatically detect the world type for: $target_dir"
+  echo
+  echo "Please specify the world type for this project:"
+  echo "  1) RESEARCH_WORLD   - Research projects with studies"
+  echo "  2) JOURNAL_WORLD    - Journal with role-based structure"
+  echo "  3) CODING_WORLD     - Programming and development projects"
+  echo "  4) LECTURE_WORLD    - Course/lecture materials"
+  echo "  5) OFFICE_WORLD     - Business and office management"
+  echo "  6) PRIVATE_WORLD    - Personal and private documents"
+  echo "  7) LITERATURE_WORLD - Books, articles, and literature"
+  echo
+  read -p "Enter choice (1-7): " choice
+  
+  case "$choice" in
+    1) echo "RESEARCH_WORLD" ;;
+    2) echo "JOURNAL_WORLD" ;;
+    3) echo "CODING_WORLD" ;;
+    4) echo "LECTURE_WORLD" ;;
+    5) echo "OFFICE_WORLD" ;;
+    6) echo "PRIVATE_WORLD" ;;
+    7) echo "LITERATURE_WORLD" ;;
+    *) 
+      echo "Invalid choice. Defaulting to RESEARCH_WORLD."
+      echo "RESEARCH_WORLD"
+      ;;
+  esac
+}
+
+# ============================================================================
+# INTERNAL HELPER FUNCTIONS FOR cmd_update
+# ============================================================================
+# These functions reduce code duplication and improve maintainability
+
+# Helper: Output update status message (consolidates JSON/text formatting)
+# Usage: _output_update_status "message" <json_flag>
+_output_update_status() {
+  local message="$1"
+  local json_mode="${2:-false}"
+  
+  if [[ "$json_mode" == true ]]; then
+    # JSON mode: output is handled by parent function
+    return 0
+  else
+    # Text mode: output formatted message
+    echo "$message"
+  fi
+}
+
+# Helper: Validate target directory exists and is accessible
+# Usage: _validate_target_directory <path> <json_mode> <dry_run>
+# Returns: 0 on success, 2 if doesn't exist, 3 if no write permission
+_validate_target_directory() {
+  local target_dir="$1"
+  local json_mode="${2:-false}"
+  local dry_run="${3:-false}"
+  
+  if [[ ! -d "$target_dir" ]]; then
+    if [[ "$json_mode" == true ]]; then
+      echo '{"ok":false,"error":"Target directory does not exist"}'
+    else
+      echo "❌ Error: Target directory '$target_dir' does not exist."
+    fi
+    return 2
+  fi
+  
+  if [[ "$dry_run" != true && ! -w "$target_dir" ]]; then
+    if [[ "$json_mode" == true ]]; then
+      echo '{"ok":false,"error":"No write permission for target directory"}'
+    else
+      echo "❌ Error: No write permission for '$target_dir'."
+    fi
+    return 3
+  fi
+  
+  return 0
+}
+
+# Helper: Safely source required libraries with error handling
+# Usage: _source_required_libraries <lib_dir> <json_mode>
+# Returns: 0 on success, 1 on failure
+_source_required_libraries() {
+  local lib_dir="$1"
+  local json_mode="${2:-false}"
+  local required_libs=("version_detect.sh" "migrate.sh" "integrity.sh" "user_input.sh")
+  
+  for lib in "${required_libs[@]}"; do
+    if [[ ! -f "$lib_dir/$lib" ]]; then
+      if [[ "$json_mode" == true ]]; then
+        echo '{"ok":false,"error":"Missing required helper scripts"}'
+      else
+        echo "❌ Error: Required helper scripts not found in $lib_dir"
+        echo "   Please ensure dirforge is properly installed."
+      fi
+      return 1
+    fi
+  done
+  
+  source "$lib_dir/version_detect.sh"
+  source "$lib_dir/migrate.sh"
+  source "$lib_dir/integrity.sh"
+  source "$lib_dir/user_input.sh"
+  return 0
+}
+
+# Helper: Clean detected values (remove embedded newlines from detection functions)
+# Usage: _clean_detection_values <value>
+# Returns: cleaned value with first line only
+_clean_detection_values() {
+  local value="$1"
+  # Extract first line only (detection functions might have multi-line output)
+  echo "${value%%$'\n'*}"
+}
+
+# Helper: Handle detection failure for a specific field
+# Usage: _handle_detection_failure <field_name> <detected_value> <force_flag> <json_mode> <default_value>
+# Outputs: cleaned value or default, updates parent scope variable
+# Returns: 0 on success, error code if unrecoverable
+_handle_detection_failure() {
+  local field_name="$1"
+  local detected_value="$2"
+  local force_flag="$3"
+  local json_mode="$4"
+  local default_value="$5"
+  
+  # Check if value appears unknown
+  if [[ "$detected_value" == *"unknown"* || "$detected_value" == "" ]]; then
+    if [[ "$force_flag" == true ]]; then
+      # --force flag: use default silently
+      echo "$default_value"
+      return 0
+    elif [[ "$json_mode" == true ]]; then
+      # JSON mode: cannot prompt, report error
+      return 4
+    else
+      # Text mode: prompt user
+      return 5
+    fi
+  fi
+  
+  # Value is valid, return cleaned version
+  echo "$(_clean_detection_values "$detected_value")"
+  return 0
+}
+
+# ============================================================================
+# Update command: integrates version/world detection and migration logic
+# Optimized for performance (<5s typical workspace)
+cmd_update() {
+  local target_dir="."
+  local dry_run_flag="$DRY_RUN"
+  local json_flag="$JSON_OUTPUT"
+  local backup_flag="$BACKUP"
+  local force_flag="${FORCE:-false}"
+  local backup_path=""
+  local start_time=$(date +%s.%N)
+  
+  # Parse args for --dry-run, --json, --backup, --here, --path= (also check global flags)
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help|-h)
+        # Show help and exit
+        if declare -F show_update_command_help >/dev/null 2>&1; then
+          show_update_command_help
+        else
+          echo "dirforge update - Upgrade project structure to latest version"
+          echo "Usage: dirforge update [path] [options]"
+          echo "Options:"
+          echo "  --help, -h         Show this help message"
+          echo "  --dry-run          Preview changes without making modifications"
+          echo "  --json             Output JSON summary"
+          echo "  --backup           Create timestamped backup before updating"
+          echo "  --force            Override version/world detection errors"
+          echo "  --here             Use current directory"
+          echo "  --path=PATH        Specify target directory"
+        fi
+        exit 0
+        ;;
+      --dry-run)
+        dry_run_flag=true
+        shift
+        ;;
+      --json)
+        json_flag=true
+        shift
+        ;;
+      --backup)
+        backup_flag=true
+        shift
+        ;;
+      --here)
+        target_dir="."
+        shift
+        ;;
+      --path=*)
+        target_dir="${1#--path=}"
+        shift
+        ;;
+      --force)
+        # Force flag for version detection override
+        force_flag=true
+        shift
+        ;;
+      --*)
+        # ignore other flags for now
+        shift
+        ;;
+      *)
+        # First non-option argument is the target path
+        target_dir="$1"
+        shift
+        ;;
+    esac
+  done
+  
+  # Convert to absolute path and normalize (same as cmd_init)
+  if [[ "$target_dir" == "." ]]; then
+    target_dir="$(pwd)"
+  elif [[ "$target_dir" != /* ]]; then
+    target_dir="$(pwd)/$target_dir"
+  fi
+  
+  # Source helpers with error handling
+  _source_required_libraries "$LIB_DIR" "$json_flag" || return 1
+
+  # Validate target directory exists and is accessible
+  _validate_target_directory "$target_dir" "$json_flag" "$dry_run_flag" || return $?
+
+  # Detect current version, world type, and organizational level
+  local current_version world_type org_level
+  current_version=$(detect_version "$target_dir" || echo "unknown")
+  world_type=$(detect_world_type "$target_dir" || echo "unknown")
+  org_level=$(detect_organizational_level "$target_dir" || echo "unknown")
+  
+  # If we're inside a project subdirectory (version is unknown), find the project root
+  if [[ "$current_version" == "unknown" ]]; then
+    local project_root=""
+    project_root=$(find_project_root "$target_dir" || echo "")
+    if [[ -n "$project_root" && "$project_root" != "$target_dir" ]]; then
+      # We found a project root above this directory, use that instead
+      target_dir="$project_root"
+      current_version=$(detect_version "$target_dir" || echo "unknown")
+      world_type=$(detect_world_type "$target_dir" || echo "unknown")
+      org_level=$(detect_organizational_level "$target_dir" || echo "unknown")
+    fi
+  fi
+
+  # Prompt user if version is still unknown (not in JSON mode)
+  if [[ "$current_version" == "unknown" && "$json_flag" != true ]]; then
+    current_version=$(prompt_for_version)
+  fi
+
+  # Prompt user if world type is still unknown (not in JSON mode)
+  if [[ "$world_type" == "unknown" && "$json_flag" != true ]]; then
+    world_type=$(prompt_for_world_type)
+  fi
+
+  # Check if this is a workspace-level directory or a world-level directory with projects
+  local is_workspace_or_world=false
+  if [[ "$current_version" == "unknown" && "$world_type" == "unknown" ]]; then
+    # Check if this directory contains project directories (has subdirectories with .integrity/)
+    local project_count=0
+    for subdir in "$target_dir"/*/; do
+      if [[ -d "$subdir/.integrity" ]] && [[ -f "$subdir/README.md" ]]; then
+        ((project_count++))
+      fi
+    done
+    
+    # Also check if this is a workspace (contains world directories)
+    local world_dirs=0
+    for world_dir in "$target_dir"/RESEARCH_WORLD "$target_dir"/JOURNAL_WORLD "$target_dir"/CODING_WORLD "$target_dir"/LECTURE_WORLD "$target_dir"/OFFICE_WORLD "$target_dir"/PRIVATE_WORLD; do
+      if [[ -d "$world_dir" ]]; then
+        ((world_dirs++))
+      fi
+    done
+    
+    if [[ $project_count -gt 0 || $world_dirs -gt 0 ]]; then
+      is_workspace_or_world=true
+      if [[ "$json_flag" != true ]]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        if [[ $world_dirs -gt 0 ]]; then
+          echo "📋 DirForge Workspace Update"
+        else
+          echo "📋 DirForge World Update"
+        fi
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🔄 Updating all projects..."
+        echo
+      fi
+      
+      # If this is a workspace (contains world directories), recurse into worlds first
+      if [[ $world_dirs -gt 0 ]]; then
+        for world_dir in "$target_dir"/RESEARCH_WORLD "$target_dir"/JOURNAL_WORLD "$target_dir"/CODING_WORLD "$target_dir"/LECTURE_WORLD "$target_dir"/OFFICE_WORLD "$target_dir"/PRIVATE_WORLD "$target_dir"/LITERATURE_WORLD; do
+          if [[ -d "$world_dir" ]]; then
+            local world_name=$(basename "$world_dir")
+            
+            # Check if we can traverse the world directory
+            if ! test_permissions "$world_dir" "traverse"; then
+              if [[ "$json_flag" != true ]]; then
+                echo "  ⚠️  Skipping $world_name: Permission denied"
+              fi
+              continue
+            fi
+            
+            # Recursively update each world with error handling
+            for project_dir in "$world_dir"/*/; do
+              if [[ -d "$project_dir" ]]; then
+                local project_name=$(basename "$project_dir")
+                
+                # Check project directory accessibility
+                if ! test_permissions "$project_dir" "read"; then
+                  if [[ "$json_flag" != true ]]; then
+                    echo "  ⚠️  Skipping $world_name/$project_name: Read permission denied"
+                  fi
+                  continue
+                fi
+                
+                if [[ "$json_flag" != true ]]; then
+                  echo "  🌍 $world_name/$project_name"
+                fi
+                
+                # Call recursive update with error handling
+                local update_result
+                if [[ "$dry_run_flag" == true ]]; then
+                  update_result=$(cmd_update "$project_dir" --dry-run 2>&1)
+                  local update_exit=$?
+                else
+                  update_result=$(cmd_update "$project_dir" 2>&1)
+                  local update_exit=$?
+                fi
+                
+                # Handle recursive update errors
+                if [[ $update_exit -ne 0 ]] && [[ "$json_flag" != true ]]; then
+                  echo "  ❌ Failed to update $world_name/$project_name: $update_result"
+                fi
+              fi
+            done
+          fi
+        done
+      else
+        # This is a world directory (like RESEARCH_WORLD) - update all projects in it
+        for project_dir in "$target_dir"/*/; do
+          if [[ -d "$project_dir/.integrity" ]]; then
+            local project_name=$(basename "$project_dir")
+            if [[ "$json_flag" != true ]]; then
+              echo "  📁 $project_name"
+            fi
+            
+            if [[ "$dry_run_flag" == true ]]; then
+              cmd_update "$project_dir" --dry-run
+            else
+              cmd_update "$project_dir"
+            fi
+          fi
+        done
+      fi
+      
+      if [[ "$json_flag" != true ]]; then
+        echo
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ Update complete."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      fi
+      return 0
+    fi
+  fi
+
+  # Target version is always the latest (v1.0.22 with .integrity system)
+  local target_version="1.0.22"
+
+  # Handle detection failures with consistent error handling
+  # Pattern matching handles "unknown" with or without trailing newlines from detection functions
+  
+  # Clean detection values first to handle multi-line output from detection functions
+  current_version="$(_clean_detection_values "$current_version")"
+  world_type="$(_clean_detection_values "$world_type")"
+  org_level="$(_clean_detection_values "$org_level")"
+
+  # Handle version detection failure
+  if [[ "$current_version" == "unknown" || "$current_version" == "" ]]; then
+    current_version="$target_version"  # Default to latest for legacy projects
+  fi
+  
+  # Handle world type detection failure
+  if [[ "$world_type" == "unknown" || "$world_type" == "" ]]; then
+    if [[ "$force_flag" == true ]]; then
+      world_type="RESEARCH_WORLD"
+      [[ "$json_flag" != true ]] && echo "⚠️  Warning: World type detection failed, --force used. Defaulting to RESEARCH_WORLD"
+    elif [[ "$json_flag" == true ]]; then
+      echo '{"ok":false,"error":"Could not detect world type. Use --force to default to RESEARCH_WORLD"}'
+      return 4
+    else
+      # Interactive: ask the user
+      world_type=$(prompt_for_world_type "$target_dir")
+    fi
+  fi
+  
+  # Handle organizational level detection failure
+  if [[ "$org_level" == "unknown" || "$org_level" == "" ]]; then
+    if [[ "$force_flag" == true ]]; then
+      org_level="project"
+      [[ "$json_flag" != true ]] && echo "⚠️  Warning: Organizational level detection failed, --force used. Assuming project level"
+    fi
+  fi
+
+  if [[ "$json_flag" == true ]]; then
+    printf "{\"ok\":true,\"current_version\":\"$current_version\",\"target_version\":\"$target_version\",\"world_type\":\"$world_type\",\"org_level\":\"$org_level\",\"dry_run\":$dry_run_flag,\"backup\":$backup_flag" > "$target_dir/.dirforge_update_tmp.json"
+  else
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "📋 DirForge Structure Update"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Current version: $current_version"
+    echo "Target version:  $target_version"
+    echo "World type:      $world_type"
+    if [[ "$dry_run_flag" == true ]]; then
+      echo "Mode:            DRY RUN (preview only)"
+      echo "  - No changes will be made."
+      echo "  - You will see a preview of what would be created."
+    fi
+    if [[ "$backup_flag" == true ]]; then
+      echo "Backup:          ENABLED"
+      echo "  - A full backup of the target directory will be created before any changes."
+      echo "  - Use \"--restore <backup_path>\" to revert if needed."
+    fi
+    echo
+  fi
+
+  # Only run migration if not already up to date
+  # BUT: Always check for legacy metadata that needs migration (even if version matches)
+  # AND: Always check if study needs integrity metadata creation
+  local needs_legacy_migration=false
+  if has_legacy_project_yaml "$target_dir"; then
+    needs_legacy_migration=true
+  fi
+  
+  local needs_study_metadata=false
+  if [[ "$org_level" == "study" && ! -f "$target_dir/.integrity/study.yaml" ]]; then
+    needs_study_metadata=true
+  fi
+  
+  if [[ "$current_version" == "$target_version" && "$needs_legacy_migration" == false && "$needs_study_metadata" == false ]]; then
+    if [[ "$json_flag" == true ]]; then
+      echo ',"already_up_to_date":true,"changes":[]}' >> "$target_dir/.dirforge_update_tmp.json"
+      cat "$target_dir/.dirforge_update_tmp.json"
+      rm -f "$target_dir/.dirforge_update_tmp.json"
+    else
+      echo "✅ Structure already up to date. No changes needed."
+    fi
+    return 0
+  fi
+
+  # Extract entity_name early - needed for study metadata creation
+  local entity_name="unknown"
+  if [[ "$org_level" == "study" ]]; then
+    # For studies, use the directory name as the entity name
+    entity_name=$(basename "$target_dir")
+  elif [[ -f "$target_dir/project.yaml" ]]; then
+    entity_name=$(grep -E '^name:' "$target_dir/project.yaml" | head -n1 | awk '{print $2}' | tr -d '"' 2>/dev/null || echo "unknown")
+  fi
+
+  # Create study metadata if needed (do this for all studies, regardless of version)
+  if [[ "$org_level" == "study" && ! -f "$target_dir/.integrity/study.yaml" ]]; then
+    if [[ -d "$target_dir/.integrity" ]]; then
+      if create_study_integrity_metadata "$target_dir" "$entity_name" "$target_version"; then
+        if [[ "$json_flag" != true ]]; then
+          echo "✓ Study-level .integrity metadata created for $entity_name"
+        fi
+      fi
+    fi
+  fi
+
+  # Validate structure before update
+  if [[ "$json_flag" != true ]]; then
+    echo "🔎 Validating structure before update..."
+    # (Placeholder for future: call structure validation helpers)
+  fi
+
+  # Handle legacy metadata migration (even if version is current)
+  if [[ "$needs_legacy_migration" == true ]]; then
+    if [[ "$json_flag" != true ]]; then
+      echo "📦 Migrating legacy project.yaml to .integrity structure..."
+    fi
+    
+    if [[ "$dry_run_flag" != true ]]; then
+      migrate_legacy_project_yaml "$target_dir" "$target_version"
+    fi
+  fi
+
+  # Call migration engine (additive-only) if version mismatch
+  if [[ "$current_version" != "$target_version" ]]; then
+    if [[ "$backup_flag" == true && "$dry_run_flag" != true ]]; then
+    local ts
+    ts=$(date +%Y%m%d-%H%M%S)
+    
+    # Enhanced backup creation with error handling
+    local backup_dir="$target_dir/.integrity/backup"
+    backup_path="$backup_dir/backup_$ts"
+    
+    # Ensure backup directory exists and is writable
+    if ! mkdir -p "$backup_dir" 2>/dev/null; then
+      show_backup_error "$target_dir" "$backup_dir" "Cannot create backup directory" "$json_flag"
+      return 17
+    fi
+    
+    # Check disk space for backup
+    local backup_space_mb
+    backup_space_mb=$(du -sm "$target_dir" 2>/dev/null | awk '{print $1}' || echo "100")
+    local backup_space_check
+    backup_space_check=$(check_disk_space "$backup_dir" "$backup_space_mb")
+    local backup_space_exit=$?
+    
+    if [[ $backup_space_exit -eq 1 ]]; then
+      show_disk_space_error "$backup_dir" "$backup_space_mb" "$backup_space_check" "$json_flag"
+      return 18
+    fi
+    
+    # Create backup with error handling
+    if ! cp -a "$target_dir" "$backup_path" 2>/dev/null; then
+      local cp_error
+      cp_error=$(cp -a "$target_dir" "$backup_path" 2>&1 || echo "Copy operation failed")
+      show_backup_error "$target_dir" "$backup_path" "$cp_error" "$json_flag"
+      return 19
+    fi
+    
+    if [[ "$json_flag" == true ]]; then
+      printf ",\"backup_path\":\"$backup_path\"" >> "$target_dir/.dirforge_update_tmp.json"
+    else
+      echo "📦 Backup created at: $backup_path"
+    fi
+  elif [[ "$json_flag" == true ]]; then
+    printf ",\"backup_path\":null" >> "$target_dir/.dirforge_update_tmp.json"
+  fi
+
+  if [[ "$json_flag" == true ]]; then
+    # Capture migration changes as JSON array
+    local changes_json
+    if [[ "$dry_run_flag" == true ]]; then
+      changes_json=$(migrate_additive "$target_dir" "$world_type" "$current_version" "$target_version" 1 | awk '{print "\""$0"\""}' | paste -sd, -)
+      echo ",\"already_up_to_date\":false,\"changes\":[${changes_json}]}" >> "$target_dir/.dirforge_update_tmp.json"
+      cat "$target_dir/.dirforge_update_tmp.json"
+      rm -f "$target_dir/.dirforge_update_tmp.json"
+      return 0
+    else
+      changes_json=$(migrate_additive "$target_dir" "$world_type" "$current_version" "$target_version" 0 | awk '{print "\""$0"\""}' | paste -sd, -)
+      # Validate structure after update
+      local new_version
+      new_version=$(detect_version "$target_dir")
+      local update_ok=false
+      if [[ "$new_version" == "$target_version" ]]; then
+        update_ok=true
+      fi
+      echo ",\"already_up_to_date\":false,\"changes\":[${changes_json}],\"update_ok\":$update_ok,\"new_version\":\"$new_version\"}" >> "$target_dir/.dirforge_update_tmp.json"
+      cat "$target_dir/.dirforge_update_tmp.json"
+      rm -f "$target_dir/.dirforge_update_tmp.json"
+      return 0
+    fi
+  else
+    echo "🛠️  Applying additive migration steps:"
+    if [[ "$dry_run_flag" == true ]]; then
+      migrate_additive "$target_dir" "$world_type" "$current_version" "$target_version" 1
+      
+      # Check for nested projects even in dry-run mode (T019)
+      local subproject_paths=()
+      local temp_file="/tmp/dirforge_nested_$$"
+      find "$target_dir" -mindepth 2 -maxdepth 4 -name "project.yaml" 2>/dev/null > "$temp_file" || true
+      
+      if [[ -s "$temp_file" ]]; then
+        while IFS= read -r project_file; do
+          if [[ -n "$project_file" && -f "$project_file" ]]; then
+            local subdir
+            subdir=$(dirname "$project_file")
+            subproject_paths+=("$subdir")
+          fi
+        done < "$temp_file"
+      fi
+      rm -f "$temp_file"
+
+      if [[ ${#subproject_paths[@]} -gt 0 ]]; then
+        if [[ "$json_flag" != true ]]; then
+          echo
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🔄 Found nested subprojects:"
+          for sp in "${subproject_paths[@]}"; do
+            echo "  - $sp"
+          done
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        fi
+      fi
+      
+      echo
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "DRY RUN: No changes were made."
+      echo "To perform the update, run again without --dry-run."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo
+      return 0
+    fi
+    if ! migrate_additive "$target_dir" "$world_type" "$current_version" "$target_version" 0; then
+      # Enhanced migration error handling
+      local migration_step="migration from $current_version to $target_version"
+      local error_details="Migration function returned non-zero exit code"
+      
+      # Check if it's a permission issue
+      if ! test_permissions "$target_dir" "write"; then
+        error_details="Permission denied - cannot write to target directory"
+      elif ! check_disk_space "$target_dir" "50" >/dev/null; then
+        error_details="Insufficient disk space for migration"
+      else
+        # Check for corrupted files that may have caused migration failure
+        for yaml_file in "$target_dir/project.yaml" "$target_dir/.integrity/project.yaml"; do
+          if [[ -f "$yaml_file" ]] && ! validate_yaml_file "$yaml_file" 2>/dev/null; then
+            error_details="Corrupted YAML file detected: $yaml_file"
+            break
+          fi
+        done
+      fi
+      
+      show_migration_error "$migration_step" "$current_version" "$target_version" "$error_details" "$json_flag"
+      return 5
+    fi
+    
+    # Create .integrity directory structure (v1.0.22) based on organizational level
+    if ! has_integrity_structure "$target_dir" 2>/dev/null; then
+      if [[ "$json_flag" != true ]]; then
+        echo "📁 Creating .integrity directory structure ($org_level level)..."
+      fi
+      
+      case "$org_level" in
+        world)
+          # World-level integrity - mkdir is done in create_world_integrity_metadata
+          if create_world_integrity_metadata "$target_dir" "$world_type" "$target_version"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "✓ World-level .integrity created for $world_type"
+            fi
+          fi
+          ;;
+        study)
+          # Study-level integrity - mkdir is done in create_study_integrity_metadata
+          if create_study_integrity_metadata "$target_dir" "$entity_name" "$target_version"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "✓ Study-level .integrity created for $entity_name"
+            fi
+          fi
+          ;;
+        *)
+          # Project-level (default)
+          if ! create_integrity_structure "$target_dir" "$world_type"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "⚠️  Warning: Could not create .integrity directory (may be write-protected)"
+            fi
+          fi
+          ;;
+      esac
+    else
+      # Structure already exists (e.g., from migration), but metadata files might not
+      # Create metadata files if they don't exist
+      case "$org_level" in
+        world)
+          if [[ ! -f "$target_dir/.integrity/world.yaml" ]]; then
+            if create_world_integrity_metadata "$target_dir" "$world_type" "$target_version"; then
+              if [[ "$json_flag" != true ]]; then
+                echo "✓ World-level .integrity metadata created for $world_type"
+              fi
+            fi
+          fi
+          ;;
+        study)
+          if [[ ! -f "$target_dir/.integrity/study.yaml" ]]; then
+            if create_study_integrity_metadata "$target_dir" "$entity_name" "$target_version"; then
+              if [[ "$json_flag" != true ]]; then
+                echo "✓ Study-level .integrity metadata created for $entity_name"
+              fi
+            fi
+          fi
+          ;;
+        *)
+          # Project-level: metadata created by create_integrity_structure, no action needed
+          ;;
+      esac
+    fi
+    
+    # Migrate legacy project.yaml to .integrity/project.yaml (FR-012: migrate and remove original)
+    # Only for project level (not for world or study)
+    if [[ "$org_level" == "project" && -f "$target_dir/project.yaml" && -d "$target_dir/.integrity" ]]; then
+      if [[ "$json_flag" != true ]]; then
+        echo "🔄 Migrating legacy metadata to .integrity system..."
+      fi
+      if migrate_legacy_project_yaml "$target_dir" "$target_version"; then
+        if [[ "$json_flag" != true ]]; then
+          echo "✓ Legacy metadata migrated to .integrity/"
+        fi
+      fi
+    fi
+    
+    # Update version in .integrity/*.yaml files to v1.0.22 (FR-011: always update version)
+    if [[ -d "$target_dir/.integrity" ]]; then
+      if [[ "$json_flag" != true ]]; then
+        echo "📝 Updating version tracking in .integrity metadata..."
+      fi
+      
+      case "$org_level" in
+        world)
+          if update_world_integrity_version "$target_dir" "$target_version"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "✓ World version updated to $target_version"
+            fi
+          fi
+          ;;
+        study)
+          if update_study_integrity_version "$target_dir" "$target_version"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "✓ Study version updated to $target_version"
+            fi
+          fi
+          ;;
+        *)
+          # Project level
+          if update_integrity_version "$target_dir" "$target_version"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "✓ Version updated to $target_version in .integrity files"
+            fi
+          fi
+          ;;
+      esac
+    fi
+    
+    # Update version in project.yaml if migration was successful
+    if [[ -f "$target_dir/project.yaml" ]]; then
+      # Update the version line in project.yaml
+      if grep -q "^version:" "$target_dir/project.yaml"; then
+        if [[ "$(uname)" == "Darwin" ]]; then
+          sed -i '' "s/^version:.*/version: $target_version/" "$target_dir/project.yaml"
+        else
+          sed -i "s/^version:.*/version: $target_version/" "$target_dir/project.yaml"
+        fi
+      else
+        # Add version line if it doesn't exist
+        echo "version: $target_version" >> "$target_dir/project.yaml"
+      fi
+    fi
+  fi
+  
+  fi  # Close: if [[ "$current_version" != "$target_version" ]]; then
+  
+  # Handle legacy metadata migration when version matches but legacy files exist
+  if [[ "$current_version" == "$target_version" && "$needs_legacy_migration" == true ]]; then
+    if [[ "$json_flag" != true ]]; then
+      echo "🛠️  Applying legacy metadata migration (no version upgrade needed):"
+    fi
+    
+    if [[ "$dry_run_flag" == true ]]; then
+      echo
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "DRY RUN: No changes were made."
+      echo "To perform the update, run again without --dry-run."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo
+      return 0
+    fi
+    
+    if [[ "$json_flag" != true ]]; then
+      echo "✅ Update successful. Legacy metadata migrated to .integrity."
+    fi
+  fi
+
+  # Recursively update all nested child structures (studies in projects)
+  if [[ "$org_level" == "project" ]]; then
+    local studies_dir="$target_dir/02_studies"
+    if [[ -d "$studies_dir" ]]; then
+      if [[ "$json_flag" != true ]]; then
+        echo
+        echo "🔄 Updating nested studies..."
+      fi
+      
+      # Find all study directories with error handling
+      for study_dir in "$studies_dir"/*/; do
+        if [[ -d "$study_dir" ]]; then
+          local study_name=$(basename "$study_dir")
+          
+          # Check study directory accessibility
+          if ! test_permissions "$study_dir" "read"; then
+            if [[ "$json_flag" != true ]]; then
+              echo "  ⚠️  Skipping study $study_name: Read permission denied"
+            fi
+            continue
+          fi
+          
+          if [[ "$json_flag" != true ]]; then
+            echo "  📚 Updating study: $study_name"
+          fi
+          
+          # Recursively call update on the study with error handling
+          local study_update_result
+          if [[ "$dry_run_flag" == true ]]; then
+            study_update_result=$(cmd_update "$study_dir" --dry-run 2>&1)
+            local study_exit=$?
+          else
+            study_update_result=$(cmd_update "$study_dir" 2>&1)
+            local study_exit=$?
+          fi
+          
+          # Handle study update errors
+          if [[ $study_exit -ne 0 ]] && [[ "$json_flag" != true ]]; then
+            echo "  ❌ Failed to update study $study_name: $study_update_result"
+          fi
+        fi
+      done
+    fi
+  fi
+
+  # Validate structure after update (already handled in JSON mode above)
+  if [[ "$json_flag" != true ]]; then
+    local new_version
+    new_version=$(detect_version "$target_dir")
+    if [[ "$new_version" == "$target_version" ]]; then
+      echo
+      echo "✅ Update successful. Structure is now at $target_version."
+    else
+      echo
+      echo "⚠️  Warning: Structure may not be fully updated. Detected version: $new_version"
+    fi
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  fi
+
+  # Manual migration warning for world types/versions not fully supported
+  local manual_migration_needed=false
+  
+  # Check if this is an unsupported combination (invert the logic)
+  if [[ "$world_type" != "RESEARCH_WORLD" && "$world_type" != "JOURNAL_WORLD" && "$world_type" != "OFFICE_WORLD" ]]; then
+    manual_migration_needed=true
+  elif [[ "$world_type" == "RESEARCH_WORLD" && "$current_version" != "1.0.16" ]]; then
+    manual_migration_needed=true
+  elif [[ "$world_type" == "JOURNAL_WORLD" && "$current_version" != "1.0.20" ]]; then
+    manual_migration_needed=true
+  elif [[ "$world_type" == "OFFICE_WORLD" && "$current_version" != "1.0.10" ]]; then
+    manual_migration_needed=true
+  fi
+
+  if [[ "$manual_migration_needed" == true && "$json_flag" != true ]]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "⚠️  Warning: Structure may not be fully updated. Detected version: $current_version"
+    echo "Manual migration steps may be required for $world_type from $current_version to $target_version."
+    echo "Please consult the migration guide in docs/ for detailed instructions."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+  fi
+
+  # Performance timing (optional)
+  if [[ "$json_flag" != true && "$dry_run_flag" != true ]]; then
+    local end_time=$(date +%s.%N)
+    local duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
+    if [[ "$duration" != "N/A" ]]; then
+      echo "⏱️  Update completed in ${duration}s"
+    fi
+    echo
+  fi
+}
+
+
+# dirforge main dispatch and initialization
 
 # Detect library directory (development vs installed)
 if [ -d "$SCRIPT_DIR/../lib" ]; then
@@ -52,6 +913,9 @@ if [ -f "$LIB_DIR/help.sh" ]; then
 fi
 if [ -f "$LIB_DIR/error.sh" ]; then
     source "$LIB_DIR/error.sh"
+fi
+if [ -f "$LIB_DIR/integrity.sh" ]; then
+    source "$LIB_DIR/integrity.sh"
 fi
 
 CONSTITUTION_VERSION="v1.0.21"
@@ -1417,12 +2281,25 @@ init_research_project_only() {
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/02_finance"
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/03_reports"
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/04_presentations"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/BSc_Thesis"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/MSc_Thesis"
+  do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/PhD_Supervision"
 
-  # Create .integrity directories (constitution v1.0.12)
+  # Create .integrity directories (constitution v1.0.22 with metadata files)
   do_mkdir_p "$RESEARCH_ROOT/.integrity/checksums"
   do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
 
-  # create files
+  # Create .integrity/project.yaml for v1.0.22 compliance
+  local integrity_yaml="$RESEARCH_ROOT/.integrity/project.yaml"
+  write_file "$integrity_yaml" <<EOF
+name: "$title"
+world_type: "RESEARCH_WORLD"
+version: "1.0.22"
+created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+
+  # create README.md file
   write_file "$RESEARCH_ROOT/README.md" <<EOF
 # $PROJECT_ID
 
@@ -1447,20 +2324,12 @@ dirforge init research --project $PROJECT_ID --study "Study Name"
 Each study will be created in \`02_studies/<study_name>/\` with its own protocols, code, data, outputs, and publications.
 EOF
 
-  write_file "$RESEARCH_ROOT/project.yaml" <<'EOF'
-owner: "<owner name>"
-contact: "<email@example.org>"
-license: "CC-BY-4.0"
-sync_policy: "iCloud: active, External: raw_data_on_nas"
-conda_env: "$CONDA_NAME"
-EOF
-
   # Render project management templates
-  render_template "$TEMPLATES_DIR/research/01_project_management/README.md.template" "$RESEARCH_ROOT/01_project_management/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/01_proposal/README.md.template" "$RESEARCH_ROOT/01_project_management/01_proposal/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/02_finance/README.md.template" "$RESEARCH_ROOT/01_project_management/02_finance/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+  render_template "$TEMPLATES_DIR/research/01_project_management/05_supervision/README.md.template" "$RESEARCH_ROOT/01_project_management/05_supervision/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
 
   # Conda
   if [ "$no_conda" = false ]; then
@@ -1547,7 +2416,16 @@ init_research_study() {
   # Create study .integrity directories
   do_mkdir_p "$STUDY_ROOT/.integrity/checksums"
   do_mkdir_p "$STUDY_ROOT/.integrity/manifests"
-  
+
+  # Create .integrity/study.yaml for v1.0.22 compliance
+  local study_integrity_yaml="$STUDY_ROOT/.integrity/study.yaml"
+  write_file "$study_integrity_yaml" <<EOF
+name: "$study_name"
+version: "1.0.22"
+created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+
   # Create study README.md
   write_file "$STUDY_ROOT/README.md" <<EOF
 # $study_name ($study_id)
@@ -1637,9 +2515,19 @@ init_lecture() {
     do_mkdir_p "$LECTURE_ROOT/$d"
   done
 
-  # Create .integrity directories (constitution v1.0.12)
+  # Create .integrity directories (constitution v1.0.22 with metadata files)
   do_mkdir_p "$LECTURE_ROOT/.integrity/checksums"
   do_mkdir_p "$LECTURE_ROOT/.integrity/manifests"
+
+  # Create .integrity/lecture.yaml for v1.0.22 compliance
+  local lecture_integrity_yaml="$LECTURE_ROOT/.integrity/lecture.yaml"
+  write_file "$lecture_integrity_yaml" <<EOF
+name: "$name"
+world_type: "LECTURE_WORLD"
+version: "1.0.22"
+created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
 
   write_file "$LECTURE_ROOT/README.md" <<'EOF'
 # $name ($lecture_id)
@@ -2280,6 +3168,16 @@ handle_help_request() {
         fi
       fi
       ;;
+    "update")
+      # Command help: dirforge update --help
+      if declare -F show_update_command_help >/dev/null 2>&1; then
+        show_update_command_help
+      elif declare -F show_command_help >/dev/null 2>&1; then
+        show_command_help "update"
+      else
+        show_global_help
+      fi
+      ;;
     "--version"|"-v")
       echo "$PROG_NAME (DirForge Constitution $CONSTITUTION_VERSION)"
       echo "Enhanced Terminal Help System"
@@ -2428,6 +3326,11 @@ init_all_worlds() {
   if [ "$DRY_RUN" = true ]; then
     echo "DRY RUN: would create complete DirForge workspace at $target_path"
   else
+    # Create workspace-level integrity metadata
+    create_workspace_integrity_metadata "$target_path" "1.0.22" || {
+      echo "Warning: Could not create workspace metadata" >&2
+    }
+    
     echo
     echo "✅ Workspace initialized at: $target_path"
     echo
@@ -2440,7 +3343,7 @@ init_all_worlds() {
     echo "  PRIVATE_WORLD/          (with 10 subfolders)"
     echo "  RESEARCH_WORLD/         (empty - use 'dirforge init research' to create projects)"
     echo
-    echo "Constitution version: v1.0.21"
+    echo "Constitution version: v1.0.22"
     echo
     echo "Next steps:"
     echo "  • Create a research project: $PROG_NAME init research --name \"Project Name\""
@@ -2551,7 +3454,7 @@ main() {
   esac
 
   # Global flags: support --dry-run or --preview anywhere in the args
-  new_args=()
+  local new_args=()
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --dry-run|--preview)
@@ -2584,7 +3487,7 @@ main() {
   fi
   
   # Restore positional params
-  set -- "${new_args[@]}"
+  set -- "${new_args[@]:-}"
   if [ "$#" -lt 1 ]; then
     handle_help_request
     exit 1
@@ -2592,6 +3495,17 @@ main() {
   
   cmd="$1"; shift
   case "$cmd" in
+    update)
+      # Check if first argument is a help flag
+      case "${1:-}" in
+        --help|-h)
+          handle_help_request "update"
+          exit 0
+          ;;
+      esac
+      cmd_update "$@"
+      exit $?
+      ;;
     init)
       # Check if there are any arguments
       if [ "$#" -eq 0 ]; then
