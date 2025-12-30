@@ -1,0 +1,71 @@
+################################################################################
+# OFFICE_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: OFFICE_WORLD
+# @last-updated: 2025-12-23
+#
+# Defines administrative and office workspace (project-independent office-level folders).
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: OFFICE_WORLD
+  description: "Office and administrative workspace with structured administrative folders"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+
+# Administrative folder structure (project-independent office-level folders)
+parent_directories:
+  - name: "00_admin"
+    description: "Quick inbox and transient admin notes (optional)"
+    integrity: true
+    project_scope: "project"
+  - name: "01_finance"
+    description: "Invoices, funding documents, budgets, non-sensitive payroll docs, proposals"
+    integrity: true
+    project_scope: "project"
+  - name: "02_hr_administration"
+    description: "Vacation requests, business trip forms, faculty meetings, HR correspondence, employment documents"
+    integrity: true
+    project_scope: "project"
+  - name: "03_faculty"
+    description: "University forms, faculty paperwork, compliance documents, policy acknowledgments"
+    integrity: true
+    project_scope: "project"
+  - name: "04_inventory_equipment"
+    description: "NAS notes, equipment inventories, Zeiss and instrument info, manuals"
+    integrity: true
+    project_scope: "project"
+  - name: "05_software_licenses"
+    description: "Software licenses, MATLAB/QGIS/ImageJ notes, software invoices"
+    integrity: true
+    project_scope: "project"
+  - name: "06_public_relations"
+    description: "Press releases, interviews, PR items"
+    integrity: true
+    project_scope: "project"
+
+# Administrative folders have no required subdirectories
+subdirectories: []
+
+permissions:
+  default_directory: 755
+  default_file: 644
+  integrity_directory: 700
+  integrity_file: 600

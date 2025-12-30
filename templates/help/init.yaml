@@ -1,0 +1,89 @@
+---
+# Init Command Help
+# Version: 1.0.22
+# Purpose: Help for 'dirforge init' command with world types and options
+
+command: "dirforge init"
+syntax: |
+  dirforge init <world-type> [options]
+  dirforge init [path] [--auto]
+  dirforge init <world-type> --help
+
+short_help:
+  summary: "Create new project structure based on DirForge Constitution"
+  usage: "dirforge init <world-type> [options]"
+
+description: |
+  Initialize new projects or complete workspaces. Use 'dirforge init <world-type> 
+  --help' to see world-specific options like --title for research projects or 
+  --language for coding projects.
+
+sections:
+  workspace_initialization:
+    title: "Workspace Initialization"
+    content: |
+      Initialize complete workspace with all world types:
+      
+      path                           Target directory (default: current directory)
+      --auto, --yes, -y              Create automatically without prompts
+      --here                         Explicitly use current directory
+  
+  world_types:
+    title: "World Types"
+    content: |
+      research                       Academic research projects with data management
+      lecture                        Educational content with grading workflows
+      coding                         Software development projects
+      journal                        Journal activities: submissions, reviews, editorial
+      office                         Administrative and business documents
+      private                        Personal projects with privacy controls
+  
+  common_options:
+    title: "Common Options"
+    content: |
+      --help, -h                     Show help for this command or specific world
+      --dry-run, --preview           Preview structure without creating files
+      --force                        Overwrite existing directories (use with caution)
+      --backup                       Create backup before overwriting
+      --yes                          Skip interactive confirmations
+      --json                         Output JSON plan (requires --dry-run)
+      --quiet, -q                    Suppress non-error output
+      --verbose, -v                  Show detailed progress information
+
+examples:
+  - title: "Initialize workspace in current directory"
+    command: "dirforge init"
+    description: "Creates all world types with interactive prompts"
+  
+  - title: "Initialize workspace with auto-confirm"
+    command: "dirforge init ~/my-workspace --auto"
+    description: "Creates workspace without prompts"
+  
+  - title: "Create research project"
+    command: 'dirforge init research --title "Thermal Analysis"'
+    description: "Creates research project structure"
+  
+  - title: "Create lecture project"
+    command: 'dirforge init lecture --name "Physics 101"'
+    description: "Creates lecture project structure"
+  
+  - title: "Get world-specific help"
+    command: "dirforge init research --help"
+    description: "Shows detailed help for research projects"
+  
+  - title: "Preview structure without creating"
+    command: 'dirforge init research --title "Test" --dry-run'
+    description: "Shows what would be created"
+
+related_commands:
+  - "dirforge init research"
+  - "dirforge init lecture"
+  - "dirforge init coding"
+  - "dirforge init journal"
+
+see_also:
+  - "constitution.md - Naming conventions and structure specifications"
+  - "dirforge help <world-type> - World-specific detailed help"
+
+constitution_section: "Constitution v1.0.22"
+updated: "2025-12-30"

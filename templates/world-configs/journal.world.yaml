@@ -1,0 +1,96 @@
+################################################################################
+# JOURNAL_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: JOURNAL_WORLD
+# @last-updated: 2025-12-23
+#
+# Defines journal activities organized by role (primary authorship, co-author, journal service).
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: JOURNAL_WORLD
+  description: "Journal activities organized by role: primary authorship, co-author invites, and journal service"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+  role_based: true
+
+# Role-based parent directories for journal organization
+parent_directories:
+  - name: "00_admin"
+    description: "Administrative materials, memberships, society correspondence"
+    integrity: true
+    project_scope: "project"
+  - name: "01_primary_authorship"
+    description: "Papers where you are lead or corresponding author"
+    integrity: false
+    project_scope: "project"
+  - name: "02_coauthor_invites"
+    description: "Collaborative authorship projects"
+    integrity: false
+    project_scope: "project"
+  - name: "03_journal_service"
+    description: "Peer review work and editorial duties"
+    integrity: false
+    project_scope: "project"
+
+# Project subdirectories within each role
+subdirectories:
+  - parent: "01_primary_authorship"
+    description: "Primary authorship project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Manuscript drafts and revisions"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Peer review reports and responses"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Editorial communications"
+  - parent: "02_coauthor_invites"
+    description: "Co-author project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Manuscript drafts and contributions"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Review feedback"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Collaboration communications"
+  - parent: "03_journal_service"
+    description: "Journal service project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Papers under review"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Review reports and decisions"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Editorial communications"
+
+permissions:
+  default_directory: 755
+  default_file: 644
+  integrity_directory: 700
+  integrity_file: 600

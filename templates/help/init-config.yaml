@@ -1,0 +1,235 @@
+command: init-config
+description: "Initialize a workspace using YAML configuration-driven approach"
+type: command
+category: yaml
+
+syntax:
+  usage: "dirforge init [world|project|study] [options]"
+  arguments:
+    - name: subcommand
+      description: "Initialization target: world, project, or study"
+      required: true
+      example: "world"
+    - name: project-name
+      description: "Project name (for project and study initialization)"
+      required: false
+      example: "my-project"
+  options:
+    - flag: --config <file>
+      description: "Use custom YAML configuration file"
+      required: false
+      example: "custom-world.yaml"
+    - flag: --world-type <TYPE>
+      description: "Infer configuration from world type (CODING, RESEARCH, etc.)"
+      required: false
+      example: "CODING_WORLD"
+  variants:
+    - "dirforge init world"
+    - "dirforge init coding"
+    - "dirforge init world --config templates/world-configs/coding.yaml"
+    - "dirforge init research --project my-project"
+    - "dirforge init research --project my-project --study study_1 --config custom-research.yaml"
+
+usage:
+  patterns:
+    - name: init-coding-world
+      description: "Create a CODING_WORLD workspace with config-driven structure"
+      command: "dirforge init coding"
+    - name: init-with-explicit-config
+      description: "Initialize using a specific configuration file"
+      command: "dirforge init world --config templates/world-configs/research.yaml"
+    - name: init-research-project
+      description: "Create a research world with project structure"
+      command: "dirforge init research --project my-project"
+    - name: init-research-study
+      description: "Create a research world with study under a project"
+      command: "dirforge init research --project my-project --study study_1"
+  common_workflows:
+    - name: create-coding-workspace
+      description: "Set up a new coding world with all language directories"
+      steps:
+        - "Run: dirforge init coding"
+        - "System creates directory structure from coding.world.yaml config"
+        - "All 8 language directories are created: python, bash, matlab, etc."
+        - "Metadata files (.integrity/) are generated automatically"
+    - name: create-research-workspace
+      description: "Set up a research workspace with projects and studies"
+      steps:
+        - "Run: dirforge init research --project research-2025"
+        - "Run: dirforge init research --project research-2025 --study study_1"
+        - "Run: dirforge init research --project research-2025 --study study_2"
+        - "System creates nested structure and metadata for each level"
+    - name: create-with-custom-config
+      description: "Initialize with a custom world configuration"
+      steps:
+        - "Create my-world.yaml based on HELP-SCHEMA"
+        - "Run: dirforge validate-config my-world.yaml"
+        - "Run: dirforge init world --config my-world.yaml"
+        - "System creates workspace from custom configuration"
+
+examples:
+  - title: "Initialize CODING_WORLD with default configuration"
+    command: "dirforge init coding"
+    description: "Create a CODING_WORLD workspace with all language directories"
+    output: |
+      ✓ Initializing CODING_WORLD
+        Using config: templates/world-configs/coding.yaml
+        Creating directories:
+          - python/
+          - bash/
+          - matlab/
+          - fortran/
+          - c/
+          - latex/
+          - clusters/
+          - github/
+        Creating metadata: .integrity/world.yaml
+      ✓ CODING_WORLD initialized successfully
+
+  - title: "Initialize RESEARCH_WORLD with project structure"
+    command: "dirforge init research --project quantum-computing"
+    description: "Create a research world with a specific project"
+    output: |
+      ✓ Initializing RESEARCH_WORLD
+        Using config: templates/world-configs/research.yaml
+        Creating project structure:
+          - quantum-computing/
+        Creating metadata:
+          - .integrity/world.yaml
+          - quantum-computing/.integrity/project.yaml
+      ✓ RESEARCH_WORLD initialized successfully
+
+  - title: "Initialize study within research project"
+    command: "dirforge init research --project quantum-computing --study entanglement-2025"
+    description: "Create a study structure within an existing research project"
+    output: |
+      ✓ Initializing study in RESEARCH_WORLD
+        Using config: templates/world-configs/research.yaml
+        Creating study structure:
+          - quantum-computing/entanglement-2025/
+        Creating metadata:
+          - quantum-computing/.integrity/project.yaml
+          - quantum-computing/entanglement-2025/.integrity/study.yaml
+      ✓ Study initialized successfully
+
+  - title: "Initialize using custom configuration file"
+    command: "dirforge init world --config ~/my-custom-world.yaml"
+    description: "Create a workspace with a custom YAML configuration"
+    output: |
+      ✓ Initializing world from custom config
+        Using config: /home/user/my-custom-world.yaml
+        Creating directories from configuration...
+        Creating metadata files...
+      ✓ World initialized successfully
+
+output:
+  format: text
+  description: "Initialization progress with created directory structure and metadata"
+  example: |
+    ✓ Initializing CODING_WORLD
+      Using config: templates/world-configs/coding.yaml
+      Creating directories...
+      Creating metadata: .integrity/world.yaml
+    ✓ CODING_WORLD initialized successfully
+
+related:
+  - command: validate-config
+    reason: "Validate custom configurations before using them with init --config"
+  - command: list-configs
+    reason: "View available configurations"
+  - command: help yaml-config-system
+    reason: "Learn about the YAML configuration system"
+
+see_also:
+  - title: "YAML Configuration System"
+    link: "yaml-config-system"
+    type: "help-topic"
+  - title: "Custom World Configuration"
+    link: "custom-world"
+    type: "help-topic"
+  - title: "010: YAML Configuration System"
+    link: "docs/010-yaml-configuration-system.md"
+    type: "documentation"
+
+short_help:
+  summary: "Initialize a workspace using YAML configuration-driven approach"
+  synopsis: "dirforge init <world|project|study> [--config FILE] [--project NAME] [--study NAME]"
+  quick_options:
+    - flag: --config FILE
+      description: "Use custom YAML configuration file"
+    - flag: --project NAME
+      description: "Project name for research workspace"
+  hint: "Use 'dirforge list-configs' to see available configurations, or '--config' for custom ones"
+
+long_help:
+  summary: |
+    The init command initializes a workspace using the YAML configuration system.
+    It provides a configuration-driven approach to creating directory structures,
+    replacing hard-coded definitions. Supports world, project, and study
+    initialization with automatic metadata generation. Configurations can be
+    built-in world types or custom YAML files. The system automatically infers
+    appropriate configuration based on the world-type or accepts explicit
+    configuration via --config flag.
+    
+  details: |
+    Configuration-driven initialization workflow:
+    1. Parse configuration file (built-in or custom via --config)
+    2. Validate configuration schema
+    3. Create directory structure from parent_directories and subdirectories
+    4. Generate atomic transaction log
+    5. Create metadata (.integrity/) at each level
+    6. Set correct permissions (755/644 default, 700/600 for .integrity/)
+    
+    Configuration lookup strategy:
+    - If --config specified: use that file
+    - If --world-type specified: lookup in templates/world-configs/<type>.world.yaml
+    - If subcommand is world-type name (e.g., 'coding'): lookup built-in config
+    - Otherwise: use default for context
+    
+    This approach allows:
+    - Custom world configurations without code changes
+    - Reproducible workspace creation
+    - Version control of world structures
+    - Easy sharing of workspace definitions
+    
+  important_notes:
+    - "Configuration files are validated before use (catch errors early)"
+    - "Init creates metadata (.integrity/) at world, project, and study levels"
+    - "Permissions: directories 755 (rwxr-xr-x), files 644 (rw-r--r--)"
+    - "Metadata directories restricted to 700 (rwx------) and files 600 (rw-------)"
+    - "Variables like ${USER} and ${DATE} are expanded in paths"
+    - "Use --config for custom configurations, --world-type for built-in lookup"
+    - "Atomic transactions: all-or-nothing (rollback on errors)"
+    
+  all_options:
+    - flag: --config FILE
+      description: "Path to custom YAML configuration file"
+    - flag: --world-type TYPE
+      description: "Infer configuration from world type (CODING_WORLD, RESEARCH_WORLD, etc.)"
+    - flag: --project NAME
+      description: "Project name (for project and study initialization in RESEARCH_WORLD)"
+    - flag: --study NAME
+      description: "Study name (for study initialization in RESEARCH_WORLD)"
+    - flag: --verbose, -v
+      description: "Show detailed initialization trace"
+    - flag: --help
+      description: "Show this help message"
+
+notes:
+  config_inference: |
+    The system automatically infers the correct configuration:
+    - "dirforge init coding" → uses templates/world-configs/coding.world.yaml
+    - "dirforge init research" → uses templates/world-configs/research.world.yaml
+    - "dirforge init world --config custom.yaml" → uses custom.yaml
+    
+  variable_expansion: |
+    Configurations support variable expansion:
+    - ${USER} → current username (e.g., alice)
+    - ${DATE} → ISO 8601 UTC date (e.g., 2025-12-30T22:30:00Z)
+    - ${HOME} → user home directory
+    
+  atomic_transactions: |
+    Initialization uses atomic transactions:
+    - All filesystem operations are logged
+    - If any operation fails, entire initialization is rolled back
+    - No partial workspaces left behind on error

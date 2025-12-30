@@ -1,0 +1,52 @@
+################################################################################
+# LITERATURE_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: LITERATURE_WORLD
+# @last-updated: 2025-12-23
+# @status: placeholder
+#
+# Placeholder for future expansion: literature and knowledge management.
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: LITERATURE_WORLD
+  description: "Literature and knowledge management workspace (placeholder for future expansion)"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+
+# Literature organization directories
+parent_directories:
+  - name: "01_bibliography"
+    description: "Bibliographic databases and reference management files"
+    integrity: true
+    project_scope: "world"
+  - name: "02_reading_list"
+    description: "Lists of literature to read and review"
+    integrity: true
+    project_scope: "world"
+
+# Placeholder structure - to be defined when literature system is implemented
+subdirectories: []
+
+permissions:
+  default_directory: 755
+  default_file: 644
+  integrity_directory: 700
+  integrity_file: 600

@@ -1,0 +1,238 @@
+command: yaml-config-system
+description: "YAML-driven world configuration system architecture and overview"
+type: topic
+category: yaml
+
+syntax:
+  usage: "dirforge help yaml-config-system"
+  arguments: []
+  options: []
+  variants:
+    - "dirforge help yaml-config-system"
+
+usage:
+  patterns:
+    - name: learn-about-system
+      description: "Understand the YAML configuration system architecture"
+      command: "dirforge help yaml-config-system"
+    - name: compare-with-old-system
+      description: "See how configuration-driven approach replaces hard-coded structures"
+      command: "dirforge help yaml-config-system"
+  common_workflows:
+    - name: understand-yaml-configs
+      description: "Get overview of YAML configuration system"
+      steps:
+        - "Read this help: dirforge help yaml-config-system"
+        - "List available configs: dirforge list-configs"
+        - "View a config file: cat templates/world-configs/coding.yaml"
+        - "Learn about custom configs: dirforge help custom-world"
+
+examples:
+  - title: "View configuration directory structure"
+    command: "ls -la templates/world-configs/"
+    description: "See all available YAML configuration files"
+    output: |
+      coding.world.yaml       (8 language directories)
+      research.world.yaml     (projects and studies)
+      journal.world.yaml      (role-based parent directories)
+      lecture.world.yaml      (7 mandatory folders)
+      office.world.yaml       (administrative folders)
+      private.world.yaml      (personal folder structure)
+      literature.world.yaml   (placeholder for future)
+      SCHEMA.md               (configuration schema documentation)
+
+  - title: "Examine a configuration file structure"
+    command: "head -30 templates/world-configs/coding.yaml"
+    description: "See how YAML configuration defines directory structure"
+    output: |
+      world_type: CODING_WORLD
+      description: "Programming world with 8 languages"
+      version: "1.0.22"
+      constitution_version: "1.0.22"
+      
+      parent_directories:
+        - name: python
+          description: "Python programming projects"
+          subdirectories:
+            - name: leetcode
+            - name: data-science
+            - name: web-dev
+
+  - title: "List all available world configurations"
+    command: "dirforge list-configs"
+    description: "See all world types and their configuration files"
+    output: |
+      CODING_WORLD      templates/world-configs/coding.yaml
+      RESEARCH_WORLD    templates/world-configs/research.yaml
+      JOURNAL_WORLD     templates/world-configs/journal.yaml
+      LECTURE_WORLD     templates/world-configs/lecture.yaml
+      OFFICE_WORLD      templates/world-configs/office.yaml
+      PRIVATE_WORLD     templates/world-configs/private.yaml
+      LITERATURE_WORLD  templates/world-configs/literature.yaml
+
+related:
+  - command: list-configs
+    reason: "View all available world configurations"
+  - command: validate-config
+    reason: "Validate YAML configuration files"
+  - command: init-config
+    reason: "Initialize workspace with configuration"
+  - command: help custom-world
+    reason: "Learn how to create custom world configurations"
+
+see_also:
+  - title: "Custom World Configuration Guide"
+    link: "custom-world"
+    type: "help-topic"
+  - title: "010: YAML Configuration System"
+    link: "docs/010-yaml-configuration-system.md"
+    type: "documentation"
+  - title: "Configuration Schema"
+    link: "templates/world-configs/SCHEMA.md"
+    type: "documentation"
+  - title: "Configuration File Examples"
+    link: "templates/world-configs/"
+    type: "file-directory"
+
+short_help:
+  summary: "Overview of YAML-driven world configuration system"
+  synopsis: "dirforge help yaml-config-system"
+  quick_options: []
+  hint: "Learn how to create custom world configurations with 'dirforge help custom-world'"
+
+long_help:
+  summary: |
+    The YAML configuration system is a feature of DirForge v1.0.22 that replaces
+    hard-coded directory structure definitions with a flexible, configuration-driven
+    approach. World structures (CODING, RESEARCH, JOURNAL, etc.) are now defined in
+    YAML files stored in templates/world-configs/. This allows users to create
+    custom world types without modifying code, version-control world definitions,
+    and share workspace structures with teams.
+    
+  details: |
+    Architecture Overview:
+    
+    BEFORE (Hard-coded):
+    - World structures embedded in tools/dirforge script
+    - Changes require code modification
+    - Difficult to version-control
+    - No user customization
+    
+    AFTER (Configuration-driven):
+    - World structures in templates/world-configs/*.yaml
+    - Changes via YAML editing
+    - Easy version control and collaboration
+    - Full user customization via custom configurations
+    
+    System Components:
+    
+    1. **Configuration Files** (templates/world-configs/*.yaml)
+       - Define parent directories and nested subdirectories
+       - Include metadata: world_type, description, version
+       - Support variable expansion: ${USER}, ${DATE}
+       - 7 built-in world types + custom support
+    
+    2. **Schema Definition** (templates/world-configs/SCHEMA.md)
+       - Formal specification of YAML structure
+       - Required vs optional fields
+       - Field type definitions
+       - Validation rules
+    
+    3. **YAML Parser Library** (lib/help_yaml_parser.sh)
+       - Loads and parses YAML configuration files
+       - Expands variables (${USER}, ${DATE})
+       - Caches configurations for performance
+       - Handles missing files gracefully (non-fatal)
+    
+    4. **Validation System** (lib/config_schema.sh)
+       - Validates configurations against schema
+       - Reports errors with field names and types
+       - Supports strict (schema) and flexible (data) validation
+       - Command: dirforge validate-config <file>
+    
+    5. **Scaffold Generator** (lib/scaffold_generator.sh)
+       - Creates directory structure from configuration
+       - Generates metadata (.integrity/) files
+       - Sets correct permissions (755/644, restricted 700/600)
+       - Atomic transactions with rollback support
+    
+    Workflow:
+    
+    1. Create/select configuration (built-in or custom)
+    2. Validate: dirforge validate-config config.yaml
+    3. Initialize: dirforge init world --config config.yaml
+    4. System creates workspace structure + metadata
+    
+    Built-in World Types:
+    
+    - CODING_WORLD: Programming projects (8 languages)
+    - RESEARCH_WORLD: Research projects and studies
+    - JOURNAL_WORLD: Journal entries by role
+    - LECTURE_WORLD: Educational content (7 folders)
+    - OFFICE_WORLD: Administrative organization
+    - PRIVATE_WORLD: Personal folder structure
+    - LITERATURE_WORLD: Literature management (placeholder)
+    
+  important_notes:
+    - "Configuration files are text-based YAML (human-readable, version-controllable)"
+    - "All 7 built-in world types are available via default configurations"
+    - "Custom configurations can be created by copying and modifying existing files"
+    - "Configurations are validated before use (--config flag in init)"
+    - "Variable expansion: ${USER} → username, ${DATE} → ISO 8601 UTC timestamp"
+    - "Metadata generation: .integrity/ directories track world structure version"
+    - "Atomic transactions: initialization is all-or-nothing (no partial workspaces)"
+    - "Backward compatible: old hard-coded approach still works (warning issued)"
+    - "Performance optimized: configurations cached, typical init <500ms"
+    
+  key_features:
+    - "Configuration-driven: directory structures in YAML files, not code"
+    - "User customization: create custom worlds without code changes"
+    - "Version control: world definitions tracked in git"
+    - "Reusable: share configurations with teams and organizations"
+    - "Validated: all configurations validated before use"
+    - "Extensible: schema supports custom fields and structures"
+    - "Atomic: initialization is transactional (all-or-nothing)"
+    - "Performant: caching and optimization for fast initialization"
+    - "Documented: schema, examples, and comprehensive help"
+    
+  benefits:
+    - "Flexibility: customize world structures without code"
+    - "Collaboration: share and version-control world definitions"
+    - "Reliability: validated configurations catch errors early"
+    - "Scalability: support for complex multi-level structures"
+    - "Maintainability: centralized configuration management"
+    - "User empowerment: non-technical users can create custom worlds"
+    - "Auditability: world structures tracked and documented"
+    - "Migration path: easy upgrade from hard-coded to configuration-driven"
+
+architecture_sections:
+  - title: "Configuration Files"
+    content: "YAML files in templates/world-configs/ define world structures with parent_directories and subdirectories"
+  
+  - title: "Schema Validation"
+    content: "templates/world-configs/SCHEMA.md defines structure; lib/config_schema.sh validates against it"
+  
+  - title: "YAML Parsing"
+    content: "lib/yaml_utils.sh and lib/config_utils.sh parse, expand variables, and load configurations"
+  
+  - title: "Scaffold Generation"
+    content: "lib/scaffold_generator.sh creates directories, metadata, and sets permissions atomically"
+  
+  - title: "Command Integration"
+    content: "dirforge validate-config, list-configs, and init commands use the configuration system"
+
+notes:
+  constitution_reference: |
+    The YAML configuration system implements Constitution v1.0.22 Section IV.B:
+    "Worlds are uniquely identified by their directory structure, which is defined
+    in version-controlled configuration files. All worlds share a common integrity
+    check mechanism (.integrity/) that validates the structure against the
+    constitution version."
+  
+  breaking_changes: |
+    v1.0.22 Changes:
+    - Hard-coded world structures replaced with YAML configurations
+    - dirforge init now config-driven (backward compatibility warning issued)
+    - New commands: validate-config, list-configs
+    - New flag: --config for explicit configuration specification
+    - Old code-based configuration still supported (deprecated)

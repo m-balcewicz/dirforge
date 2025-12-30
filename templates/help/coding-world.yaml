@@ -1,0 +1,107 @@
+---
+# Coding World Help
+# Version: 1.0.22
+# Constitution: §III.I Software Development
+
+command: "dirforge init coding"
+syntax: |
+  dirforge init coding --language <lang> --project "name" [options]
+  dirforge init coding --help
+
+short_help:
+  summary: "Create software development project with version control and testing"
+  usage: "dirforge init coding --language python --project \"project-name\""
+
+description: |
+  Creates standardized software development project with version control, 
+  testing framework, and documentation structure for multiple programming languages. 
+  Supports Python, MATLAB, Fortran, and Bash with language-specific tooling.
+
+sections:
+  required_options:
+    title: "Required Options"
+    content: |
+      --language <lang>              Programming language (python|matlab|fortran|bash)
+      --project "name"               Project name (converted to snake_case)
+  
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --python 3.11                  Python version for conda (Python only, default: 3.11)
+      --no-conda                     Skip conda environment creation
+      --no-git                       Skip Git repository initialization
+  
+  supported_languages:
+    title: "Supported Languages"
+    content: |
+      python                         Python package with setuptools, pytest, conda
+      matlab                         MATLAB project with standard directory structure
+      fortran                        Fortran project with Makefile and build system
+      bash                           Bash scripting project with modular structure
+  
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Project ID Format:             <snake_case_project_name>
+      Example Input:                 "Data Analysis Tool"
+      Generated ID:                  data_analysis_tool
+      Conda Environment:             coding_data_analysis_tool (Python/Fortran)
+      Rules:                         ASCII lowercase [a-z0-9_-] only
+  
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      CODING_WORLD/<language>/<project_id>/
+      ├── src/                       Source code
+      ├── tests/                     Test files
+      ├── docs/                      Documentation
+      ├── environment.yaml           Conda environment (Python/Fortran)
+      ├── pyproject.toml             Python packaging (Python)
+      ├── Makefile                   Build system (Fortran)
+      └── .gitignore                 Version control exclusions
+
+examples:
+  - title: "Basic Python project"
+    command: 'dirforge init coding --language python --project "data_processor"'
+    description: "Creates Python project with conda environment"
+  
+  - title: "Python project with specific version"
+    command: 'dirforge init coding --language python --project "ml_toolkit" --python 3.12'
+    description: "Creates Python project with Python 3.12"
+  
+  - title: "Python without conda"
+    command: 'dirforge init coding --language python --project "simple_script" --no-conda'
+    description: "Creates Python project without environment"
+  
+  - title: "MATLAB project"
+    command: 'dirforge init coding --language matlab --project "signal_processing"'
+    description: "Creates MATLAB project structure"
+  
+  - title: "Fortran project"
+    command: 'dirforge init coding --language fortran --project "numerical_solver"'
+    description: "Creates Fortran project with build system"
+  
+  - title: "Bash scripting project"
+    command: 'dirforge init coding --language bash --project "backup_script"'
+    description: "Creates bash project with modular structure"
+
+error_handling:
+  description: |
+    The command provides detailed error messages with examples when required 
+    arguments are missing.
+  examples:
+    - missing_project: 'dirforge init coding --language matlab'
+    - missing_language: 'dirforge init coding --project "my_tool"'
+    - missing_both: 'dirforge init coding --python 3.12'
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init research"
+  - "dirforge init lecture"
+
+see_also:
+  - "Constitution §III.I - Software Development Projects"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.I"
+updated: "2025-12-30"

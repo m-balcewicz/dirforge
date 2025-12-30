@@ -1,0 +1,69 @@
+---
+# Journal World Help
+# Version: 1.0.22
+# Constitution: §III.VI Journal Activities
+
+command: "dirforge init journal"
+syntax: |
+  dirforge init journal --journal "Journal Name" --id "identifier" [options]
+  dirforge init journal --help
+
+short_help:
+  summary: "Create journal project for submissions, reviews, and editorial work"
+  usage: 'dirforge init journal --journal "Journal Name" --id "ID"'
+
+description: |
+  Creates journal project for managing all aspects of academic publishing: your own 
+  manuscript submissions, reviewer assignments, editorial responsibilities, and 
+  journal-related correspondence. Flexible structure supports diverse workflows 
+  and use cases.
+
+sections:
+  optional_options:
+    title: "Options"
+    content: |
+      --journal "Journal Name"        Name of the journal
+      --id "identifier"               Project identifier (manuscript ID, reviewer code, etc.)
+      --encrypted                     Enable encryption for sensitive documents
+  
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      JOURNAL_WORLD/JOURNAL_NAME/ID/
+      ├── manuscript/                 Papers, drafts, revisions
+      ├── reviews/                    Peer reviews, comments, responses
+      └── correspondence/             Editorial communications
+
+examples:
+  - title: "Your manuscript submission"
+    command: 'dirforge init journal --journal "Geophysics" --id "GEO-2025-0451"'
+    description: "Tracks your manuscript submission progress"
+  
+  - title: "Reviewer work"
+    command: 'dirforge init journal --journal "Nature Geoscience" --id "REVIEWER_2024_Q4"'
+    description: "Organizes batch of papers to review"
+  
+  - title: "Editorial responsibilities"
+    command: 'dirforge init journal --journal "JGR Solid Earth" --id "ASSOC_EDITOR_2024"'
+    description: "Manages associate editor duties"
+  
+  - title: "Special issue coordination"
+    command: 'dirforge init journal --journal "IEEE TGRS" --id "SPECIAL_ISSUE_ML"'
+    description: "Coordinates special issue editing"
+
+use_cases:
+  - "Your submissions: manuscript drafts and revisions"
+  - "Reviewer work: papers to review and your reviews"
+  - "Editorial duties: special issues, associate editor work"
+  - "Conference abstracts and journal correspondence"
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init research"
+
+see_also:
+  - "Constitution §III.VI - Journal Activities"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.VI"
+updated: "2025-12-30"

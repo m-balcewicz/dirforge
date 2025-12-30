@@ -80,6 +80,19 @@ init_colors() {
         COLOR_WHITE=""
         COLOR_GRAY=""
     fi
+    
+    # Add legacy C_* aliases for backwards compatibility
+    C_RESET="$COLOR_RESET"
+    C_BOLD="$COLOR_BOLD"
+    C_DIM="$COLOR_DIM"
+    C_RED="$COLOR_RED"
+    C_GREEN="$COLOR_GREEN"
+    C_YELLOW="$COLOR_YELLOW"
+    C_BLUE="$COLOR_BLUE"
+    C_MAGENTA="$COLOR_MAGENTA"
+    C_CYAN="$COLOR_CYAN"
+    C_WHITE="$COLOR_WHITE"
+    C_GRAY="$COLOR_GRAY"
 }
 
 # Apply color formatting to text with safe fallback

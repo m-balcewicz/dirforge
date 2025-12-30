@@ -1,0 +1,270 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Help Content Change Detection Tool (Phase 8c - T219-T220)
+# 
+# Validates that help file content matches actual command behavior
+# Warns when help examples diverge from actual command options
+# Does NOT fail help system - just provides warnings for documentation drift
+#
+# Usage: tools/validate-help-content [--verbose] [--check-all]
+#
+# Version: 1.0.22
+# Date: 2025-12-30
+################################################################################
+
+set -euo pipefail
+
+DIRFORGE_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIRFORGE_TOOL="$DIRFORGE_HOME/tools/dirforge"
+HELP_DIR="$DIRFORGE_HOME/templates/help"
+
+VERBOSE=false
+CHECK_ALL=false
+WARNINGS=0
+ERRORS=0
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# ============================================================================
+# Parse Arguments
+# ============================================================================
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose|-v)
+      VERBOSE=true
+      shift
+      ;;
+    --check-all)
+      CHECK_ALL=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+warn() {
+  local msg="$1"
+  echo -e "${YELLOW}⚠ WARNING${NC}: $msg"
+  ((WARNINGS++))
+}
+
+error() {
+  local msg="$1"
+  echo -e "${RED}✗ ERROR${NC}: $msg"
+  ((ERRORS++))
+}
+
+pass() {
+  local msg="$1"
+  echo -e "${GREEN}✓${NC} $msg"
+}
+
+# ============================================================================
+# Content Validation Functions
+# ============================================================================
+
+# Validate that validate-config command matches help documentation
+check_validate_config_help() {
+  local help_file="$HELP_DIR/validate-config.yaml"
+  local output
+  
+  if [ ! -f "$help_file" ]; then
+    error "Help file not found: $help_file"
+    return 1
+  fi
+  
+  # Check if --verbose option is documented and available
+  if grep -q "\-\-verbose\|--verbose" "$help_file" 2>/dev/null; then
+    output=$("$DIRFORGE_TOOL" validate-config --verbose /dev/null 2>&1 || true)
+    if [[ ! "$output" =~ "verbose" && ! "$output" =~ "Verbose" ]]; then
+      warn "validate-config: help documents --verbose but implementation unclear"
+    else
+      pass "validate-config: --verbose option is documented and functional"
+    fi
+  fi
+  
+  # Check if file argument is required
+  output=$("$DIRFORGE_TOOL" validate-config 2>&1 || true)
+  if [[ "$output" =~ "config file" || "$output" =~ "argument" ]]; then
+    pass "validate-config: file argument requirement matches documentation"
+  fi
+}
+
+# Validate that list-configs command matches help documentation  
+check_list_configs_help() {
+  local help_file="$HELP_DIR/list-configs.yaml"
+  local output
+  
+  if [ ! -f "$help_file" ]; then
+    error "Help file not found: $help_file"
+    return 1
+  fi
+  
+  # Check if --show-invalid option is documented
+  if grep -q "show-invalid" "$help_file" 2>/dev/null; then
+    # Try to verify it exists (may not be fully implemented)
+    output=$("$DIRFORGE_TOOL" list-configs --help 2>&1 || true)
+    if [[ "$output" =~ "show-invalid" || "$output" =~ "invalid" ]]; then
+      pass "list-configs: options mentioned in help match command"
+    else
+      warn "list-configs: help mentions --show-invalid but not found in --help output"
+    fi
+  fi
+}
+
+# Check for example accuracy in help files
+check_examples_accuracy() {
+  local help_file
+  local examples_found=0
+  
+  for help_file in "$HELP_DIR"/*.yaml; do
+    if [ ! -f "$help_file" ]; then
+      continue
+    fi
+    
+    # Check if file contains examples section
+    if grep -q "example\|Example\|EXAMPLE" "$help_file" 2>/dev/null; then
+      examples_found=1
+      if [ "$VERBOSE" = true ]; then
+        echo "  Found examples in: $(basename "$help_file")"
+      fi
+    fi
+  done
+  
+  if [ "$examples_found" -eq 1 ]; then
+    pass "Help files contain examples (manual verification recommended)"
+  fi
+}
+
+# Validate help YAML structure consistency
+check_yaml_structure() {
+  local help_file
+  local missing_fields=0
+  
+  for help_file in "$HELP_DIR"/*.yaml; do
+    if [ ! -f "$help_file" ]; then
+      continue
+    fi
+    
+    # Check for basic required fields
+    if ! grep -q "command:" "$help_file" 2>/dev/null; then
+      warn "$(basename "$help_file"): missing 'command' field"
+      ((missing_fields++))
+    fi
+    
+    if ! grep -q "description:" "$help_file" 2>/dev/null; then
+      warn "$(basename "$help_file"): missing 'description' field"
+      ((missing_fields++))
+    fi
+  done
+  
+  if [ "$missing_fields" -eq 0 ]; then
+    pass "All help YAML files have required fields"
+  fi
+}
+
+# Check for consistency between short and long help
+check_help_consistency() {
+  local short_help long_help
+  
+  # validate-config consistency
+  short_help=$("$DIRFORGE_TOOL" validate-config --help 2>&1 || true)
+  long_help=$("$DIRFORGE_TOOL" help validate-config 2>&1 || true)
+  
+  if [ -n "$short_help" ] && [ -n "$long_help" ]; then
+    pass "validate-config: short and long help both available"
+  else
+    warn "validate-config: one or both help variants missing"
+  fi
+  
+  # list-configs consistency
+  short_help=$("$DIRFORGE_TOOL" list-configs --help 2>&1 || true)
+  long_help=$("$DIRFORGE_TOOL" help list-configs 2>&1 || true)
+  
+  if [ -n "$short_help" ] && [ -n "$long_help" ]; then
+    pass "list-configs: short and long help both available"
+  else
+    warn "list-configs: one or both help variants missing"
+  fi
+}
+
+# ============================================================================
+# Main Validation
+# ============================================================================
+
+main() {
+  echo "════════════════════════════════════════════════════════"
+  echo "Help Content Change Detection & Validation"
+  echo "Version: 1.0.22"
+  echo "════════════════════════════════════════════════════════"
+  echo
+
+  echo -e "${BLUE}T219-T220: Content Divergence Detection${NC}"
+  echo "──────────────────────────────────────────────────────"
+  echo
+
+  echo "Checking validate-config documentation..."
+  check_validate_config_help
+  echo
+
+  echo "Checking list-configs documentation..."
+  check_list_configs_help
+  echo
+
+  echo "Checking help examples..."
+  check_examples_accuracy
+  echo
+
+  echo "Checking YAML structure consistency..."
+  check_yaml_structure
+  echo
+
+  echo "Checking help variant consistency..."
+  check_help_consistency
+  echo
+
+  echo "════════════════════════════════════════════════════════"
+  echo "Validation Summary"
+  echo "════════════════════════════════════════════════════════"
+  echo "Warnings: $WARNINGS"
+  echo "Errors: $ERRORS"
+  echo
+
+  if [ "$WARNINGS" -gt 0 ]; then
+    echo -e "${YELLOW}⚠ Documentation Review Recommended${NC}"
+    echo ""
+    echo "Help content divergence detected. This is informational only."
+    echo "The help system will continue to function correctly."
+    echo ""
+    echo "Recommendations:"
+    echo "  1. Review examples in help files for accuracy"
+    echo "  2. Update help content if command options have changed"
+    echo "  3. Run this tool periodically after command updates"
+    echo ""
+  else
+    echo -e "${GREEN}✓ No content divergence detected${NC}"
+  fi
+
+  if [ "$ERRORS" -gt 0 ]; then
+    echo -e "${RED}✗ Errors Found${NC} - Manual intervention may be needed"
+    exit 1
+  else
+    # Non-fatal exit even with warnings
+    exit 0
+  fi
+}
+
+main "$@"

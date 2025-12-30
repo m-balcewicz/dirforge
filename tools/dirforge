@@ -917,6 +917,9 @@ fi
 if [ -f "$LIB_DIR/integrity.sh" ]; then
     source "$LIB_DIR/integrity.sh"
 fi
+if [ -f "$LIB_DIR/help_yaml_parser.sh" ]; then
+    source "$LIB_DIR/help_yaml_parser.sh"
+fi
 
 CONSTITUTION_VERSION="v1.0.21"
 
@@ -3178,6 +3181,84 @@ handle_help_request() {
         show_global_help
       fi
       ;;
+    "validate-config")
+      # Command help: dirforge validate-config --help (short variant) or dirforge help validate-config (long variant)
+      # Try YAML-based help first (Phase 8c integration)
+      if declare -F get_command_help >/dev/null 2>&1; then
+        get_command_help "validate-config" "short" 2>/dev/null || {
+          # Fallback if YAML help unavailable
+          if declare -F show_command_help >/dev/null 2>&1; then
+            show_command_help "validate-config"
+          else
+            echo "Usage: dirforge validate-config [options] <config_file>"
+            echo ""
+            echo "Validate a world configuration file against schema."
+            echo ""
+            echo "Options:"
+            echo "  --verbose, -v    Show detailed validation messages"
+            echo "  --help, -h       Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  dirforge validate-config templates/world-configs/coding.world.yaml"
+            echo "  dirforge validate-config --verbose templates/world-configs/research.world.yaml"
+          fi
+        }
+      elif declare -F show_command_help >/dev/null 2>&1; then
+        show_command_help "validate-config"
+      else
+        # Fallback help
+        echo "Usage: dirforge validate-config [options] <config_file>"
+        echo ""
+        echo "Validate a world configuration file against schema."
+        echo ""
+        echo "Options:"
+        echo "  --verbose, -v    Show detailed validation messages"
+        echo "  --help, -h       Show this help message"
+        echo ""
+        echo "Examples:"
+        echo "  dirforge validate-config templates/world-configs/coding.world.yaml"
+        echo "  dirforge validate-config --verbose templates/world-configs/research.world.yaml"
+      fi
+      ;;
+    "list-configs")
+      # Command help: dirforge list-configs --help (short variant) or dirforge help list-configs (long variant)
+      # Try YAML-based help first (Phase 8c integration)
+      if declare -F get_command_help >/dev/null 2>&1; then
+        get_command_help "list-configs" "short" 2>/dev/null || {
+          # Fallback if YAML help unavailable
+          if declare -F show_command_help >/dev/null 2>&1; then
+            show_command_help "list-configs"
+          else
+            echo "Usage: dirforge list-configs [options]"
+            echo ""
+            echo "List all available world configuration files."
+            echo ""
+            echo "Options:"
+            echo "  --show-invalid   Show detailed error messages for invalid configs"
+            echo "  --help, -h       Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  dirforge list-configs"
+            echo "  dirforge list-configs --show-invalid"
+          fi
+        }
+      elif declare -F show_command_help >/dev/null 2>&1; then
+        show_command_help "list-configs"
+      else
+        # Fallback help
+        echo "Usage: dirforge list-configs [options]"
+        echo ""
+        echo "List all available world configuration files."
+        echo ""
+        echo "Options:"
+        echo "  --show-invalid   Show detailed error messages for invalid configs"
+        echo "  --help, -h       Show this help message"
+        echo ""
+        echo "Examples:"
+        echo "  dirforge list-configs"
+        echo "  dirforge list-configs --show-invalid"
+      fi
+      ;;
     "--version"|"-v")
       echo "$PROG_NAME (DirForge Constitution $CONSTITUTION_VERSION)"
       echo "Enhanced Terminal Help System"
@@ -3440,6 +3521,206 @@ output_json_plan() {
   echo "}"
 }
 
+# ============================================================================
+# cmd_validate_config: Validate YAML config file against schema (T044-T047)
+# ============================================================================
+# Usage: cmd_validate_config [--verbose] [--help] <config_file>
+# Returns: 0 on success, 1+ on validation errors
+cmd_validate_config() {
+  local verbose=false
+  local config_file=""
+  
+  # Parse arguments
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --verbose|-v)
+        verbose=true
+        shift
+        ;;
+      --help|-h)
+        show_command_help "validate-config"
+        exit 0
+        ;;
+      -*)
+        echo "Error: Unknown option: $1" >&2
+        exit 1
+        ;;
+      *)
+        config_file="$1"
+        shift
+        ;;
+    esac
+  done
+  
+  # Check if config file was provided
+  if [ -z "$config_file" ]; then
+    echo "Error: No config file specified." >&2
+    echo "Usage: $PROG_NAME validate-config [options] <config_file>" >&2
+    exit 1
+  fi
+  
+  # Check if config file exists
+  if [ ! -f "$config_file" ]; then
+    echo "Error: Config file not found: $config_file" >&2
+    exit 1
+  fi
+  
+  # Source required libraries
+  if [ ! -f "$LIB_DIR/config_schema.sh" ]; then
+    echo "Error: Schema validation library not found at $LIB_DIR/config_schema.sh" >&2
+    exit 1
+  fi
+  
+  # Source dependencies
+  source "$LIB_DIR/colors.sh"
+  source "$LIB_DIR/yaml_utils.sh"
+  source "$LIB_DIR/config_schema.sh"
+  
+  # Initialize colors
+  if declare -f init_colors >/dev/null 2>&1; then
+    init_colors
+  fi
+  
+  # Run validation
+  if [ "$verbose" = true ]; then
+    validate_config_schema "$config_file" "--verbose"
+  else
+    validate_config_schema "$config_file" >/dev/null 2>&1
+  fi
+  
+  local validation_result=$?
+  
+  if [ $validation_result -eq 0 ]; then
+    if [ "$verbose" != true ]; then
+      echo "✓ Config validation passed: $(basename "$config_file")"
+    fi
+    exit 0
+  else
+    echo "✗ Config validation failed: $(basename "$config_file")" >&2
+    exit 1
+  fi
+}
+
+# ============================================================================
+# cmd_list_configs: List all available world config files (T048-T051)
+# ============================================================================
+# Usage: cmd_list_configs [--help] [--show-invalid]
+# Returns: 0 if all configs valid or listing completed with warnings, non-zero on error
+cmd_list_configs() {
+  local show_invalid=false
+  
+  # Parse arguments
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --show-invalid)
+        show_invalid=true
+        shift
+        ;;
+      --help|-h)
+        show_command_help "list-configs"
+        exit 0
+        ;;
+      -*)
+        echo "Error: Unknown option: $1" >&2
+        exit 1
+        ;;
+      *)
+        echo "Error: Unexpected argument: $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+  
+  # Find config directory
+  local config_dir="$TEMPLATES_DIR/world-configs"
+  
+  if [ ! -d "$config_dir" ]; then
+    echo "Error: Config directory not found: $config_dir" >&2
+    exit 1
+  fi
+  
+  # Source required libraries
+  if [ ! -f "$LIB_DIR/config_schema.sh" ]; then
+    echo "Error: Schema validation library not found at $LIB_DIR/config_schema.sh" >&2
+    exit 1
+  fi
+  
+  source "$LIB_DIR/colors.sh"
+  source "$LIB_DIR/yaml_utils.sh"
+  source "$LIB_DIR/config_schema.sh"
+  
+  # Initialize colors
+  if declare -f init_colors >/dev/null 2>&1; then
+    init_colors
+  fi
+  
+  # Collect configs sorted by world type
+  local -a configs=()
+  local found=false
+  
+  # Find all .world.yaml files
+  while IFS= read -r config_file; do
+    configs+=("$config_file")
+    found=true
+  done < <(find "$config_dir" -maxdepth 1 -name "*.world.yaml" | sort)
+  
+  if [ "$found" = false ]; then
+    echo "No world config files found in $config_dir" >&2
+    exit 1
+  fi
+  
+  # Display configs with validation status
+  local valid_count=0
+  local invalid_count=0
+  
+  echo "Available World Configurations:"
+  echo "================================"
+  echo
+  
+  for config_file in "${configs[@]}"; do
+    local config_name=$(basename "$config_file" .world.yaml)
+    
+    # Try to extract world type from config using yq
+    local world_type=""
+    if [ -f "$config_file" ]; then
+      world_type=$(yq -r '.world.type' "$config_file" 2>/dev/null || echo "UNKNOWN")
+    fi
+    
+    # Validate config
+    if validate_config_schema "$config_file" >/dev/null 2>&1; then
+      echo "  ✓ $config_name ($world_type)"
+      ((valid_count++))
+    else
+      echo "  ✗ $config_name ($world_type) - INVALID"
+      ((invalid_count++))
+      
+      if [ "$show_invalid" = true ]; then
+        # Show validation errors for invalid configs
+        if declare -f validate_config_schema >/dev/null 2>&1; then
+          validate_config_schema "$config_file" 2>&1 | sed 's/^/      /' || true
+        fi
+      fi
+    fi
+  done
+  
+  echo
+  echo "Summary:"
+  echo "  Valid: $valid_count"
+  echo "  Invalid: $invalid_count"
+  echo "  Total: $((valid_count + invalid_count))"
+  echo
+  
+  # Exit with appropriate code
+  if [ $invalid_count -gt 0 ]; then
+    if [ "$show_invalid" = false ]; then
+      echo "Note: Use --show-invalid to see detailed error messages for invalid configs."
+    fi
+    exit 0  # Still exit 0 because listing completed; warnings don't cause failure
+  else
+    exit 0
+  fi
+}
+
 main() {
   # Handle help and version flags first (before parsing other options)
   case "${1:-}" in
@@ -3585,6 +3866,268 @@ main() {
         output_json_plan
       fi
     ;;
+    validate-config)
+      # Check if first argument is a help flag
+      case "${1:-}" in
+        --help|-h)
+          handle_help_request "validate-config"
+          exit 0
+          ;;
+      esac
+      cmd_validate_config "$@"
+      exit $?
+      ;;
+    list-configs)
+      # Check if first argument is a help flag
+      case "${1:-}" in
+        --help|-h)
+          handle_help_request "list-configs"
+          exit 0
+          ;;
+      esac
+      cmd_list_configs "$@"
+      exit $?
+      ;;
+    help)
+      # Progressive disclosure: dirforge help <command> shows long-form help
+      # This implements T209-T213: progressive disclosure pattern
+      local help_cmd="${1:-}"
+      
+      if [ -z "$help_cmd" ]; then
+        # dirforge help (no args) - show global help
+        if declare -F get_global_help >/dev/null 2>&1; then
+          get_global_help 2>/dev/null || handle_help_request
+        else
+          handle_help_request
+        fi
+        exit 0
+      fi
+      
+      # dirforge help <command> - show long-form command help (T212-T213)
+      case "$help_cmd" in
+        validate-config)
+          # Show long-form help for validate-config (T212)
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "validate-config" "long" 2>/dev/null || {
+              echo "Usage: dirforge validate-config [options] <config_file>"
+              echo ""
+              echo "Validate a world configuration file against the YAML configuration schema."
+              echo ""
+              echo "DESCRIPTION"
+              echo "  Validates the structure and content of a world configuration file"
+              echo "  against the official schema. Checks for required fields, type"
+              echo "  validation, and nested structure integrity."
+              echo ""
+              echo "OPTIONS"
+              echo "  --verbose, -v    Show detailed validation messages including"
+              echo "                   line numbers and specific field errors"
+              echo "  --help, -h       Show this help message"
+              echo ""
+              echo "EXAMPLES"
+              echo "  Validate a specific config file:"
+              echo "    dirforge validate-config templates/world-configs/coding.world.yaml"
+              echo ""
+              echo "  Validate with detailed output:"
+              echo "    dirforge validate-config --verbose templates/world-configs/research.world.yaml"
+              echo ""
+              echo "RELATED COMMANDS"
+              echo "  dirforge list-configs      - List all available configurations"
+              echo "  dirforge help yaml-config-system - Learn about YAML config system"
+              echo ""
+              echo "SEE ALSO"
+              echo "  Schema specification: templates/world-configs/SCHEMA.md"
+            }
+          else
+            echo "Usage: dirforge validate-config [options] <config_file>"
+            echo ""
+            echo "Validate a world configuration file against schema."
+            echo ""
+            echo "Options:"
+            echo "  --verbose, -v    Show detailed validation messages"
+            echo "  --help, -h       Show this help message"
+          fi
+          exit 0
+          ;;
+        list-configs)
+          # Show long-form help for list-configs (T212)
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "list-configs" "long" 2>/dev/null || {
+              echo "Usage: dirforge list-configs [options]"
+              echo ""
+              echo "List all available world configuration files with validation status."
+              echo ""
+              echo "DESCRIPTION"
+              echo "  Scans the configuration directory and displays all available"
+              echo "  world type configurations. Validates each configuration and"
+              echo "  indicates which ones pass schema validation."
+              echo ""
+              echo "OPTIONS"
+              echo "  --show-invalid   Show detailed error messages for any invalid"
+              echo "                   configuration files instead of just status"
+              echo "  --help, -h       Show this help message"
+              echo ""
+              echo "OUTPUT FORMAT"
+              echo "  ✓ config_name (WORLD_TYPE)  - Valid configuration"
+              echo "  ✗ config_name              - Invalid configuration"
+              echo ""
+              echo "EXAMPLES"
+              echo "  List all configurations:"
+              echo "    dirforge list-configs"
+              echo ""
+              echo "  Show validation errors for invalid configs:"
+              echo "    dirforge list-configs --show-invalid"
+              echo ""
+              echo "RELATED COMMANDS"
+              echo "  dirforge validate-config    - Validate a specific config file"
+              echo "  dirforge help yaml-config-system - Learn about YAML config system"
+            }
+          else
+            echo "Usage: dirforge list-configs [options]"
+            echo ""
+            echo "List all available world configuration files."
+          fi
+          exit 0
+          ;;
+        yaml-config-system|init-config)
+          # Show system overview help for YAML config system (T213)
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "yaml-config-system" "long" 2>/dev/null || {
+              echo "YAML Configuration System Overview"
+              echo "===================================="
+              echo ""
+              echo "The YAML configuration system replaces hard-coded world structures"
+              echo "with centralized, version-controlled configuration files. Each world"
+              echo "type has a corresponding .world.yaml configuration file that defines"
+              echo "the complete directory structure and metadata."
+              echo ""
+              echo "ARCHITECTURE"
+              echo "  Configuration files:    templates/world-configs/*.world.yaml"
+              echo "  Schema specification:   templates/world-configs/SCHEMA.md"
+              echo "  Parser library:         lib/help_yaml_parser.sh"
+              echo "  Help files:             templates/help/*.yaml"
+              echo ""
+              echo "KEY FEATURES"
+              echo "  • Version-controlled structure definitions"
+              echo "  • Schema validation to ensure consistency"
+              echo "  • Dynamic scaffold generation"
+              echo "  • Atomic transactions with rollback"
+              echo "  • Inheritance of permissions from parents"
+              echo "  • Progressive disclosure of help information"
+              echo ""
+              echo "SUPPORTED WORLD TYPES"
+              echo "  CODING_WORLD     - Programming and development projects"
+              echo "  RESEARCH_WORLD   - Research projects with studies"
+              echo "  JOURNAL_WORLD    - Journal with role-based structure"
+              echo "  LECTURE_WORLD    - Course/lecture materials"
+              echo "  OFFICE_WORLD     - Business and office management"
+              echo "  PRIVATE_WORLD    - Personal and private documents"
+              echo "  LITERATURE_WORLD - Books, articles, and literature"
+              echo ""
+              echo "QUICK START"
+              echo "  1. Create a workspace:    dirforge init"
+              echo "  2. List configurations:   dirforge list-configs"
+              echo "  3. Validate a config:     dirforge validate-config <file>"
+              echo "  4. Create from config:    dirforge init <world-type>"
+              echo ""
+              echo "RELATED COMMANDS"
+              echo "  dirforge validate-config  - Validate a configuration file"
+              echo "  dirforge list-configs     - List available configurations"
+              echo "  dirforge init <world>     - Initialize world with config"
+            }
+          else
+            echo "YAML Configuration System Overview"
+            echo "===================================="
+            echo ""
+            echo "The YAML configuration system centralizes world structure definitions."
+          fi
+          exit 0
+          ;;
+        custom-world)
+          # Show custom world creation help (T213)
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "custom-world" "long" 2>/dev/null || {
+              echo "Creating Custom World Configurations"
+              echo "====================================="
+              echo ""
+              echo "You can create custom world configurations by copying and modifying"
+              echo "existing configuration files to match your specific needs."
+              echo ""
+              echo "STEP-BY-STEP GUIDE"
+              echo ""
+              echo "1. Choose a base configuration:"
+              echo "   Copy an existing config as a template"
+              echo "   cp templates/world-configs/research.world.yaml my-custom.world.yaml"
+              echo ""
+              echo "2. Edit the configuration:"
+              echo "   Update the world type and structure to match your needs"
+              echo ""
+              echo "3. Validate your configuration:"
+              echo "   dirforge validate-config my-custom.world.yaml"
+              echo ""
+              echo "4. Use it to initialize:"
+              echo "   dirforge init research --config my-custom.world.yaml"
+              echo ""
+              echo "YAML STRUCTURE"
+              echo "  world:"
+              echo "    type: CUSTOM_WORLD"
+              echo "    version: '1.0.22'"
+              echo "  parent_directories:"
+              echo "    - name: 01_projects"
+              echo "      subdirectories:"
+              echo "        - name: active"
+              echo "        - name: archive"
+              echo ""
+              echo "VALIDATION"
+              echo "  Required fields:"
+              echo "    • world.type"
+              echo "    • world.version"
+              echo "    • constitution_version"
+              echo "    • parent_directories (array)"
+              echo ""
+              echo "EXAMPLES"
+              echo "  See existing configs for reference:"
+              echo "    ls -la templates/world-configs/"
+              echo ""
+              echo "RELATED COMMANDS"
+              echo "  dirforge validate-config   - Validate your custom config"
+              echo "  dirforge list-configs      - See available configs"
+            }
+          else
+            echo "Creating Custom World Configurations"
+          fi
+          exit 0
+          ;;
+        init)
+          # Show init help via YAML if available, or fallback
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "init-config" "long" 2>/dev/null || {
+              handle_help_request "init"
+            }
+          else
+            handle_help_request "init"
+          fi
+          exit 0
+          ;;
+        *)
+          # Unknown help topic - try to show YAML help or fallback
+          if declare -F get_command_help >/dev/null 2>&1; then
+            get_command_help "$help_cmd" "long" 2>/dev/null && exit 0
+          fi
+          echo "Unknown topic: $help_cmd" >&2
+          echo ""
+          echo "Available help topics:"
+          echo "  dirforge help validate-config     - Validate configurations"
+          echo "  dirforge help list-configs        - List available configs"
+          echo "  dirforge help yaml-config-system  - System overview"
+          echo "  dirforge help custom-world        - Create custom configs"
+          echo "  dirforge help init                - Initialize worlds"
+          echo ""
+          echo "For quick help, use --help flag:"
+          echo "  dirforge <command> --help"
+          exit 1
+          ;;
+      esac
+      ;;
     *) 
       handle_help_request "$cmd"
       exit 1

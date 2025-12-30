@@ -1,0 +1,159 @@
+command: validate-config
+description: "Validate a YAML configuration file against the DirForge schema"
+type: command
+category: yaml
+
+syntax:
+  usage: "dirforge validate-config <config-file>"
+  arguments:
+    - name: config-file
+      description: "Path to .yaml configuration file to validate"
+      required: true
+      example: "templates/world-configs/coding.yaml"
+  options:
+    - flag: --quiet, -q
+      description: "Suppress output (exit code indicates result)"
+      required: false
+    - flag: --json
+      description: "Output validation errors as JSON for automation"
+      required: false
+    - flag: --verbose, -v
+      description: "Show detailed validation trace with all field checks"
+      required: false
+  variants:
+    - "dirforge validate-config --help"
+    - "dirforge validate-config templates/world-configs/research.yaml"
+    - "dirforge validate-config custom-world.yaml --json"
+
+usage:
+  patterns:
+    - name: validate-built-in-config
+      description: "Validate one of the provided world configurations"
+      command: "dirforge validate-config templates/world-configs/coding.yaml"
+    - name: validate-custom-config
+      description: "Validate a custom world configuration before using it"
+      command: "dirforge validate-config ~/my-world.yaml"
+    - name: batch-validation
+      description: "Check multiple configs for errors"
+      command: "for config in templates/world-configs/*.yaml; do dirforge validate-config \"$config\"; done"
+  common_workflows:
+    - name: create-and-validate-custom-world
+      description: "Create a custom world config and validate before using"
+      steps:
+        - "Edit custom-world.yaml with your world structure"
+        - "Run: dirforge validate-config custom-world.yaml"
+        - "Fix any validation errors"
+        - "Use config with: dirforge init --config custom-world.yaml"
+
+examples:
+  - title: "Validate a built-in configuration"
+    command: "dirforge validate-config templates/world-configs/coding.yaml"
+    description: "Check if the CODING_WORLD configuration is valid"
+    output: |
+      ✓ Config validation passed
+        - world_type: CODING_WORLD
+        - description: Programming world with 8 languages
+        - All required fields present
+        - Schema validation: SUCCESS
+
+  - title: "Validate custom world configuration"
+    command: "dirforge validate-config ~/my-research-world.yaml"
+    description: "Validate a custom world configuration file"
+    output: |
+      ✓ Config validation passed
+        - world_type: RESEARCH_WORLD
+        - All required fields present
+        - Nested structures: OK
+
+  - title: "Check validation errors with JSON output"
+    command: "dirforge validate-config invalid-config.yaml --json"
+    description: "View validation errors in JSON format for processing"
+    output: |
+      {
+        "status": "invalid",
+        "errors": [
+          {
+            "field": "world_type",
+            "error": "Missing required field"
+          },
+          {
+            "field": "constitution_version",
+            "error": "Expected string, got integer"
+          }
+        ]
+      }
+
+output:
+  format: text
+  description: "Validation result with summary of checks performed"
+  example: |
+    ✓ Config validation passed
+      - world_type: CODING_WORLD
+      - All required fields present
+      - All field types correct
+      - Nested structures valid
+
+related:
+  - command: list-configs
+    reason: "View all available world configurations before validating"
+  - command: init --config
+    reason: "Use a validated configuration to create a workspace"
+  - command: help yaml-config-system
+    reason: "Learn about the YAML configuration system"
+
+see_also:
+  - title: "YAML Configuration System"
+    link: "yaml-config-system"
+    type: "help-topic"
+  - title: "Configuration Schema"
+    link: "templates/world-configs/SCHEMA.md"
+    type: "documentation"
+  - title: "010: YAML Configuration System"
+    link: "docs/010-yaml-configuration-system.md"
+    type: "documentation"
+
+short_help:
+  summary: "Validate a YAML configuration file against the DirForge schema"
+  synopsis: "dirforge validate-config <config-file> [--quiet] [--json]"
+  quick_options:
+    - flag: --json
+      description: "Output validation errors as JSON"
+    - flag: --quiet
+      description: "Suppress output"
+  hint: "Always validate custom configurations before using them with 'dirforge init --config'"
+
+long_help:
+  summary: |
+    The validate-config command checks if a YAML configuration file is valid
+    according to the DirForge configuration schema. It verifies all required
+    fields are present, checks field types, validates nested structures, and
+    ensures configuration integrity. Use this command before deploying a custom
+    world configuration to catch errors early.
+    
+  details: |
+    Configuration files must follow the structure defined in the YAML configuration
+    system schema. This command performs comprehensive validation including:
+    - Required fields presence check
+    - Field type validation
+    - Nested structure validation
+    - Cross-field constraint checking
+    
+    Validation errors are reported with field names, expected types, and suggestions
+    for fixing the issues. Use --json flag for programmatic error handling.
+    
+  important_notes:
+    - "Configuration files must have .yaml extension"
+    - "All required fields must be present (world_type, description, version, constitution_version)"
+    - "Schema validation is strict (no extra fields allowed)"
+    - "Use --json for automation and CI/CD integration"
+    - "Exit code: 0 for valid config, 1+ for validation errors"
+    
+  all_options:
+    - flag: --quiet, -q
+      description: "Suppress validation output (exit code indicates result: 0=valid, 1+=invalid)"
+    - flag: --json
+      description: "Output validation errors as JSON object for automation"
+    - flag: --verbose, -v
+      description: "Show detailed validation trace with all field checks and sub-validations"
+    - flag: --help
+      description: "Show this help message"

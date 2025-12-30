@@ -1,0 +1,102 @@
+################################################################################
+# RESEARCH_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: RESEARCH_WORLD
+# @last-updated: 2025-12-23
+#
+# Defines the complete research project structure with hierarchical organization.
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: RESEARCH_WORLD
+  description: "Research and experimental work workspace with project and study hierarchies"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+  hierarchical_structure: true
+
+# Project-level structure (top-level folders within RESEARCH_WORLD/<PROJECT_ID>/)
+parent_directories:
+  - name: "00_admin"
+    description: "Project administrative artifacts, contracts, ethics approvals, IRB/ethics approvals, data-sharing agreements, and access contacts"
+    integrity: true
+    project_scope: "project"
+  - name: "01_project_management"
+    description: "Project proposals, reports, budgets, finance, deliverables, milestones, funding documents, and project-wide management artifacts"
+    integrity: true
+    project_scope: "project"
+  - name: "02_studies"
+    description: "Container directory for all individual research studies within this project. Each study is self-contained with its own protocols, code, data, outputs, and publications"
+    integrity: false
+    project_scope: "project"
+
+# Project-level 01_project_management subdirectories (detailed structure)
+subdirectories:
+  - parent: "01_project_management"
+    description: "Project management folder structure for proposals, finance, reports, and presentations"
+    structure:
+      - name: "01_proposal"
+        type: "folder"
+        description: "Proposal lifecycle and submission materials"
+        children:
+          - name: "01_draft"
+            description: "Working drafts and internal notes"
+          - name: "02_submission"
+            description: "Final submission files and receipts"
+          - name: "03_review"
+            description: "Reviewer responses and correspondence"
+          - name: "04_final"
+            description: "Final accepted proposal documents"
+      - name: "02_finance"
+        type: "folder"
+        description: "Budgets, invoices, funding agreements, and financial tracking"
+      - name: "03_reports"
+        type: "folder"
+        description: "Periodic reports, deliverables, technical reports, and milestones"
+      - name: "04_presentations"
+        type: "folder"
+        description: "Project-wide slides and presentation materials"
+
+# Study-level structure (within RESEARCH_WORLD/<PROJECT_ID>/02_studies/<study_name>/)
+# Each study directory MUST follow this standard structure
+study_subdirectories:
+  - name: "00_protocols"
+    description: "Experimental protocols, calibration notes, instrument configurations, acquisition checklists, and methodological documentation specific to this study"
+    integrity: false
+  - name: "01_code"
+    description: "Analysis code, scripts, notebooks, and small derived data specific to this study. This folder SHOULD be version-controlled with Git. Include .gitignore and environment.yml"
+    integrity: false
+  - name: "02_data"
+    description: "Raw and processed datasets for this study, manifest files, and acquisition metadata. For large external datasets include a YAML manifest"
+    integrity: false
+  - name: "03_outputs"
+    description: "Processed results, figures, tables, and derived data outputs from analysis"
+    integrity: false
+  - name: "04_publication"
+    description: "Manuscript drafts, supplementary materials, and publication-related documents"
+    integrity: false
+  - name: "05_presentations"
+    description: "Conference slides, talk materials, and presentation-related documents"
+    integrity: false
+
+permissions:
+  default_directory: 755
+  default_file: 644
+  integrity_directory: 700
+  integrity_file: 600

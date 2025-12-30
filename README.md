@@ -12,6 +12,8 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags; safe handling of unknown versions
 - **Dry-run preview**: See what will be created or updated before making changes
 - **JSON output**: Machine-readable plans for automation
+- **YAML-based configuration system** (v1.0.22+): Define custom world structures using declarative YAML configs
+- **Atomic operations**: All-or-nothing scaffold generation with automatic rollback on error
 - **Constitution compliance**: All structures follow DirForge Constitution v1.0.22
 
 ## Installation
@@ -117,7 +119,114 @@ dirforge init private --help
 dirforge --version
 ```
 
-**Help System Features:**
+## YAML Configuration System
+
+DirForge v1.0.22 introduces a declarative YAML-based configuration system for defining custom workspace structures. Instead of hard-coded directory layouts, you can now create reusable configuration files that define your workspace organization.
+
+### Quick Start
+
+**1. Initialize with built-in world type:**
+```bash
+# Initialize CODING_WORLD
+dirforge init CODING_WORLD
+
+# Initialize RESEARCH_WORLD with project and study
+dirforge init RESEARCH_WORLD --project myproject --study mystudy
+```
+
+**2. List available configurations:**
+```bash
+dirforge list-configs
+```
+
+**3. Validate a configuration:**
+```bash
+dirforge validate-config templates/world-configs/coding.world.yaml
+```
+
+### Built-in World Types
+
+DirForge provides 7 pre-configured world types:
+
+| World Type | Purpose | Metadata Levels |
+|-----------|---------|-----------------|
+| **CODING_WORLD** | Programming language projects | Workspace, World, Project |
+| **RESEARCH_WORLD** | Academic research with studies | Workspace, World, Project, Study |
+| **JOURNAL_WORLD** | Paper authorship and reviews | Workspace, World, Project |
+| **LECTURE_WORLD** | Course materials and grading | Workspace, World, Project |
+| **OFFICE_WORLD** | Administrative and business docs | Workspace, World, Project |
+| **PRIVATE_WORLD** | Personal projects and archives | Workspace, World, Project |
+| **LITERATURE_WORLD** | Extensible template | Workspace, World, Project |
+
+### Creating Custom Configurations
+
+Create your own world configuration as a YAML file:
+
+```yaml
+world:
+  type: MYWORLD_TYPE
+  description: "My custom workspace structure"
+
+metadata:
+  version: "1.0.0"
+  constitution_version: "1.0.22"
+  created_by: "${USER}"
+  created_at: "${DATE}"
+
+parent_directories:
+  projects:
+    description: "My projects"
+  resources:
+    description: "Reference materials"
+  archive:
+    description: "Old projects"
+
+subdirectories:
+  projects:
+    - active
+    - completed
+    - archived
+  resources:
+    - documentation
+    - templates
+```
+
+Then use it:
+```bash
+# Validate custom config
+dirforge validate-config my-world.yaml
+
+# Initialize with custom config
+dirforge init --config my-world.yaml
+```
+
+### Features
+
+- **Variable Expansion**: Use `${USER}` and `${DATE}` in configs for dynamic values
+- **Schema Validation**: Automatic validation of config structure and types
+- **Metadata Tracking**: Creation info, user, timestamp stored in `.integrity/` directories
+- **Atomic Operations**: All-or-nothing scaffold generation with automatic rollback on error
+- **Permission Management**: Automatic handling of file permissions with sensible defaults
+- **Caching**: Configuration caching for improved performance (30-minute TTL)
+
+### Documentation
+
+For detailed information about the YAML configuration system:
+
+- **Getting Started**: [`docs/yaml-config-user-guide.md`](docs/yaml-config-user-guide.md)
+- **API Reference**: 
+  - [`docs/yaml-parsing-api.md`](docs/yaml-parsing-api.md) - Configuration loading and YAML parsing
+  - [`docs/scaffold-generation-api.md`](docs/scaffold-generation-api.md) - Scaffold generation and transactions
+- **System Design**: [`docs/010-yaml-configuration-system.md`](docs/010-yaml-configuration-system.md)
+- **Schema Details**: [`templates/world-configs/SCHEMA.md`](templates/world-configs/SCHEMA.md)
+- **Troubleshooting**: [`docs/yaml-config-troubleshooting.md`](docs/yaml-config-troubleshooting.md)
+- **Migration Guide**: [`docs/migration-to-yaml-configs.md`](docs/migration-to-yaml-configs.md)
+
+---
+
+Help System
+
+The `dirforge` tool includes a comprehensive help system with progressive disclosure:
 - **Progressive disclosure**: More detailed help as you specify context
 - **ANSI color formatting**: Enhanced readability with terminal color support
 - **Constitution compliance**: Direct references to DirForge Constitution v1.0.19
