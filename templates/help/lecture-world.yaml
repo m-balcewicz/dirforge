@@ -1,0 +1,116 @@
+---
+# Lecture World Help
+# Version: 1.0.22
+# Constitution: §III.IV Educational Content
+
+command: "dirforge init lecture"
+syntax: |
+  dirforge init lecture --name "Course Name" [options]
+  dirforge init lecture --help
+
+short_help:
+  summary: "Create lecture project with grading workflows and academic integrity"
+  usage: 'dirforge init lecture --name "Course Name"'
+
+description: |
+  Creates standardized lecture project for course materials, assignments, and 
+  student grading workflows with academic integrity tracking. Organizes syllabi, 
+  code, lectures, exercises, exams, and grades in dedicated folders.
+
+sections:
+  required_options:
+    title: "Required Options"
+    content: |
+      --name "Course Name"             Course or lecture series name
+  
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --term "2025-spring"             Academic term (default: current year-semester)
+      --code "PHYS101"                 Course code for institutional tracking
+      --no-gradebook                   Skip gradebook template creation
+  
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Project ID Format:               YYYY-TERM_<snake_case_name>
+      Example Input:                   Digital Rock Physics
+      Generated ID:                    2025-spring_digital_rock_physics
+      Course Code:                     Optional institutional identifier
+      Rules:                           ASCII lowercase [a-z0-9_-] with term prefix
+  
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      LECTURE_WORLD/2025-spring_course_name/
+      ├── 00_admin/                    Syllabus and policies
+      │   ├── syllabus/
+      │   └── policies/
+      ├── 01_code/                     Code and notebooks
+      │   ├── notebooks/
+      │   ├── scripts/
+      │   └── environment.yml
+      ├── 02_data/                     Datasets and references
+      │   ├── experimental_recordings/
+      │   └── reference/
+      ├── 03_slides/                   Lecture slides
+      │   ├── sources/
+      │   └── exported/
+      ├── 04_manuscript/               Lecture notes
+      │   └── lecture_notes/
+      ├── 05_exercises/                Student exercises
+      │   ├── problems/
+      │   ├── solutions/
+      │   ├── submissions/
+      │   └── graded/
+      ├── 06_exams/                    Exams
+      │   ├── problems/
+      │   ├── solutions/
+      │   ├── submissions/
+      │   └── graded/
+      ├── 07_grades/                   Gradebook
+      │   └── gradebook/
+      ├── .integrity/                  Checksums and manifests
+      ├── README.md
+      └── project.yaml
+
+examples:
+  - title: "Create lecture with interactive prompts"
+    command: "dirforge init lecture"
+    description: "Prompts for course name, term, and code"
+  
+  - title: "Create specific course"
+    command: 'dirforge init lecture --name "Digital Rock Physics"'
+    description: "Creates 2025-spring_digital_rock_physics"
+  
+  - title: "Lecture with course code and term"
+    command: 'dirforge init lecture --name "Intro Physics" --code "PHYS101" --term "2025-fall"'
+    description: "Specifies term and institutional code"
+  
+  - title: "Skip gradebook"
+    command: 'dirforge init lecture --name "Workshop" --no-gradebook'
+    description: "Creates structure without gradebook template"
+  
+  - title: "Preview structure"
+    command: 'dirforge init lecture --name "Test Course" --dry-run'
+    description: "Shows what would be created"
+
+best_practices:
+  - "Use consistent naming across terms for multi-semester courses"
+  - "Store sensitive student data with appropriate permissions"
+  - "Version control course materials in 01_code/ and 03_slides/"
+  - "Use standardized rubrics and grading workflows"
+  - "Store large recordings externally with manifests in 02_data/"
+  - "Keep instructor solutions separate with access controls"
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init research"
+  - "dirforge init coding"
+
+see_also:
+  - "Constitution §III.IV - Educational Content"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.IV"
+updated: "2025-12-30"

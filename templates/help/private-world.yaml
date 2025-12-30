@@ -1,0 +1,55 @@
+---
+# Private World Help
+# Version: 1.0.22
+# Constitution: §III.IV Personal Projects
+
+command: "dirforge init private"
+syntax: |
+  dirforge init private [options]
+  dirforge init private --help
+
+short_help:
+  summary: "Create private project for personal documents and projects with privacy controls"
+  usage: "dirforge init private"
+
+description: |
+  Creates private project for personal documents, financial records, photo 
+  archives, and personal projects with privacy controls and local storage.
+
+sections:
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      PRIVATE_WORLD/
+      ├── 00_personal_finance/        Financial records and budgets
+      ├── 01_health_records/          Medical and health documentation
+      ├── 02_legal_documents/         Legal and official paperwork
+      ├── 03_photo_archive/           Photo collections and media
+      ├── 04_personal_projects/       Personal hobby and learning projects
+      ├── 05_family_records/          Family history and documents
+      ├── 06_notes_ideas/             Personal notes and ideas
+      └── 90_archive/                 Archived personal documents
+
+examples:
+  - title: "Personal finance"
+    command: "dirforge init private"
+    description: "Use 00_personal_finance/ for budget tracking and financial records"
+  
+  - title: "Photo archive"
+    command: "dirforge init private"
+    description: "Organize photo collections in 03_photo_archive/"
+  
+  - title: "Personal learning"
+    command: "dirforge init private"
+    description: "Use 04_personal_projects/ for personal learning projects"
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init office"
+
+see_also:
+  - "Constitution §III.IV - Personal Projects"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.IV"
+updated: "2025-12-30"

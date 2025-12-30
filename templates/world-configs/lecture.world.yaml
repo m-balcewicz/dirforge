@@ -1,0 +1,121 @@
+################################################################################
+# LECTURE_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: LECTURE_WORLD
+# @last-updated: 2025-12-23
+#
+# Defines lecture/course workspace with mandatory folders and admin structure.
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: LECTURE_WORLD
+  description: "Lecture and teaching workspace with structured course management folders"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+
+# Mandatory folder layout for lecture courses (create all even if empty)
+parent_directories:
+  - name: "00_admin"
+    description: "Schedule, contact info, syllabus, quick links, README"
+    integrity: true
+    project_scope: "project"
+  - name: "01_code"
+    description: "Notebooks, scripts, environments/requirements, autograder hooks"
+    integrity: true
+    project_scope: "project"
+  - name: "02_data"
+    description: "Canonical small data and pointers to large archives (experimental_recordings, recordings.manifest.yaml, reference)"
+    integrity: true
+    project_scope: "project"
+  - name: "03_slides"
+    description: "Slide sources (Beamer/.pptx) and exported PDFs in public/"
+    integrity: true
+    project_scope: "project"
+  - name: "04_manuscript"
+    description: "Authoritative written lecture notes in LaTeX and expanded narrative"
+    integrity: true
+    project_scope: "project"
+  - name: "05_exercises"
+    description: "Exercise packages with grading workflow (problems, solutions, submissions, graded)"
+    integrity: true
+    project_scope: "project"
+  - name: "06_exams"
+    description: "Exam materials with grading workflow (problems, solutions, submissions, graded)"
+    integrity: true
+    project_scope: "project"
+  - name: "07_grades"
+    description: "Gradebook and rubrics"
+    integrity: true
+    project_scope: "project"
+
+# Detailed subdirectory structures for exercise and exam organization
+subdirectories:
+  - parent: "02_data"
+    description: "Data and resource organization structure"
+    structure:
+      - name: "experimental_recordings"
+        type: "folder"
+        description: "Processed, small copies of recordings for quick access"
+      - name: "reference"
+        type: "folder"
+        description: "Figures and reference assets from other sources"
+  - parent: "03_slides"
+    description: "Slide organization structure"
+    structure:
+      - name: "public"
+        type: "folder"
+        description: "Exported PDFs and public slide versions"
+  - parent: "05_exercises"
+    description: "Exercise management structure"
+    structure:
+      - name: "problems"
+        type: "folder"
+        description: "Problem statements and dataset fixtures"
+      - name: "solutions"
+        type: "folder"
+        description: "Solutions (instructor access only)"
+      - name: "submissions"
+        type: "folder"
+        description: "Student submissions"
+      - name: "graded"
+        type: "folder"
+        description: "Graded submissions with feedback"
+  - parent: "06_exams"
+    description: "Exam management structure"
+    structure:
+      - name: "problems"
+        type: "folder"
+        description: "Exam problem statements and blank versions"
+      - name: "solutions"
+        type: "folder"
+        description: "Exam solutions (instructor access only)"
+      - name: "submissions"
+        type: "folder"
+        description: "Student exam submissions"
+      - name: "graded"
+        type: "folder"
+        description: "Graded exams with feedback"
+
+permissions:
+  default_directory: 755
+  default_file: 644
+  integrity_directory: 700
+  integrity_file: 600
+  admin_directory: 700

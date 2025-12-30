@@ -1,0 +1,351 @@
+command: custom-world
+description: "Guide to creating custom world configurations"
+type: topic
+category: yaml
+
+syntax:
+  usage: "dirforge help custom-world"
+  arguments: []
+  options: []
+  variants:
+    - "dirforge help custom-world"
+
+usage:
+  patterns:
+    - name: learn-custom-world-creation
+      description: "Understand how to create custom world configurations"
+      command: "dirforge help custom-world"
+    - name: validate-custom-world
+      description: "Validate a custom world configuration before using it"
+      command: "dirforge validate-config my-world.yaml"
+  common_workflows:
+    - name: create-custom-world-from-scratch
+      description: "Step-by-step guide to creating a custom world"
+      steps:
+        - "Copy a built-in config: cp templates/world-configs/coding.yaml my-world.yaml"
+        - "Edit my-world.yaml to customize structure"
+        - "Validate: dirforge validate-config my-world.yaml"
+        - "Initialize: dirforge init world --config my-world.yaml"
+        - "Test and iterate as needed"
+    - name: create-specialized-world
+      description: "Create a world for a specific project type"
+      steps:
+        - "Analyze project needs and folder structure"
+        - "Select base world type (CODING, RESEARCH, etc.)"
+        - "Copy base config: cp templates/world-configs/base.yaml my-specialized.yaml"
+        - "Customize for your needs"
+        - "Validate and test"
+        - "Share with team (commit to git)"
+
+examples:
+  - title: "Copy and customize a built-in configuration"
+    command: "cp templates/world-configs/coding.yaml my-coding-world.yaml"
+    description: "Start with a built-in configuration and customize it"
+    output: |
+      # File created: my-coding-world.yaml
+
+  - title: "Edit custom world configuration"
+    command: "cat my-coding-world.yaml"
+    description: "View the structure of a custom world configuration"
+    output: |
+      world_type: CODING_WORLD_CUSTOM
+      description: "My specialized coding world"
+      version: "1.0.22"
+      constitution_version: "1.0.22"
+      
+      parent_directories:
+        - name: python
+          description: "Python projects"
+          subdirectories:
+            - name: ml-models
+            - name: data-analysis
+            - name: automation
+        - name: javascript
+          description: "JavaScript/Node.js projects"
+          subdirectories:
+            - name: frontend
+            - name: backend
+            - name: fullstack
+        - name: documentation
+          description: "Project documentation"
+          subdirectories:
+            - name: api-docs
+            - name: guides
+            - name: tutorials
+
+  - title: "Validate custom world configuration"
+    command: "dirforge validate-config my-coding-world.yaml"
+    description: "Check custom configuration for errors before using"
+    output: |
+      ✓ Config validation passed
+        - world_type: CODING_WORLD_CUSTOM
+        - description: My specialized coding world
+        - All required fields present
+        - All field types correct
+        - Nested structures valid
+
+  - title: "Initialize workspace with custom configuration"
+    command: "dirforge init world --config my-coding-world.yaml"
+    description: "Create a workspace using the custom configuration"
+    output: |
+      ✓ Initializing world from custom config
+        Using config: my-coding-world.yaml
+        Creating directories:
+          - python/
+            - ml-models/
+            - data-analysis/
+            - automation/
+          - javascript/
+            - frontend/
+            - backend/
+            - fullstack/
+          - documentation/
+            - api-docs/
+            - guides/
+            - tutorials/
+        Creating metadata: .integrity/world.yaml
+      ✓ World initialized successfully
+
+  - title: "Example: Custom research world with teams"
+    command: "cat teams-research-world.yaml"
+    description: "Custom research world organized by team"
+    output: |
+      world_type: RESEARCH_WORLD_TEAMS
+      description: "Research world organized by teams"
+      version: "1.0.22"
+      constitution_version: "1.0.22"
+      
+      parent_directories:
+        - name: team-ai
+          description: "Artificial Intelligence team"
+          subdirectories:
+            - name: papers
+            - name: experiments
+            - name: datasets
+        - name: team-bio
+          description: "Biology team"
+          subdirectories:
+            - name: papers
+            - name: lab-notes
+            - name: datasets
+        - name: team-physics
+          description: "Physics team"
+          subdirectories:
+            - name: papers
+            - name: simulations
+            - name: data
+
+related:
+  - command: list-configs
+    reason: "See available built-in configurations to use as templates"
+  - command: validate-config
+    reason: "Validate custom configuration before using it"
+  - command: init-config
+    reason: "Initialize workspace with custom configuration"
+  - command: help yaml-config-system
+    reason: "Understand the YAML configuration system architecture"
+
+see_also:
+  - title: "YAML Configuration System"
+    link: "yaml-config-system"
+    type: "help-topic"
+  - title: "Configuration Schema"
+    link: "templates/world-configs/SCHEMA.md"
+    type: "documentation"
+  - title: "Example Configurations"
+    link: "templates/world-configs/"
+    type: "file-directory"
+  - title: "010: YAML Configuration System"
+    link: "docs/010-yaml-configuration-system.md"
+    type: "documentation"
+
+short_help:
+  summary: "Guide to creating custom world configurations"
+  synopsis: "dirforge help custom-world"
+  quick_options: []
+  hint: "Start with an existing config: cp templates/world-configs/coding.yaml my-world.yaml"
+
+long_help:
+  summary: |
+    Custom world configurations allow you to create specialized directory structures
+    without modifying DirForge code. This guide walks through creating, validating,
+    and deploying custom world configurations. You can create configurations for
+    specific project types, team structures, or organizational needs. All custom
+    configurations use the same YAML schema as built-in world types, ensuring
+    consistency and validation across all configurations.
+    
+  details: |
+    Step-by-Step Custom World Creation:
+    
+    STEP 1: Choose a Base Configuration
+    
+    Start with a built-in configuration that's closest to your needs:
+    
+    - CODING_WORLD: for programming projects
+    - RESEARCH_WORLD: for research projects with multiple studies
+    - JOURNAL_WORLD: for role-based organization
+    - OFFICE_WORLD: for administrative structures
+    - PRIVATE_WORLD: for personal organization
+    
+    STEP 2: Copy the Configuration
+    
+    Copy the base configuration to your custom file:
+    $ cp templates/world-configs/coding.yaml my-world.yaml
+    
+    STEP 3: Edit the Configuration
+    
+    Edit my-world.yaml with your preferred text editor:
+    - Change world_type to a unique identifier
+    - Update description to reflect your purpose
+    - Modify parent_directories to match your structure
+    - Add/remove subdirectories as needed
+    - Keep constitution_version unchanged
+    
+    STEP 4: Validate the Configuration
+    
+    Validate your custom configuration for errors:
+    $ dirforge validate-config my-world.yaml
+    
+    Validation checks:
+    - All required fields present
+    - Field types correct
+    - Nested structures valid
+    - No syntax errors
+    
+    STEP 5: Test Initialization
+    
+    Create a test workspace to verify your configuration:
+    $ dirforge init world --config my-world.yaml
+    
+    Check the created structure:
+    $ tree .              # view directory structure
+    $ ls -la .integrity/ # verify metadata created
+    
+    STEP 6: Iterate and Refine
+    
+    If the structure isn't quite right:
+    - Modify my-world.yaml
+    - Re-validate: dirforge validate-config my-world.yaml
+    - Test again with init
+    - Repeat until satisfied
+    
+    STEP 7: Share and Version Control
+    
+    Once your configuration is finalized:
+    - Commit to git: git add my-world.yaml && git commit -m "Add custom world"
+    - Share with team members
+    - Document in README: describe your custom world type
+    - Update CI/CD if needed
+    
+    Configuration File Structure:
+    
+    Root section: Metadata about the world
+    $ world_type: CUSTOM_NAME            # unique identifier
+    $ description: "Description"         # purpose and use
+    $ version: "1.0.22"                  # config version
+    $ constitution_version: "1.0.22"     # DirForge version
+    
+    parent_directories: Main folder categories
+    $ - name: category1                  # folder name
+    $   description: "Purpose"           # what's in it
+    $   subdirectories:                  # nested folders
+    $     - name: subfolder1             # subfolder name
+    $     - name: subfolder2             # subfolder name
+    
+    Variable Expansion:
+    
+    Configurations support dynamic variable expansion:
+    
+    $ ${USER} → replaced with current username (e.g., alice)
+    $ ${DATE} → replaced with ISO 8601 UTC date (e.g., 2025-12-30T22:30:00Z)
+    $ ${HOME} → replaced with user home directory
+    
+    Example with variables:
+    $ world_type: PERSONAL_${USER}      # becomes PERSONAL_alice
+    $ description: "${USER}'s workspace initialized ${DATE}"
+    
+    Naming Conventions:
+    
+    For consistency with DirForge standards:
+    - Use UPPERCASE_WITH_UNDERSCORES for world_type
+    - Use lowercase-with-hyphens for directory names
+    - Use lowercase-with-underscores for internal identifiers
+    - Use CamelCase for descriptions when appropriate
+    
+    Common Customization Patterns:
+    
+    1. Language-Specific Coding World
+       Start from CODING_WORLD, add/remove language directories
+       Example: my-python-world.yaml with only python and ml directories
+    
+    2. Team-Based Organization
+       Start from OFFICE_WORLD or custom, organize by team
+       Example: teams-research-world.yaml with team-ai, team-bio, etc.
+    
+    3. Project-Type Specialized
+       Start from RESEARCH_WORLD, add project-specific folders
+       Example: ml-research-world.yaml with models, datasets, papers
+    
+    4. Hierarchical Organization
+       Use nested subdirectories for deep folder hierarchies
+       Example: organization-structure with departments and teams
+    
+  important_notes:
+    - "Always start by copying an existing configuration (don't create from scratch)"
+    - "Validate your configuration before using it: dirforge validate-config"
+    - "Test initialization in a temporary directory first"
+    - "Use meaningful names for world_type (e.g., RESEARCH_ML_LABS)"
+    - "Keep constitution_version unchanged (tracks DirForge version)"
+    - "Support variable expansion: ${USER}, ${DATE}, ${HOME}"
+    - "Custom world files should have .yaml extension"
+    - "Version control your configurations (commit to git)"
+    - "Document your custom world type in README or wiki"
+    - "Share successful configurations with your team"
+    
+  best_practices:
+    - "Use descriptive world_type names that indicate purpose"
+    - "Include clear descriptions for each parent directory"
+    - "Organize by functionality, not alphabetically"
+    - "Keep nesting depth reasonable (3-4 levels max)"
+    - "Test initialization before sharing with team"
+    - "Document any non-standard structures or choices"
+    - "Create separate configs for different use cases (don't over-generalize)"
+    - "Maintain consistency with organizational structure"
+    - "Version your custom configurations (update version field)"
+    - "Include examples in your world documentation"
+    
+  validation_errors:
+    missing_required_fields: |
+      Error: Missing required field 'world_type'
+      Solution: Add world_type at top level with unique identifier
+    
+    invalid_field_type: |
+      Error: Field 'version' expected string, got integer
+      Solution: Use quotes around version: version: "1.0.22"
+    
+    invalid_nested_structure: |
+      Error: 'subdirectories' must be array
+      Solution: Use array syntax: subdirectories: [{ name: folder1 }]
+    
+    yaml_syntax_error: |
+      Error: Invalid YAML syntax
+      Solution: Check indentation (use 2 spaces), quotes, colons, dashes
+    
+  troubleshooting:
+    config_not_validating: |
+      - Check for YAML syntax errors (use online YAML validator)
+      - Verify all required fields are present
+      - Check field types (strings in quotes, arrays with -, objects indented)
+      - Compare with a working built-in config
+    
+    initialization_fails: |
+      - Validate config first: dirforge validate-config my-world.yaml
+      - Check file permissions (config file must be readable)
+      - Ensure directory names don't conflict with reserved names
+      - Verify no special characters in directory names
+    
+    structure_not_created_correctly: |
+      - Review config file carefully for indentation/structure
+      - Check parent_directories and subdirectories nesting
+      - Test with simpler config first, then add complexity
+      - Compare output with expected structure from documentation

@@ -8,6 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/terminal.sh"
 source "$SCRIPT_DIR/colors.sh"
+source "$SCRIPT_DIR/help_yaml_parser.sh"
 
 # Initialize colors on library load
 init_colors
@@ -752,6 +753,10 @@ show_global_help_short() {
     help_content+="\n"
     help_content+="$(format_command "dirforge update [options]                 " "Update structure")"
     help_content+="\n"
+    help_content+="$(format_command "dirforge validate-config <file>          " "Validate config")"
+    help_content+="\n"
+    help_content+="$(format_command "dirforge list-configs                    " "List configs")"
+    help_content+="\n"
     help_content+="\n"
     
     # Essential commands
@@ -954,6 +959,12 @@ show_command_help() {
             ;;
         "update")
             show_update_command_help
+            ;;
+        "validate-config")
+            show_validate_config_help
+            ;;
+        "list-configs")
+            show_list_configs_help
             ;;
         *)
             echo "$(red "Error: Unknown command '$command'")"
@@ -1668,4 +1679,243 @@ show_private_help() {
     
     # Display with automatic pager integration
     display_with_pager "$help_content"
+}
+
+# Show detailed help for the validate-config command
+show_validate_config_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge validate-config" 1)\n"
+    help_content+="\n"
+    help_content+="Validate a world configuration file against the DirForge schema.\n"
+    help_content+="\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge validate-config [options] <config_file>")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Arguments" 2)\n"
+    help_content+="$(format_command "<config_file>" "Path to YAML configuration file to validate")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Options" 2)\n"
+    help_content+="$(format_command "--verbose, -v" "Show detailed validation messages")\n"
+    help_content+="$(format_command "--help, -h" "Show this help message")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Exit Codes" 2)\n"
+    help_content+="$(format_command "0" "Validation passed - config is valid")\n"
+    help_content+="$(format_command "1" "Validation failed - config has errors")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Validation Rules" 2)\n"
+    help_content+="- All required fields must be present (world.type, description, metadata fields)\n"
+    help_content+="- world.type must be one of: CODING_WORLD, RESEARCH_WORLD, JOURNAL_WORLD, LECTURE_WORLD, OFFICE_WORLD, PRIVATE_WORLD, LITERATURE_WORLD\n"
+    help_content+="- metadata.constitution_version should match current version (1.0.22)\n"
+    help_content+="- metadata.integrity_required must be a valid boolean (true/false/yes/no/on/off)\n"
+    help_content+="- parent_directories and subdirectories must be arrays\n"
+    help_content+="- permissions object must have valid directory and file permission specs\n"
+    help_content+="\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="$(format_command "dirforge validate-config templates/world-configs/coding.world.yaml" "Validate a built-in config")\n"
+    help_content+="$(format_command "dirforge validate-config --verbose my-config.yaml" "Validate with verbose output")\n"
+    help_content+="$(format_command "dirforge validate-config /path/to/world.yaml" "Validate a custom config file")\n"
+    help_content+="\n"
+    help_content+="$(format_header "See Also" 2)\n"
+    help_content+="$(format_command "dirforge list-configs" "List all available world configurations")\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Show detailed help for the list-configs command
+show_list_configs_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge list-configs" 1)\n"
+    help_content+="\n"
+    help_content+="List all available world configuration files and their validation status.\n"
+    help_content+="\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge list-configs [options]")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Options" 2)\n"
+    help_content+="$(format_command "--show-invalid" "Show detailed error messages for invalid configs")\n"
+    help_content+="$(format_command "--help, -h" "Show this help message")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Output" 2)\n"
+    help_content+="- Lists all *.world.yaml files found in templates/world-configs/\n"
+    help_content+="- Shows validation status (✓ valid or ✗ invalid) for each config\n"
+    help_content+="- Displays the world type (e.g., CODING_WORLD, RESEARCH_WORLD)\n"
+    help_content+="- Provides a summary count of valid and invalid configs\n"
+    help_content+="\n"
+    help_content+="$(format_header "Exit Codes" 2)\n"
+    help_content+="$(format_command "0" "Listing completed (even with invalid configs)")\n"
+    help_content+="$(format_command "1" "Error: Could not list configs (e.g., directory not found)")\n"
+    help_content+="\n"
+    help_content+="$(format_header "Built-in Configurations" 2)\n"
+    help_content+="DirForge provides 7 world type configurations:\n"
+    help_content+="- $(green "CODING_WORLD")      Software development projects\n"
+    help_content+="- $(green "RESEARCH_WORLD")    Academic research projects\n"
+    help_content+="- $(green "JOURNAL_WORLD")     Journal-related activities\n"
+    help_content+="- $(green "LECTURE_WORLD")     Educational materials\n"
+    help_content+="- $(green "OFFICE_WORLD")      Business and administration\n"
+    help_content+="- $(green "PRIVATE_WORLD")     Personal documents and files\n"
+    help_content+="- $(green "LITERATURE_WORLD")  Books and literature\n"
+    help_content+="\n"
+    help_content+="$(format_header "Examples" 2)\n"
+    help_content+="$(format_command "dirforge list-configs" "List all available configs")\n"
+    help_content+="$(format_command "dirforge list-configs --show-invalid" "Show details for any invalid configs")\n"
+    help_content+="\n"
+    help_content+="$(format_header "See Also" 2)\n"
+    help_content+="$(format_command "dirforge validate-config" "Validate a single configuration file")\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+################################################################################
+# World-Specific Help Functions (YAML-Integrated)
+################################################################################
+
+# Show help for a specific world type (using YAML parser)
+show_world_help() {
+    local world_type="$1"
+    local help_file=""
+    
+    # Map world type to YAML help file
+    case "$world_type" in
+        "research")
+            help_file="research-world.yaml"
+            ;;
+        "lecture")
+            help_file="lecture-world.yaml"
+            ;;
+        "coding")
+            help_file="coding-world.yaml"
+            ;;
+        "journal")
+            help_file="journal-world.yaml"
+            ;;
+        "office")
+            help_file="office-world.yaml"
+            ;;
+        "private")
+            help_file="private-world.yaml"
+            ;;
+        *)
+            echo "$(red "Error: Unknown world type '$world_type'")"
+            return 1
+            ;;
+    esac
+    
+    # Try to load from YAML parser first
+    if load_help_yaml "$world_type"; then
+        format_help_output "long"
+        return 0
+    fi
+    
+    # Fallback to hardcoded help if YAML not available
+    echo "$(yellow "Note: Using fallback help (YAML parser unavailable)")"
+    case "$world_type" in
+        "research")
+            show_research_world_help
+            ;;
+        "lecture")
+            show_lecture_world_help
+            ;;
+        "coding")
+            show_coding_world_help
+            ;;
+        "journal")
+            show_journal_world_help
+            ;;
+        "office")
+            show_office_world_help
+            ;;
+        "private")
+            show_private_world_help
+            ;;
+    esac
+}
+
+# Fallback: Show detailed help for research world
+show_research_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init research" 1)\n"
+    help_content+="\nCreate research project with study-based organization\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init research [options]")\n"
+    help_content+="\n$(format_header "Common Options" 2)\n"
+    help_content+="$(format_command "--title=TITLE" "Title of the research project")\n"
+    help_content+="$(format_command "--python" "Include Python environment")\n"
+    help_content+="$(format_command "--no-conda" "Skip Conda environment setup")\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Fallback: Show detailed help for lecture world
+show_lecture_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init lecture" 1)\n"
+    help_content+="\nCreate lecture/course project with grading workflows\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init lecture [options]")\n"
+    help_content+="\n$(format_header "Common Options" 2)\n"
+    help_content+="$(format_command "--name=NAME" "Name of the lecture/course")\n"
+    help_content+="$(format_command "--term=TERM" "Term or semester")\n"
+    help_content+="$(format_command "--code=CODE" "Course code")\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Fallback: Show detailed help for coding world
+show_coding_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init coding" 1)\n"
+    help_content+="\nCreate software development project (multi-language)\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init coding [options]")\n"
+    help_content+="\n$(format_header "Common Options" 2)\n"
+    help_content+="$(format_command "--language=LANG" "Language: python, matlab, fortran, bash")\n"
+    help_content+="$(format_command "--project=NAME" "Project name")\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Fallback: Show detailed help for journal world
+show_journal_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init journal" 1)\n"
+    help_content+="\nCreate journal-related activities structure\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init journal")\n"
+    help_content+="\n$(format_header "Use Cases" 2)\n"
+    help_content+="- Submissions and reviews\n"
+    help_content+="- Editorial workflows\n"
+    help_content+="- Meeting notes and records\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Fallback: Show detailed help for office world
+show_office_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init office" 1)\n"
+    help_content+="\nCreate administrative project for business documents\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init office")\n"
+    help_content+="\n$(format_header "Use Cases" 2)\n"
+    help_content+="- Budget tracking\n"
+    help_content+="- Equipment inventory\n"
+    help_content+="- Contract management\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+}
+
+# Fallback: Show detailed help for private world
+show_private_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init private" 1)\n"
+    help_content+="\nCreate private project for personal documents\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init private")\n"
+    help_content+="\n$(format_header "Use Cases" 2)\n"
+    help_content+="- Personal finance tracking\n"
+    help_content+="- Photo archive\n"
+    help_content+="- Personal learning projects\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
+
 }

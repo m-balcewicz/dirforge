@@ -1,0 +1,55 @@
+---
+# Office World Help
+# Version: 1.0.22
+# Constitution: §III.III Administrative Documents
+
+command: "dirforge init office"
+syntax: |
+  dirforge init office [options]
+  dirforge init office --help
+
+short_help:
+  summary: "Create administrative project for business documents and management"
+  usage: "dirforge init office"
+
+description: |
+  Creates administrative project for business documents, contracts, finance 
+  tracking, equipment management, and organizational workflows.
+
+sections:
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      OFFICE_WORLD/
+      ├── 00_admin/                   Administrative files
+      ├── 01_finance/                 Financial documents and tracking
+      ├── 02_hr_administration/       Human resources
+      ├── 03_faculty/                 Faculty-related documents
+      ├── 04_inventory_equipment/     Equipment and inventory
+      ├── 05_software_licenses/       Software licensing
+      ├── 06_public_relations/        PR and communications
+      └── 90_archive/                 Archived documents
+
+examples:
+  - title: "Budget tracking"
+    command: "dirforge init office"
+    description: "Creates office structure for financial management"
+  
+  - title: "Equipment inventory"
+    command: "dirforge init office"
+    description: "Use 04_inventory_equipment/ for equipment management"
+  
+  - title: "Contract management"
+    command: "dirforge init office"
+    description: "Use 00_admin/ or 01_finance/ for contracts"
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init private"
+
+see_also:
+  - "Constitution §III.III - Administrative Documents"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.III"
+updated: "2025-12-30"

@@ -863,6 +863,340 @@ All reusable templates, boilerplate content, and reference materials MUST be sto
 
 Rationale: Clear separation between reusable templates/reference materials (`templates/`) and actual project demonstrations (`examples/`) improves maintainability and user understanding.
 
+### IV.B World Configuration System (YAML-Driven Scaffolding)
+
+The DirForge scaffolding system MUST use YAML-based configuration files to define and generate world structures dynamically, replacing hard-coded folder definitions in the main `dirforge` script. This approach enables flexible, maintainable, and extensible project structure definitions.
+
+#### IV.B.I Configuration Architecture
+
+**Configuration Location:**
+- World configuration files MUST be stored in `templates/world-configs/` 
+- Each world type MUST have one configuration file: `<world-type>.world.yaml` (e.g., `coding.world.yaml`, `research.world.yaml`)
+- Configuration files MAY be supplemented with language-specific or context-specific variants (e.g., `coding.world.python.yaml` for Python-specific overrides)
+
+**Supported World Types and Configuration Files:**
+The following world configuration files MUST be maintained in `templates/world-configs/`:
+- `coding.world.yaml` — CODING_WORLD structure and language-specific subfolders
+- `research.world.yaml` — RESEARCH_WORLD project and study structures
+- `journal.world.yaml` — JOURNAL_WORLD role-based organization
+- `lecture.world.yaml` — LECTURE_WORLD course structure and educational materials
+- `office.world.yaml` — OFFICE_WORLD administrative and non-project folders
+- `private.world.yaml` — PRIVATE_WORLD personal and sensitive materials
+- `literature.world.yaml` — LITERATURE_WORLD for research literature and reference management (future expansion)
+
+#### IV.B.II World Configuration Schema
+
+Each `<world-type>.world.yaml` file MUST conform to the following schema:
+
+```yaml
+# World configuration file schema
+world_type: "<WORLD_TYPE>"                    # REQUIRED: e.g., CODING_WORLD, RESEARCH_WORLD
+description: "Description of world purpose"   # REQUIRED: human-readable description
+version: "1.0.22"                             # REQUIRED: configuration version
+constitution_version: "1.0.22"                # REQUIRED: constitution version this config supports
+
+# Global metadata
+metadata:
+  creation_template: "world.yaml.template"    # REQUIRED: template for world.yaml
+  integrity_required: true                    # REQUIRED: whether .integrity/ directory is mandatory
+  default_owner: "${USER}"                    # OPTIONAL: default owner (supports ${USER} expansion)
+
+# Parent-level directories (created directly under WORLD_TYPE root)
+parent_directories:
+  - name: "<dir_name>"                        # REQUIRED: directory name
+    description: "Purpose"                    # REQUIRED: description
+    integrity: true                           # OPTIONAL: whether to create .integrity/ (default: false)
+    project_scope: "world"                    # OPTIONAL: "world" or "project" level
+
+# Subdirectory structures (templates for projects within parent directories)
+subdirectories:
+  - parent: "<parent_dir_name>"               # REQUIRED: parent directory name
+    description: "Subdirectory template"      # REQUIRED: description
+    structure:
+      - name: "<subdir_name>"                 # REQUIRED: subdirectory name
+        type: "folder|file"                   # REQUIRED: "folder" or "file"
+        template: "<template_file>"           # CONDITIONAL: template file for files
+        description: "Purpose"                # REQUIRED: description
+        integrity: false                      # OPTIONAL: whether to create .integrity/ (default: false)
+        children:                             # OPTIONAL: nested subdirectories
+          - name: "<nested_dir>"
+            description: "Nested purpose"
+```
+
+#### IV.B.III Configuration File Examples
+
+**Example: `templates/world-configs/coding.world.yaml`**
+
+```yaml
+world_type: CODING_WORLD
+description: "Coding projects organized by programming language"
+version: "1.0.22"
+constitution_version: "1.0.22"
+
+metadata:
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+parent_directories:
+  - name: "python"
+    description: "Python projects"
+    integrity: true
+    project_scope: "world"
+  - name: "matlab"
+    description: "MATLAB projects"
+    integrity: true
+    project_scope: "world"
+  - name: "bash"
+    description: "Bash/Shell script projects"
+    integrity: true
+    project_scope: "world"
+  - name: "fortran"
+    description: "Fortran projects"
+    integrity: true
+    project_scope: "world"
+  - name: "c"
+    description: "C projects"
+    integrity: true
+    project_scope: "world"
+  - name: "latex"
+    description: "LaTeX documentation projects"
+    integrity: true
+    project_scope: "world"
+  - name: "clusters"
+    description: "Cluster configuration and management"
+    integrity: false
+    project_scope: "world"
+  - name: "github"
+    description: "Repository management and GitHub configuration"
+    integrity: false
+    project_scope: "world"
+
+subdirectories: []  # Language directories are not subdivided further by config; projects define their own structure
+```
+
+**Example: `templates/world-configs/research.world.yaml`**
+
+```yaml
+world_type: RESEARCH_WORLD
+description: "Research projects organized by research activity, with studies as primary units"
+version: "1.0.22"
+constitution_version: "1.0.22"
+
+metadata:
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+# Project-level structure (top-level folders within RESEARCH_WORLD)
+parent_directories:
+  - name: "00_admin"
+    description: "Project administrative artifacts, contracts, ethics approvals"
+    integrity: true
+    project_scope: "project"
+  - name: "01_project_management"
+    description: "Project proposals, reports, budgets, finance, presentations"
+    integrity: true
+    project_scope: "project"
+  - name: "02_studies"
+    description: "Container for all individual research studies"
+    integrity: false
+    project_scope: "project"
+
+# Project-level 01_project_management subdirectories
+subdirectories:
+  - parent: "01_project_management"
+    description: "Project management structure"
+    structure:
+      - name: "01_proposal"
+        type: "folder"
+        description: "Proposal lifecycle and submission materials"
+        children:
+          - name: "01_draft"
+            description: "Working drafts and internal notes"
+          - name: "02_submission"
+            description: "Final submission files and receipts"
+          - name: "03_review"
+            description: "Reviewer responses and correspondence"
+          - name: "04_final"
+            description: "Final accepted proposal documents"
+      - name: "02_finance"
+        type: "folder"
+        description: "Budgets, invoices, funding agreements"
+      - name: "03_reports"
+        type: "folder"
+        description: "Periodic reports, deliverables, technical reports"
+      - name: "04_presentations"
+        type: "folder"
+        description: "Project-wide slides and presentation materials"
+
+# Study-level structure (within 02_studies/<study_name>/)
+study_subdirectories:
+  - name: "00_protocols"
+    description: "Experimental protocols, instrument configurations"
+    integrity: false
+  - name: "01_code"
+    description: "Analysis code, scripts, notebooks, environment.yml"
+    integrity: false
+  - name: "02_data"
+    description: "Raw and processed datasets, metadata.yaml"
+    integrity: false
+  - name: "03_outputs"
+    description: "Processed results, figures, tables"
+    integrity: false
+  - name: "04_publication"
+    description: "Manuscript drafts, supplementary materials"
+    integrity: false
+    template: "research/04_publication"
+  - name: "05_presentations"
+    description: "Conference slides and presentation materials"
+    integrity: false
+    template: "research/05_presentations"
+```
+
+**Example: `templates/world-configs/journal.world.yaml`**
+
+```yaml
+world_type: JOURNAL_WORLD
+description: "Journal activities organized by role: primary authorship, co-author invites, and journal service"
+version: "1.0.22"
+constitution_version: "1.0.22"
+
+metadata:
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+parent_directories:
+  - name: "00_admin"
+    description: "Administrative materials, memberships, society correspondence"
+    integrity: true
+    project_scope: "project"
+  - name: "01_primary_authorship"
+    description: "Papers where you are lead or corresponding author"
+    integrity: false
+    project_scope: "project"
+  - name: "02_coauthor_invites"
+    description: "Collaborative authorship projects"
+    integrity: false
+    project_scope: "project"
+  - name: "03_journal_service"
+    description: "Peer review work and editorial duties"
+    integrity: false
+    project_scope: "project"
+
+subdirectories:
+  - parent: "01_primary_authorship"
+    description: "Primary authorship project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Manuscript drafts and revisions"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Peer review reports and responses"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Editorial communications"
+  - parent: "02_coauthor_invites"
+    description: "Co-author project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Manuscript drafts and contributions"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Review feedback"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Collaboration communications"
+  - parent: "03_journal_service"
+    description: "Journal service project structure"
+    structure:
+      - name: "01_manuscript"
+        type: "folder"
+        description: "Papers under review"
+      - name: "02_reviews"
+        type: "folder"
+        description: "Review reports and decisions"
+      - name: "03_correspondence"
+        type: "folder"
+        description: "Editorial communications"
+```
+
+#### IV.B.IV Configuration Processing and Execution
+
+**Loading and Parsing:**
+- `dirforge` MUST load the appropriate `<world-type>.world.yaml` file when executing world or project creation commands
+- YAML parsing MUST support variables and expansions (e.g., `${USER}` for current user, `${DATE}` for current date)
+- Configuration loading MUST validate schema compliance and report errors clearly before proceeding
+
+**Scaffold Generation:**
+- When creating a new world or project, `dirforge` MUST:
+  1. Load the corresponding `<world-type>.world.yaml` configuration
+  2. Parse parent directories and subdirectory templates
+  3. Create all specified directories in the correct hierarchy
+  4. Generate `.integrity/` directories as specified in configuration
+  5. Create metadata files (`.integrity/world.yaml`, `.integrity/project.yaml`, etc.) using templates
+  6. Apply any language-specific overrides or customizations
+
+**Extensibility and Customization:**
+- Users MAY create custom world configuration files (e.g., `custom_world.world.yaml`) to define new world types
+- `dirforge` MUST provide a command to validate custom configuration files: `dirforge validate-config <config_file>`
+- Configuration files MAY inherit or extend base world configurations using an `extends:` field (future enhancement)
+
+#### IV.B.V Integration with dirforge Command Structure
+
+**Updated Command Syntax:**
+The `dirforge` script execution flow MUST be updated to use world configurations:
+
+```bash
+# Create a new world with standard structure
+dirforge init coding --world-type CODING_WORLD
+
+# Create a new research project with study structure
+dirforge init research --project "my_project" --config templates/world-configs/research.world.yaml
+
+# Create a new study within a research project
+dirforge init research --project "my_project" --study "study_name" --config templates/world-configs/research.world.yaml
+
+# Validate a world configuration file
+dirforge validate-config templates/world-configs/custom_world.world.yaml
+
+# List available world configurations
+dirforge list-configs
+```
+
+**Configuration Discovery:**
+- `dirforge` MUST automatically discover all `<world-type>.world.yaml` files in `templates/world-configs/`
+- Invalid or unparseable configuration files MUST generate clear error messages without halting other discovery
+
+#### IV.B.VI Benefits and Rationale
+
+**Separation of Concerns:**
+- Folder structure definitions are now decoupled from implementation logic in the `dirforge` script
+- Structure changes can be made by editing configuration files without modifying the main script
+
+**Maintainability:**
+- All world structures are centralized and consistent across world types
+- Adding new world types requires only creating a new configuration file, not modifying `dirforge`
+- Configuration files serve as authoritative documentation of expected structures
+
+**User Customization:**
+- Power users can define custom world configurations for specialized workflows
+- Organizations can enforce standardized structures by providing pre-configured files
+
+**Reproducibility and Auditability:**
+- World structures are version-controlled alongside code
+- Configuration versions enable tracking of structure evolution
+- Easy to compare and validate structure consistency across projects
+
+**Scalability:**
+- Future extensions (e.g., template inheritance, conditional structures) can be added without breaking existing configurations
+- Configuration schema can evolve independently of core `dirforge` logic
+
+**Rationale**: YAML-driven configuration transforms DirForge from a hard-coded tool into a configurable scaffolding framework, enabling long-term maintainability, user customization, and organizational standardization while keeping the implementation clean and focused.
+
 ### Report Naming Convention
 Report files generated for project tracking and status documentation MUST follow the date-only naming pattern:
 - Format: `YYYYMMDD-<report-type>.md`

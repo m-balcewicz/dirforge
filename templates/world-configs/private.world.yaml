@@ -1,0 +1,126 @@
+################################################################################
+# PRIVATE_WORLD Configuration Template
+#
+# @schema-version: 1.0.22
+# @template-version: 1.0
+# @world-type: PRIVATE_WORLD
+# @last-updated: 2025-12-23
+#
+# Defines personal and private workspace with strict access controls.
+# For schema documentation, see: templates/world-configs/SCHEMA.md
+#
+################################################################################
+
+world:
+  type: PRIVATE_WORLD
+  description: "Personal and private workspace with numbered personal folders (00_admin through 90_archive)"
+
+metadata:
+  version: "1.0.22"
+  constitution_version: "1.0.22"
+  created: "${DATE}"
+  author: "${USER}"
+  creation_template: "world.yaml.template"
+  integrity_required: true
+  default_owner: "${USER}"
+
+config:
+  creation_method: "template"
+  scaffold_type: "world"
+  atomic_transactions: true
+  rollback_on_failure: true
+
+# Personal folder structure with numbered organization
+parent_directories:
+  - name: "00_admin"
+    description: "Quick inbox and transient admin notes (optional)"
+    integrity: true
+    project_scope: "project"
+  - name: "01_credentials"
+    description: "Pointers only (DO NOT store passwords; use 1Password app or encrypted store)"
+    integrity: true
+    project_scope: "project"
+  - name: "02_id_contracts"
+    description: "Personal contracts, IDs, signed forms (encrypt)"
+    integrity: true
+    project_scope: "project"
+  - name: "03_finance"
+    description: "Banks, budgets, records (sensitive - restrict access)"
+    integrity: true
+    project_scope: "project"
+  - name: "04_documents"
+    description: "Scans and personal document storage, templates, CVs"
+    integrity: true
+    project_scope: "project"
+  - name: "05_photos"
+    description: "Photo organization (01_raw, 02_lightroom_catalog, 03_exports, 04_projects)"
+    integrity: true
+    project_scope: "project"
+  - name: "06_movies"
+    description: "Video organization (handbrake, make_mkv, ready4plex, gopro)"
+    integrity: true
+    project_scope: "project"
+  - name: "07_hiking"
+    description: "Hiking and outdoor activities (trip plans, GPX tracks, maps, field notes)"
+    integrity: true
+    project_scope: "project"
+  - name: "09_installers"
+    description: "OS installers, offline application installers, driver packages (versioned)"
+    integrity: true
+    project_scope: "project"
+  - name: "90_archive"
+    description: "Archived personal files (long-term)"
+    integrity: true
+    project_scope: "project"
+
+# Detailed subdirectory structures for personal organization
+subdirectories:
+  - parent: "04_documents"
+    description: "Document organization structure"
+    structure:
+      - name: "scans"
+        type: "folder"
+        description: "Scanned personal documents"
+      - name: "templates"
+        type: "folder"
+        description: "Personal templates and boilerplate"
+      - name: "cv_versions"
+        type: "folder"
+        description: "CV and resume versions"
+  - parent: "05_photos"
+    description: "Photo organization structure"
+    structure:
+      - name: "01_raw"
+        type: "folder"
+        description: "Camera raw files (CR2/ARW/NEF)"
+      - name: "02_lightroom_catalog"
+        type: "folder"
+        description: "Lightroom Classic catalogs and settings"
+      - name: "03_exports"
+        type: "folder"
+        description: "Exported JPEGs/PNG for sharing"
+      - name: "04_projects"
+        type: "folder"
+        description: "Per-shoot project folders"
+  - parent: "06_movies"
+    description: "Video organization structure"
+    structure:
+      - name: "handbrake"
+        type: "folder"
+        description: "HandBrake encoded videos"
+      - name: "make_mkv"
+        type: "folder"
+        description: "MakeMKV created files"
+      - name: "ready4plex"
+        type: "folder"
+        description: "Ready4Plex transcoded files"
+      - name: "gopro"
+        type: "folder"
+        description: "GoPro footage"
+
+permissions:
+  default_directory: 700
+  default_file: 600
+  integrity_directory: 700
+  integrity_file: 600
+  parent_directory: 700

@@ -1,0 +1,115 @@
+---
+# Research World Help
+# Version: 1.0.22
+# Constitution: §III.V Research Projects
+
+command: "dirforge init research"
+syntax: |
+  dirforge init research --title "Project Name" [options]
+  dirforge init research --help
+
+short_help:
+  summary: "Create research project with data management and reproducible workflow"
+  usage: 'dirforge init research --title "Project Name"'
+
+description: |
+  Creates standardized research project with data analysis workflow. Follows 
+  project-by-activity principle with co-located provenance for reproducible research. 
+  Organizes management artifacts, studies, and data analysis in dedicated folders.
+
+sections:
+  required_options:
+    title: "Required Options"
+    content: |
+      --title "Project Title"         Human-readable project title (converted to PROJECT-ID)
+  
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --python 3.11                   Python version for conda (default: 3.11)
+      --no-conda                      Skip conda environment creation
+      --conda-packages "pkg1 pkg2"    Additional packages beyond base set
+  
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Project ID Format:              YYYY_<snake_case_title>
+      Example Input:                  Thermal Model Analysis
+      Generated ID:                   2025_thermal_model_analysis
+      Conda Environment:              research_thermal_model_analysis
+      Rules:                          ASCII lowercase [a-z0-9_-] with year prefix
+  
+  directory_structure:
+    title: "Directory Structure"
+    content: |
+      RESEARCH_WORLD/2025_project_name/
+      ├── 00_admin/                   Contracts, ethics agreements
+      ├── 01_project_management/      Proposals, budgets, reports, presentations
+      │   ├── 01_proposal/            Proposal lifecycle folders
+      │   ├── 02_finance/             Budgets and financial reports
+      │   ├── 03_reports/             Periodic and final reports
+      │   ├── 04_presentations/       Slides and presentation assets
+      │   └── 05_supervision/         Thesis supervision by degree level
+      ├── 02_studies/                 Per-study workspaces
+      ├── 03_data/                    Raw data and datasets
+      ├── 04_analysis/                Data processing and analysis scripts
+      ├── 05_results/                 Processed results and outputs
+      ├── .integrity/                 Checksums and manifests
+      ├── README.md
+      └── project.yaml
+
+  project_management:
+    title: "Project Management Folder (01_project_management)"
+    content: |
+      Centralizes project-level management artifacts:
+      
+      01_proposal/                    Proposal lifecycle split into draft, submission, 
+                                      review, and final folders
+      02_finance/                     Budgets, grant letters, invoices, reports
+      03_reports/                     Periodic and final deliverables
+      04_presentations/               Slides, posters, presentation assets (flat structure)
+      05_supervision/                 Organized by degree level:
+                                      - BSc_Thesis/
+                                      - MSc_Thesis/
+                                      - PhD_Supervision/
+
+examples:
+  - title: "Create research project with title"
+    command: 'dirforge init research --title "Thermal Analysis"'
+    description: "Creates 2025_thermal_analysis project"
+  
+  - title: "Research project with custom Python version"
+    command: 'dirforge init research --title "ML Study" --python 3.12'
+    description: "Uses Python 3.12 for conda environment"
+  
+  - title: "Theory-only project without conda"
+    command: 'dirforge init research --title "Theory Work" --no-conda'
+    description: "Skips environment creation for non-computational work"
+  
+  - title: "Preview structure"
+    command: 'dirforge init research --title "Test Project" --dry-run'
+    description: "Shows structure without creating files"
+  
+  - title: "Create with backup"
+    command: 'dirforge init research --title "Existing" --backup'
+    description: "Backs up existing project before overwriting"
+
+best_practices:
+  - "Use descriptive PROJECT-ID that will make sense in 5 years"
+  - "Include year prefix for chronological organization"
+  - "Place large datasets in external storage with manifests in 03_data/"
+  - "Use .integrity/checksums/ for data validation"
+  - "Version control 04_analysis/ with Git"
+  - "Document project structure in README.md"
+
+related_commands:
+  - "dirforge init"
+  - "dirforge init coding"
+  - "dirforge init lecture"
+
+see_also:
+  - "Constitution §III.V - Research Projects"
+  - "docs/yaml-config-user-guide.md - Configuration system"
+
+constitution_section: "§III.V"
+updated: "2025-12-30"
