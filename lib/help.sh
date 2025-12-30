@@ -724,7 +724,13 @@ format_box() {
 # Show global help - top-level help overview for dirforge
 # Show short/quick reference help (default for --help)
 show_global_help_short() {
-    local constitution_version="v1.0.20"
+    # Try to load from YAML first
+    if get_command_help "global-help" "short" 2>/dev/null; then
+        return 0
+    fi
+    
+    # Fallback to hard-coded help if YAML fails
+    local constitution_version="v1.0.23"
     
     # Check cache first
     local cache_key
@@ -819,135 +825,8 @@ show_global_help_short() {
 
 # Show comprehensive/long help (for --help-long)
 show_global_help() {
-    local constitution_version="v1.0.20"
-    
-    # Check cache first
-    local cache_key
-    cache_key=$(_cache_key "global_help" "$constitution_version")
-    local cached_content
-    if cached_content=$(_cache_get "$cache_key"); then
-        display_with_pager "$cached_content"
-        return
-    fi
-    
-    # Build help content first, then display with pager
-    local help_content=""
-    
-    # Main header
-    help_content+="$(format_header "dirforge — workspace scaffolder" 1)"
-    help_content+="\n"
-    
-    help_content+="Create standardized directory structures per DirForge Constitution\n"
-    help_content+="\n"
-    
-    # Constitution version reference
-    help_content+="$(printf "%s: %s\n" "$(bold "Constitution Version")" "$(cyan "$constitution_version")")\n"
-    help_content+="\n"
-    
-    # Key features overview
-    help_content+="$(format_header "Key Features" 2)"
-    help_content+="\n"
-    help_content+="  • Complete workspace initialization (all 6 world types at once)\n"
-    help_content+="  • Individual world creation (research, lecture, coding, journal, office, private)\n"
-    help_content+="  • Interactive and automated modes (prompts or flags)\n"
-    help_content+="  • Dry-run preview (see changes before creation)\n"
-    help_content+="  • JSON output (machine-readable plans for automation)\n"
-    help_content+="  • Multi-language coding support (Python, MATLAB, Bash, Fortran, etc.)\n"
-    help_content+="  • Constitution compliance (consistent structures across teams)\n"
-    help_content+="\n"
-    
-    # Usage pattern
-    help_content+="$(format_header "Usage" 2)"
-    help_content+="\n"
-    help_content+="  $(format_command "dirforge <command> [options]")\n"
-    help_content+="  $(format_command "dirforge init [path] [--auto|--yes]              " "Complete workspace")\n"
-    help_content+="  $(format_command "dirforge init <world-type> [world-options]      " "Individual world")\n"
-    help_content+="\n"
-    
-    # Available commands
-    help_content+="$(format_header "Commands" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "init [path]" "Initialize complete workspace with all world types")\n"
-    help_content+="$(format_command "init research" "Create research project with study-based organization")\n"
-    help_content+="$(format_command "init lecture" "Create lecture/course project with grading workflows")\n"
-    help_content+="$(format_command "init coding" "Create software development project (multi-language)")\n"
-    help_content+="$(format_command "init journal" "Create journal activity structure (submissions/reviews)")\n"
-    help_content+="$(format_command "init office" "Create administrative/business document structure")\n"
-    help_content+="$(format_command "init private" "Create personal project with privacy controls")\n"
-    help_content+="\n"
-    
-    # Global options
-    help_content+="$(format_header "Global Options" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--help, -h" "Show this help message")\n"
-    help_content+="$(format_command "--version" "Show version and constitution information")\n"
-    help_content+="$(format_command "--dry-run, --preview" "Preview changes without creating files")\n"
-    help_content+="$(format_command "--json" "Output machine-readable JSON plan (with --dry-run)")\n"
-    help_content+="$(format_command "--force" "Overwrite existing directories without prompting")\n"
-    help_content+="$(format_command "--backup" "Create timestamped backups before overwriting")\n"
-    help_content+="$(format_command "--yes, -y" "Skip interactive prompts and proceed")\n"
-    help_content+="$(format_command "--quiet, -q" "Suppress non-error output")\n"
-    help_content+="$(format_command "--verbose, -v" "Show detailed progress information")\n"
-    help_content+="\n"
-    
-    # Workspace initialization options
-    help_content+="$(format_header "Workspace Options" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--auto" "Create automatically without prompts (same as --yes)")\n"
-    help_content+="$(format_command "--here" "Explicitly use current directory")\n"
-    help_content+="$(format_command "--path=PATH" "Specify target directory with explicit flag")\n"
-    help_content+="\n"
-    
-    # World types detailed reference
-    help_content+="$(format_header "World Types" 2)"
-    help_content+="\n"
-    help_content+="  research: Academic research projects with data management\n"
-    help_content+="  Study-based organization, project management, data lifecycle,\n"
-    help_content+="  integrity validation, conda environments, reproducibility\n"
-    help_content+="\n"
-    help_content+="  lecture:  Educational content with grading workflows\n"
-    help_content+="  Slides, manuscripts, exercises, exams, grading, recordings,\n"
-    help_content+="  admin documents, code examples, student submissions\n"
-    help_content+="\n"
-    help_content+="  coding:   Software development projects\n"
-    help_content+="  Multi-language support (Python, JavaScript, MATLAB, Bash,\n"
-    help_content+="  Fortran, C, LaTeX), conda environments, Git integration\n"
-    help_content+="\n"
-    help_content+="  journal:  Journal-related activities\n"
-    help_content+="  Manuscript submissions, peer reviews, editorial work,\n"
-    help_content+="  correspondence, revision tracking\n"
-    help_content+="\n"
-    help_content+="  office:   Administrative and business documents\n"
-    help_content+="  Finance, HR, faculty forms, equipment inventory,\n"
-    help_content+="  software licenses, public relations, archives\n"
-    help_content+="\n"
-    help_content+="  private:  Personal projects with privacy controls\n"
-    help_content+="  Credentials pointers, contracts, finance, documents,\n"
-    help_content+="  photos, movies, hiking logs, installers, archives\n"
-    help_content+="\n"
-    
-    # Common usage examples
-    help_content+="$(format_header "Examples" 2)"
-    help_content+="\n"
-    
-    local examples="# Initialize complete workspace in current directory\ndirforge init --here --auto\n\n# Initialize workspace in specific directory\ndirforge init ~/my-workspace\ndirforge init --path=/opt/workspaces/team1\n\n# Create research project with short flags\ndirforge init research -n \"Thermal Analysis\"\ndirforge init research -n \"ML Study\" --python 3.12\n\n# Add study to existing research project\ndirforge init research -p 2025_thermal_analysis -s \"Heat Transfer\"\n\n# Create lecture project\ndirforge init lecture -n \"Digital Rock Physics\"\n\n# Create coding project with language\ndirforge init coding -l python -p ml_toolkit\ndirforge init coding -l matlab -p functions\n\n# Create journal activity\ndirforge init journal -n \"Geophysics\" -i \"GEO-2025-0451\" --service\n\n# Preview with JSON output for automation\ndirforge init ~/test --dry-run --json | jq .\ndirforge init research -n \"Test\" --dry-run --json"
-    
-    help_content+="$(format_example "$examples" "Common Usage")\n"
-    
-    # Footer with additional help info
-    help_content+="$(format_header "More Information" 3)"
-    help_content+="$(wrap_text "Use 'dirforge init --help' to see all world types and options." 0)\n"
-    help_content+="$(wrap_text "Use 'dirforge init <world-type> --help' for detailed world-specific help." 0)\n"
-    help_content+="$(wrap_text "See constitution.md for governance, naming rules, and structural principles." 0)\n"
-    help_content+="\n"
-    help_content+="$(wrap_text "Constitution compliance ensures consistent project structures, reproducibility, and team collaboration." 0)\n"
-    help_content+="\n"
-    
-    # Cache the content before displaying
-    _cache_set "$cache_key" "$help_content"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
+    # Load and display help from YAML file
+    get_command_help "global-help" "long"
 }
 
 # Show command-specific help for the init command
@@ -976,117 +855,24 @@ show_command_help() {
 
 # Show detailed help for the update command
 show_update_command_help() {
-    local help_content=""
-    help_content+="$(format_header "dirforge update" 1)\n"
-    help_content+="\n"
-    help_content+="Upgrade an existing DirForge project structure to the latest constitution version.\n"
-    help_content+="Safely adds new directories/files as required by the latest standards.\n"
-    help_content+="\n"
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="$(format_command "dirforge update [path] [options]")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Options" 2)\n"
-    help_content+="$(format_command "--here" "Explicitly use current directory (same as '.')")\n"
-    help_content+="$(format_command "--path=PATH" "Specify target directory as a flag")\n"
-    help_content+="$(format_command "--dry-run" "Preview changes without making modifications")\n"
-    help_content+="$(format_command "--json" "Output machine-readable JSON summary of planned changes")\n"
-    help_content+="$(format_command "--backup" "Create a timestamped backup before updating")\n"
-    help_content+="$(format_command "--force" "Override version/world detection errors (use with caution)")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Behavior" 2)\n"
-    help_content+="- Only adds missing directories/files (never deletes or overwrites).\n"
-    help_content+="- Validates structure before and after update.\n"
-    help_content+="- Supports nested subprojects (recursively updates all detected projects).\n"
-    help_content+="- Provides clear user messaging and error handling.\n"
-    help_content+="\n"
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="$(format_command "dirforge update" "Update current directory to latest version")\n"
-    help_content+="$(format_command "dirforge update --here" "Explicitly update current directory")\n"
-    help_content+="$(format_command "dirforge update /path/to/project" "Update specific project by path")\n"
-    help_content+="$(format_command "dirforge update --path=/path/to/project" "Update using --path flag")\n"
-    help_content+="$(format_command "dirforge update --dry-run" "Preview changes without modifying files")\n"
-    help_content+="$(format_command "dirforge update --backup" "Backup before updating")\n"
-    help_content+="$(format_command "dirforge update --json" "Get JSON summary for automation")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Notes" 2)\n"
-    help_content+="- Manual migration steps may be required for some world types/versions.\n"
-    help_content+="- See migration guide in docs/ for details.\n"
-    help_content+="\n"
-    display_with_pager "$help_content"
+    # Load and display help from YAML file
+    get_command_help "update" "long"
 }
 
 # Show detailed help for the init command
 show_init_command_help() {
-    local constitution_version="v1.0.20"
-    
-    # Build help content first, then display with pager
-    local help_content=""
-    
-    # Command header
-    help_content+="$(format_header "dirforge init" 1)"
-    help_content+="\n"
-    
-    help_content+="Create new project structure based on DirForge Constitution\n"
-    help_content+="\n"
-    
-    # Usage pattern
-    help_content+="$(format_header "Usage" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "dirforge init <world-type> [options]")\n"
-    help_content+="$(format_command "dirforge init <world-type> --help" "Show world-type specific help")\n"
-    help_content+="\n"
-    
-    # Available world types with descriptions and constitution references
-    help_content+="$(format_header "World Types" 2)"
-    help_content+="\n"
-    
-    help_content+="$(format_command "research" "Academic research projects with data management")\n"
-    help_content+="$(format_command "lecture" "Educational content with grading workflows")\n"
-    help_content+="$(format_command "coding" "Software development projects")\n"
-    help_content+="$(format_command "journal" "Journal-related activities: submissions, reviews, editorial work")\n"
-    help_content+="$(format_command "office" "Administrative and business documents")\n"
-    help_content+="$(format_command "private" "Personal projects with privacy controls")\n"
-    help_content+="\n"
-    
-    # Common options
-    help_content+="$(format_header "Common Options" 2)"
-    help_content+="\n"
-    help_content+="$(format_command "--help, -h" "Show help for this command or specific world type")\n"
-    help_content+="$(format_command "--dry-run, --preview" "Preview directory structure without creating files")\n"
-    help_content+="$(format_command "--force" "Overwrite existing directories (use with caution)")\n"
-    help_content+="$(format_command "--backup" "Create backup of existing content before overwriting")\n"
-    help_content+="$(format_command "--yes" "Skip interactive confirmations (use with --force or --backup)")\n"
-    help_content+="$(format_command "--json" "Output machine-readable JSON plan (requires --dry-run)")\n"
-    help_content+="$(format_command "--quiet, -q" "Suppress non-error output")\n"
-    help_content+="$(format_command "--verbose, -v" "Show detailed progress information")\n"
-    help_content+="\n"
-    
-    # World-type specific options note
-    help_content+="$(format_header "World-Type Specific Options" 3)"
-    help_content+="$(wrap_text "Each world type has additional options for customization. Use 'dirforge init <world-type> --help' to see specific options and requirements." 0)\n"
-    help_content+="\n"
-    
-    # Examples
-    help_content+="$(format_header "Examples" 2)"
-    help_content+="\n"
-    
-    local examples="# Get help for research projects\ndirforge init research --help\n\n# Preview research project structure\ndirforge init research --name \"My Study\" --dry-run\n\n# Create lecture with backup of existing content\ndirforge init lecture --name \"Physics 101\" --backup\n\n# Create coding project with minimal output\ndirforge init coding --name \"my-app\" --quiet"
-    
-    help_content+="$(format_example "$examples" "Common Usage")\n"
-    
-    # Footer
-    help_content+="$(format_header "Constitution Compliance" 3)"
-    help_content+="$(wrap_text "All project structures follow DirForge Constitution $constitution_version for consistency across teams and organizations." 0)\n"
-    help_content+="\n"
-    help_content+="$(wrap_text "Use 'dirforge init <world-type> --help' for detailed world-specific information including directory trees, naming conventions, and required inputs." 0)\n"
-    help_content+="\n"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
+    # Load and display help from YAML file
+    get_command_help "init" "long"
 }
 
 # Unified journal help - integrates all role-specific content (T033)
 show_journal_help_short() {
+    # Try YAML-based help first
+    if get_command_help "journal-world" "short" 2>/dev/null; then
+        return 0
+    fi
+    
+    # Fallback to hard-coded help if YAML unavailable
     local constitution_version="$1"
     local help_content=""
     
@@ -1142,402 +928,19 @@ show_journal_help_short() {
 # Journal project help
 show_journal_help() {
     local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.21"
     
     if [ "$mode" = "short" ]; then
         show_journal_help_short "$constitution_version"
         return
     fi
     
-    # Long/detailed help follows
-    # Build help content first
-    local help_content=""
+    # Try YAML-based long help
+    if get_command_help "journal-world" "long" 2>/dev/null; then
+        return 0
+    fi
     
-    help_content+="$(format_header "Journal Role-Based Organization (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Role-based journal activities: primary authorship, co-author collaboration, journal service\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates role-based journal organization for managing all aspects of academic publishing workflows. Separates primary authorship (your papers), co-author collaboration (joint projects), and journal service (reviews, editorial duties) into dedicated organizational structures." 0)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Structure Overview" 2)"
-    help_content+="\n"
-    help_content+="JOURNAL_WORLD/\n"
-    help_content+="├── 00_admin/                    # Manual admin organization\n"
-    help_content+="│   ├── subscriptions/\n"
-    help_content+="│   ├── memberships/\n"
-    help_content+="│   └── general/\n"
-    help_content+="├── 01_primary_authorship/       # Your papers as lead author\n"
-    help_content+="│   └── YYYY_paper_name/\n"
-    help_content+="│       ├── 01_manuscript/\n"
-    help_content+="│       ├── 02_reviews/\n"
-    help_content+="│       └── 03_correspondence/\n"
-    help_content+="├── 02_coauthor_invites/         # Collaborative projects\n"
-    help_content+="│   └── YYYY_project_name/\n"
-    help_content+="│       ├── 01_manuscript/\n"
-    help_content+="│       ├── 02_reviews/\n"
-    help_content+="│       └── 03_correspondence/\n"
-    help_content+="└── 03_journal_service/          # Reviews and editorial work\n"
-    help_content+="    └── journal_name/\n"
-    help_content+="        └── MANUSCRIPT_ID/\n"
-    help_content+="            ├── 01_manuscript/\n"
-    help_content+="            ├── 02_reviews/\n"
-    help_content+="            └── 03_correspondence/\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Integrated Command Patterns" 2)"
-    help_content+="\n"
-    help_content+="$(format_header "1. Primary Authorship — Lead Author Projects" 3)"
-    help_content+="$(format_command "dirforge init journal --name <paper_name> --first [--year <YYYY>]")\n"
-    help_content+="Creates: JOURNAL_WORLD/01_primary_authorship/YYYY_paper_name/\n"
-    help_content+="Role: Managing your own manuscript submissions and publications\n"
-    help_content+="\n"
-    help_content+="$(format_header "2. Co-author Collaboration — Joint Projects" 3)"
-    help_content+="$(format_command "dirforge init journal --name <paper_name> --coauthor [--year <YYYY>]")\n"
-    help_content+="Creates: JOURNAL_WORLD/02_coauthor_invites/YYYY_paper_name/\n"
-    help_content+="Role: Contributing to collaborative research projects\n"
-    help_content+="\n"
-    help_content+="$(format_header "3. Journal Service — Review & Editorial Work" 3)"
-    help_content+="$(format_command "dirforge init journal --name <journal_name> --id <manuscript_id> --service")\n"
-    help_content+="Creates: JOURNAL_WORLD/03_journal_service/journal_name/MANUSCRIPT_ID/\n"
-    help_content+="Role: Peer review, editorial duties, special issues\n"
-    help_content+="\n"
-    help_content+="$(format_header "4. Administrative — Manual Organization Only" 3)"
-    help_content+="No dirforge command — manual mkdir for subscriptions, memberships, policies\n"
-    help_content+="Role: Journal subscriptions, professional memberships, admin documents\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Unified Flag System" 2)"
-    help_content+="\n"
-    help_content+="Core universal flag:\n"
-    help_content+="$(format_command "--name <name>" "Universal identifier: paper name (authorship) or journal name (service)")\n"
-    help_content+="\n"
-    help_content+="Role-specific flags (mutually exclusive):\n"
-    help_content+="$(format_command "--first" "Primary authorship role")\n"
-    help_content+="$(format_command "--coauthor" "Co-author collaboration role")\n"
-    help_content+="$(format_command "--service" "Journal service role (requires --id)")\n"
-    help_content+="\n"
-    help_content+="Supporting flags:\n"
-    help_content+="$(format_command "--year <YYYY>" "Explicit year for authorship projects (default: current or extracted)")\n"
-    help_content+="$(format_command "--id <manuscript_id>" "Manuscript identifier (required with --service)")\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Naming Conventions" 2)"
-    help_content+="\n"
-    help_content+="Paper Names:\n"
-    help_content+="  Input format:     Any descriptive name\n"
-    help_content+="  Output format:    lowercase_with_underscores\n"
-    help_content+="  Year embedding:   2021_elastic_properties_of_carbonates (year extracted automatically)\n"
-    help_content+="\n"
-    help_content+="Journal Names:\n"
-    help_content+="  Input format:     \"Geophysics\", \"Nature Geoscience\", \"JGR Solid Earth\"\n"
-    help_content+="  Output format:    lowercase_with_underscores (geophysics, nature_geoscience, jgr_solid_earth)\n"
-    help_content+="\n"
-    help_content+="Manuscript IDs:\n"
-    help_content+="  Format:          Preserved as provided by journal (GEO-2025-0451, REVIEWER_2024_Q4)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Role Integration & Workflow Examples" 2)"
-    help_content+="\n"
-    help_content+="$(format_header "Complete Academic Publication Lifecycle" 3)"
-    help_content+="# Scenario 1: From Solo Research to Journal Service\n"
-    help_content+="# Step 1: Start solo research project\n"
-    help_content+="dirforge init journal --name \"carbonate_reservoir_characterization\" --first\n"
-    help_content+="# → 01_primary_authorship/2025_carbonate_reservoir_characterization/\n"
-    help_content+="\n"
-    help_content+="# Step 2: Join collaborative follow-up study\n"
-    help_content+="dirforge init journal --name \"2024_extended_carbonate_analysis_consortium\" --coauthor\n"
-    help_content+="# → 02_coauthor_invites/2024_extended_carbonate_analysis_consortium/\n"
-    help_content+="\n"
-    help_content+="# Step 3: Gain expertise, become reviewer in same field\n"
-    help_content+="dirforge init journal --name \"Geophysics\" --id \"GEO-CARB-2025-0892\" --service\n"
-    help_content+="# → 03_journal_service/geophysics/GEO-CARB-2025-0892/\n"
-    help_content+="\n"
-    help_content+="# Step 4: Set up administrative tracking (manual)\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/memberships/seg\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/general/review_templates/carbonate_expertise\n"
-    help_content+="# → 00_admin/ organization for professional development\n"
-    help_content+="\n"
-    help_content+="$(format_header "Multi-Year Research Program" 3)"
-    help_content+="# Research evolution: 2023-2025 geomechanics program\n"
-    help_content+="# Year 1: Independent research\n"
-    help_content+="dirforge init journal --name \"stress_strain_relationships\" --first --year 2023\n"
-    help_content+="# → 01_primary_authorship/2023_stress_strain_relationships/\n"
-    help_content+="\n"
-    help_content+="# Year 2: International collaboration\n"
-    help_content+="dirforge init journal --name \"2024_norway_uk_geomechanics_study\" --coauthor\n"
-    help_content+="# → 02_coauthor_invites/2024_norway_uk_geomechanics_study/ (year extracted)\n"
-    help_content+="\n"
-    help_content+="# Year 3: Follow-up primary authorship\n"
-    help_content+="dirforge init journal --name \"comprehensive_geomechanics_framework\" --first\n"
-    help_content+="# → 01_primary_authorship/2025_comprehensive_geomechanics_framework/\n"
-    help_content+="\n"
-    help_content+="# Concurrent service: Review related submissions\n"
-    help_content+="dirforge init journal --name \"Rock Mechanics\" --id \"RM-2025-GEOMECH-445\" --service\n"
-    help_content+="# → 03_journal_service/rock_mechanics/RM-2025-GEOMECH-445/\n"
-    help_content+="\n"
-    help_content+="$(format_header "Cross-Institutional Collaboration Network" 3)"
-    help_content+="# Building research network across multiple institutions\n"
-    help_content+="# Primary research at home institution\n"
-    help_content+="dirforge init journal --name \"machine_learning_seismic_interpretation\" --first --year 2024\n"
-    help_content+="# → 01_primary_authorship/2024_machine_learning_seismic_interpretation/\n"
-    help_content+="\n"
-    help_content+="# Collaboration with Stanford\n"
-    help_content+="dirforge init journal --name \"stanford_dl_geophysics_consortium\" --coauthor\n"
-    help_content+="# → 02_coauthor_invites/2025_stanford_dl_geophysics_consortium/\n"
-    help_content+="\n"
-    help_content+="# Collaboration with industry (Shell)\n"
-    help_content+="dirforge init journal --name \"2024_shell_ai_reservoir_modeling\" --coauthor\n"
-    help_content+="# → 02_coauthor_invites/2024_shell_ai_reservoir_modeling/ (year extracted)\n"
-    help_content+="\n"
-    help_content+="# Service to community: AI/ML special issue\n"
-    help_content+="dirforge init journal --name \"Computers & Geosciences\" --id \"CG-AI-SPECIAL-2025\" --service\n"
-    help_content+="# → 03_journal_service/computers_and_geosciences/CG-AI-SPECIAL-2025/\n"
-    help_content+="\n"
-    help_content+="# Administrative: Track all AI/ML contacts and funding\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/general/contact_lists/ai_ml_researchers\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/funding/nsf_ai_geoscience_grant\n"
-    help_content+="# → 00_admin/ organization for network management\n"
-    help_content+="\n"
-    help_content+="$(format_header "Editorial Career Progression" 3)"
-    help_content+="# Evolution from author to editor\n"
-    help_content+="# Phase 1: Establish research record\n"
-    help_content+="dirforge init journal --name \"early_career_research_topic\" --first --year 2023\n"
-    help_content+="dirforge init journal --name \"follow_up_validation_study\" --first --year 2024\n"
-    help_content+="\n"
-    help_content+="# Phase 2: Start reviewing (peer service)\n"
-    help_content+="dirforge init journal --name \"Geophysics\" --id \"GEO-2024-0123\" --service\n"
-    help_content+="dirforge init journal --name \"JGR Solid Earth\" --id \"JGR-2024-0456\" --service\n"
-    help_content+="\n"
-    help_content+="# Phase 3: Guest editing (special issue)\n"
-    help_content+="dirforge init journal --name \"Frontiers\" --id \"GUEST-EDITOR-EMERGING-TECH-2025\" --service\n"
-    help_content+="\n"
-    help_content+="# Phase 4: Editorial board member\n"
-    help_content+="dirforge init journal --name \"Earth and Planetary Science Letters\" --id \"EDITORIAL-BOARD-2025\" --service\n"
-    help_content+="\n"
-    help_content+="# Administrative: Professional development tracking\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/metrics/editorial_service_record\n"
-    help_content+="mkdir -p JOURNAL_WORLD/00_admin/general/review_templates/editorial_standards\n"
-    help_content+="# → 00_admin/ organization for career development\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Use Cases and Examples by Role" 2)"
-    help_content+="\n"
-    help_content+="$(format_header "Primary Authorship (Your Papers)" 3)"
-    local authorship_examples="  # Basic primary authorship (current year 2025)\n  dirforge init journal --name \"thermal_conductivity_review\" --first\n  # → 01_primary_authorship/2025_thermal_conductivity_review/\n\n  # Explicit year specification\n  dirforge init journal --name \"ai_geophysics_survey\" --first --year 2024\n  # → 01_primary_authorship/2024_ai_geophysics_survey/\n\n  # Complex paper names (automatically formatted)\n  dirforge init journal --name \"Biot Coefficient Analysis\" --first\n  # → 01_primary_authorship/2025_biot_coefficient_analysis/\n\n  # Long descriptive names\n  dirforge init journal --name \"Machine Learning Applications in Rock Physics\" --first --year 2023\n  # → 01_primary_authorship/2023_machine_learning_applications_in_rock_physics/\n\n  # Special characters handling\n  dirforge init journal --name \"CO2 Storage & Geomechanics\" --first\n  # → 01_primary_authorship/2025_co2_storage_and_geomechanics/\n\n  # Subject-specific naming\n  dirforge init journal --name \"elastic_wave_propagation_study\" --first --year 2024\n  # → 01_primary_authorship/2024_elastic_wave_propagation_study/\n\n  # Conference paper to journal extension\n  dirforge init journal --name \"extended_bem_analysis_from_seg2024\" --first\n  # → 01_primary_authorship/2025_extended_bem_analysis_from_seg2024/"
-    
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$authorship_examples"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Co-author Collaboration" 3)"
-    local coauthor_examples="  # Historical collaboration (year extracted from name)\n  dirforge init journal --name \"2021_elastic_properties_of_carbonates\" --coauthor\n  # → 02_coauthor_invites/2021_elastic_properties_of_carbonates/ (year: 2021)\n\n  # Explicit year override\n  dirforge init journal --name \"seismic_hazard_assessment\" --coauthor --year 2024\n  # → 02_coauthor_invites/2024_seismic_hazard_assessment/\n\n  # Cross-institutional collaboration\n  dirforge init journal --name \"joint_stanford_mit_study\" --coauthor\n  # → 02_coauthor_invites/2025_joint_stanford_mit_study/\n\n  # Industry-academic partnership\n  dirforge init journal --name \"2023_shell_reservoir_characterization\" --coauthor\n  # → 02_coauthor_invites/2023_shell_reservoir_characterization/ (year: 2023)\n\n  # Multi-year project progression\n  dirforge init journal --name \"digital_rock_physics_phase2\" --coauthor --year 2024\n  # → 02_coauthor_invites/2024_digital_rock_physics_phase2/\n\n  # International collaboration\n  dirforge init journal --name \"2022_norway_north_sea_analysis\" --coauthor\n  # → 02_coauthor_invites/2022_norway_north_sea_analysis/ (year: 2022)\n\n  # Special issue contribution\n  dirforge init journal --name \"frontiers_special_carbonate_modeling\" --coauthor --year 2024\n  # → 02_coauthor_invites/2024_frontiers_special_carbonate_modeling/"
-    
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$coauthor_examples"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Journal Service (Reviews & Editorial)" 3)"
-    local service_examples="  # Standard manuscript review\n  dirforge init journal --name \"Geophysics\" --id \"GEO-2025-0451\" --service\n  # → 03_journal_service/geophysics/GEO-2025-0451/\n\n  # High-impact journal review\n  dirforge init journal --name \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\" --service\n  # → 03_journal_service/nature_geoscience/REVIEWER_2024_Q4/\n\n  # Editorial board responsibilities\n  dirforge init journal --name \"JGR Solid Earth\" --id \"ASSOC_EDITOR_2024\" --service\n  # → 03_journal_service/jgr_solid_earth/ASSOC_EDITOR_2024/\n\n  # Special issue coordination\n  dirforge init journal --name \"Frontiers\" --id \"SPECIAL-ISSUE-SOLID-EARTH\" --service\n  # → 03_journal_service/frontiers/SPECIAL-ISSUE-SOLID-EARTH/\n\n  # Conference proceedings review\n  dirforge init journal --name \"IEEE Geoscience\" --id \"IEEE-GRS-2025-0892\" --service\n  # → 03_journal_service/ieee_geoscience/IEEE-GRS-2025-0892/\n\n  # Guest editor role\n  dirforge init journal --name \"Computers & Geosciences\" --id \"GUEST-EDITOR-ML-2025\" --service\n  # → 03_journal_service/computers_and_geosciences/GUEST-EDITOR-ML-2025/\n\n  # Fast-track review\n  dirforge init journal --name \"Physics of the Earth\" --id \"PEPI-URGENT-2025-123\" --service\n  # → 03_journal_service/physics_of_the_earth/PEPI-URGENT-2025-123/\n\n  # Multi-journal review coordination\n  dirforge init journal --name \"Annual Reviews\" --id \"EARTH-SCIENCES-2025\" --service\n  # → 03_journal_service/annual_reviews/EARTH-SCIENCES-2025/"
-    
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$service_examples"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Administrative Organization" 3)"
-    help_content+="$(wrap_text "The administrative role (00_admin/) is for journal subscriptions, professional memberships, and general administrative documents. Unlike other roles, admin organization is MANUAL ONLY - there is no dirforge command to create admin structures." 0)\n"
-    help_content+="\n"
-    help_content+="$(format_header "Manual-Only Structure" 4)"
-    help_content+="$(wrap_text "Administrative organization is intentionally manual to provide maximum flexibility for diverse organizational needs. Each user can create custom structures that match their specific administrative workflows." 0)\n"
-    help_content+="\n"
-    help_content+="$(format_header "Common Admin Structures" 4)"
-    help_content+="Basic organization:\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general\n"
-    help_content+="\n"
-    help_content+="Advanced organization:\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/active\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/archived\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/societies\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/committees\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/templates\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/policies\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/contacts\n"
-    help_content+="\n"
-    help_content+="$(format_header "Usage Examples" 4)"
-    help_content+="Comprehensive subscription management:\n"
-    help_content+="  # Major publisher subscriptions\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/nature_journals\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/elsevier_geophysics\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/springer_earth_sciences\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/ieee_access\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/subscriptions/sage_publications\n"
-    help_content+="  \n"
-    help_content+="  # Subscription tracking with metadata\n"
-    help_content+="  echo \"Renewal: December 2025\" > JOURNAL_WORLD/00_admin/subscriptions/nature_journals/renewal.txt\n"
-    help_content+="  echo \"Cost: \$2400/year\" > JOURNAL_WORLD/00_admin/subscriptions/elsevier_geophysics/cost.txt\n"
-    help_content+="  echo \"Contact: library@university.edu\" > JOURNAL_WORLD/00_admin/subscriptions/springer_earth_sciences/contact.txt\n"
-    help_content+="\n"
-    help_content+="Professional organizations and memberships:\n"
-    help_content+="  # Scientific societies\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/agu  # American Geophysical Union\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/seg  # Society of Exploration Geophysicists\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/ieee_geoscience  # IEEE Geoscience\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/aapg  # American Association Petroleum Geologists\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/memberships/eage  # European Association Geoscientists Engineers\n"
-    help_content+="  \n"
-    help_content+="  # Membership details and benefits tracking\n"
-    help_content+="  echo \"Member ID: 123456789\" > JOURNAL_WORLD/00_admin/memberships/agu/member_info.txt\n"
-    help_content+="  echo \"Benefits: Conference discounts, journal access\" > JOURNAL_WORLD/00_admin/memberships/seg/benefits.txt\n"
-    help_content+="\n"
-    help_content+="Editorial and review workflow administration:\n"
-    help_content+="  # Review templates and standard documents\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/review_templates\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/review_templates/standard_review\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/review_templates/fast_track_review\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/review_templates/editorial_decision\n"
-    help_content+="  \n"
-    help_content+="  # Conflict of interest and ethics\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/conflict_policies\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/conflict_policies/institutional_conflicts\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/conflict_policies/collaboration_history\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/conflict_policies/funding_conflicts\n"
-    help_content+="  \n"
-    help_content+="  # Contact management and networking\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/contact_lists\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/contact_lists/editors_by_journal\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/contact_lists/peer_reviewers\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/general/contact_lists/collaborators_by_institution\n"
-    help_content+="\n"
-    help_content+="Advanced administrative organization:\n"
-    help_content+="  # Research funding and grant administration\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/funding\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/funding/active_grants\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/funding/proposal_templates\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/funding/reporting_requirements\n"
-    help_content+="  \n"
-    help_content+="  # Publication metrics and career tracking\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/metrics\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/metrics/publication_impact\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/metrics/citation_tracking\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/metrics/h_index_records\n"
-    help_content+="  \n"
-    help_content+="  # Legal and compliance\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/legal\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/legal/copyright_agreements\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/legal/data_use_agreements\n"
-    help_content+="  mkdir -p JOURNAL_WORLD/00_admin/legal/institutional_policies\n"
-    help_content+="\n"
-    help_content+="$(format_header "Constitution Compliance" 4)"
-    help_content+="$(wrap_text "Administrative organization follows Constitution v1.0.21 requirements for role-based separation. Admin content must be kept separate from authorship and service activities to maintain clear organizational boundaries." 0)\n"
-    help_content+="\n"
-    help_content+="$(format_header "Constitution v1.0.21 Migration Guidance" 4)"
-    help_content+="$(wrap_text "This section provides comprehensive guidance for migrating existing journal projects to the new Constitution v1.0.21 role-based organization structure." 0)\n"
-    help_content+="\n"
-    help_content+="$(format_header "Breaking Changes Summary" 5)"
-    help_content+="• Role-based directory structure: 00_admin/, 01_primary_authorship/, 02_coauthor_invites/, 03_journal_service/\n"
-    help_content+="• Flag changes: --paper/--journal → unified --name flag\n"
-    help_content+="• Administrative content separation: manual-only 00_admin/ organization\n"
-    help_content+="• Enhanced year handling: automatic extraction from paper names\n"
-    help_content+="\n"
-    help_content+="$(format_header "Pre-Migration Assessment" 5)"
-    help_content+="1. Inventory existing JOURNAL_WORLD structure:\n"
-    help_content+="   find JOURNAL_WORLD -type d -maxdepth 2\n"
-    help_content+="\n"
-    help_content+="2. Identify content types in each directory:\n"
-    help_content+="   ls -la JOURNAL_WORLD/*/\n"
-    help_content+="\n"
-    help_content+="3. Back up existing structure:\n"
-    help_content+="   cp -r JOURNAL_WORLD JOURNAL_WORLD_backup_\$(date +%Y%m%d)\n"
-    help_content+="\n"
-    help_content+="$(format_header "Step-by-Step Migration Process" 5)"
-    help_content+="Step 1: Create new role-based structure\n"
-    help_content+="   dirforge init journal  # Creates new v1.0.21 structure\n"
-    help_content+="\n"
-    help_content+="Step 2: Migrate primary authorship content\n"
-    help_content+="   # For each existing paper directory:\n"
-    help_content+="   # Old: JOURNAL_WORLD/my_paper_2024/ → New: JOURNAL_WORLD/01_primary_authorship/2024_my_paper/\n"
-    help_content+="   mv JOURNAL_WORLD/my_paper_2024 JOURNAL_WORLD/01_primary_authorship/2024_my_paper\n"
-    help_content+="\n"
-    help_content+="Step 3: Migrate collaborative content\n"
-    help_content+="   # For joint projects and collaborations:\n"
-    help_content+="   # Old: JOURNAL_WORLD/joint_study/ → New: JOURNAL_WORLD/02_coauthor_invites/2024_joint_study/\n"
-    help_content+="   mv JOURNAL_WORLD/joint_study JOURNAL_WORLD/02_coauthor_invites/2024_joint_study\n"
-    help_content+="\n"
-    help_content+="Step 4: Migrate review and editorial content\n"
-    help_content+="   # For journal service activities:\n"
-    help_content+="   # Create proper journal/manuscript hierarchy:\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/03_journal_service/geophysics/GEO-2024-0123\n"
-    help_content+="   mv JOURNAL_WORLD/review_geo_123 JOURNAL_WORLD/03_journal_service/geophysics/GEO-2024-0123\n"
-    help_content+="\n"
-    help_content+="Step 5: Organize administrative content\n"
-    help_content+="   # Separate admin content from project content:\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/00_admin/subscriptions\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/00_admin/memberships\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/00_admin/general\n"
-    help_content+="   # Move subscription docs, membership records, templates, etc.\n"
-    help_content+="\n"
-    help_content+="$(format_header "Common Migration Scenarios" 5)"
-    help_content+="Scenario 1: Mixed content in single directories\n"
-    help_content+="   # Before: JOURNAL_WORLD/carbonate_study/ (contains both authorship and review content)\n"
-    help_content+="   # After: Split into appropriate role directories\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/01_primary_authorship/2024_carbonate_study\n"
-    help_content+="   mkdir -p JOURNAL_WORLD/03_journal_service/geophysics/GEO-2024-0123\n"
-    help_content+="   # Move manuscript content to authorship, review content to service\n"
-    help_content+="\n"
-    help_content+="Scenario 2: Year-embedded names\n"
-    help_content+="   # Before: JOURNAL_WORLD/2023_seismic_analysis/\n"
-    help_content+="   # After: Year automatically handled by new system\n"
-    help_content+="   mv JOURNAL_WORLD/2023_seismic_analysis JOURNAL_WORLD/01_primary_authorship/2023_seismic_analysis\n"
-    help_content+="\n"
-    help_content+="Scenario 3: Administrative files scattered\n"
-    help_content+="   # Consolidate subscription docs, membership info, templates\n"
-    help_content+="   find JOURNAL_WORLD -name '*subscription*' -exec mv {} JOURNAL_WORLD/00_admin/subscriptions/ \;\n"
-    help_content+="   find JOURNAL_WORLD -name '*membership*' -exec mv {} JOURNAL_WORLD/00_admin/memberships/ \;\n"
-    help_content+="\n"
-    help_content+="$(format_header "Post-Migration Validation" 5)"
-    help_content+="1. Verify new structure compliance:\n"
-    help_content+="   ls -la JOURNAL_WORLD/*/  # Should show 4 role directories\n"
-    help_content+="\n"
-    help_content+="2. Test new commands with existing content:\n"
-    help_content+="   dirforge init journal --name \"test_paper\" --first --dry-run\n"
-    help_content+="\n"
-    help_content+="3. Update any scripts or automation:\n"
-    help_content+="   # Replace old --paper flags with --name\n"
-    help_content+="   # Update paths to use role-based directories\n"
-    help_content+="\n"
-    help_content+="$(format_header "Migration Troubleshooting" 5)"
-    help_content+="Issue: Command not found after migration\n"
-    help_content+="   Solution: Ensure you're using Constitution v1.0.21 compatible dirforge version\n"
-    help_content+="\n"
-    help_content+="Issue: Directory conflicts during migration\n"
-    help_content+="   Solution: Use backup and incremental migration approach\n"
-    help_content+="\n"
-    help_content+="Issue: Lost content during migration\n"
-    help_content+="   Solution: Restore from backup created in pre-migration step\n"
-    help_content+="\n"
-    help_content+="$(format_header "Migration Support" 5)"
-    help_content+="For complex migration scenarios or issues:\n"
-    help_content+="• Review this help: dirforge init journal --help-long\n"
-    help_content+="• Test with --dry-run flag before making changes\n"
-    help_content+="• Always maintain backups during migration process\n"
-    help_content+="• Migration is one-way; plan carefully before executing\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Best Practices" 2)"
-    help_content+="$(format_list "Use descriptive paper names that will make sense years later\nEmbedded years in paper names (YYYY_) are automatically extracted\nKeep manuscript drafts in 01_manuscript/, all versions and revisions\nStore review reports in 02_reviews/ with clear reviewer identification\nSave all journal correspondence in 03_correspondence/ with timestamps\nUse consistent naming across collaborative projects\nSeparate your authorship work from your service work for clarity\nArchive completed projects but maintain directory structure for reference\nLink related projects through clear cross-references in README files" "")\n"
-    help_content+="\n"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
+    # Fallback: if YAML unavailable, call short help
+    show_journal_help_short "v1.0.21"
 }
 
 # Short help for office projects
@@ -1563,50 +966,25 @@ show_office_help_short() {
 # Office project help
 show_office_help() {
     local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.20"
     
     if [ "$mode" = "short" ]; then
-        show_office_help_short "$constitution_version"
+        # Try YAML first
+        if get_command_help "office-world" "short" 2>/dev/null; then
+            return 0
+        fi
+        
+        # Fallback
+        show_office_help_short "v1.0.23"
         return
     fi
     
-    # Long/detailed help follows
-    # Build help content first
-    local help_content=""
+    # Try YAML-based long help
+    if get_command_help "office-world" "long" 2>/dev/null; then
+        return 0
+    fi
     
-    help_content+="$(format_header "Office Project Creation (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Administrative and business documents\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates administrative project for business documents, contracts, finance tracking, and equipment management." 1)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Structure" 2)"
-    help_content+="\n"
-    help_content+="OFFICE_WORLD/\n"
-    help_content+="├── 00_admin/                # Administrative documents\n"
-    help_content+="├── 01_finance/              # Financial records and budgets\n"
-    help_content+="├── 02_hr_administration/    # Human resources and personnel\n"
-    help_content+="├── 03_faculty/              # Faculty affairs and committees\n"
-    help_content+="├── 04_inventory_equipment/  # Equipment and inventory management\n"
-    help_content+="├── 05_software_licenses/    # Software licensing and compliance\n"
-    help_content+="└── 06_public_relations/     # Communications and outreach\n"
-    help_content+="\n"
-    
-    local examples="  # Budget tracking\n  dirforge init office --name \"2025-budget\"\n\n  # Equipment inventory\n  dirforge init office --name \"lab-equipment\"\n\n  # Contract management\n  dirforge init office --name \"vendor-contracts\""
-    
-    help_content+="$(format_header "Examples" 2)\n"
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$examples"
-    help_content+="\n"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
+    # Fallback: show short help
+    show_office_help_short "v1.0.23"
 }
 
 # Short help for private projects
@@ -1632,137 +1010,37 @@ show_private_help_short() {
 # Private project help
 show_private_help() {
     local mode="${1:-short}"  # default to short
-    local constitution_version="v1.0.20"
     
     if [ "$mode" = "short" ]; then
-        show_private_help_short "$constitution_version"
+        # Try YAML first
+        if get_command_help "private-world" "short" 2>/dev/null; then
+            return 0
+        fi
+        
+        # Fallback
+        show_private_help_short "v1.0.23"
         return
     fi
     
-    # Long/detailed help follows
-    # Build help content first
-    local help_content=""
+    # Try YAML-based long help
+    if get_command_help "private-world" "long" 2>/dev/null; then
+        return 0
+    fi
     
-    help_content+="$(format_header "Private Project Creation (Detailed)" 1)"
-    help_content+="\n"
-    help_content+="Personal projects with privacy controls\n"
-    help_content+="Updated: 2025-12-09 (Constitution $constitution_version)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Purpose" 2)"
-    help_content+="\n"
-    help_content+="$(wrap_text "Creates private project for personal files, photos, finance, and sensitive documents with enhanced security." 0)\n"
-    help_content+="\n"
-    
-    help_content+="$(format_header "Structure" 2)"
-    help_content+="\n"
-    help_content+="PRIVATE_WORLD/\n"
-    help_content+="├── 00_admin/           # Personal administrative documents\n"
-    help_content+="├── 01_credentials/     # Passwords, certificates, keys\n"
-    help_content+="├── 02_id_contracts/    # Identity documents and contracts\n"
-    help_content+="├── 03_finance/         # Personal finance and banking\n"
-    help_content+="├── 04_documents/       # Important personal documents\n"
-    help_content+="├── 05_photos/          # Personal photography collection\n"
-    help_content+="├── 06_movies/          # Personal video collection\n"
-    help_content+="├── 07_hiking/          # Outdoor activities and trips\n"
-    help_content+="├── 09_installers/      # Software installers and utilities\n"
-    help_content+="└── 90_archive/         # Archived personal materials\n"
-    help_content+="\n"
-    
-    local examples="  # Personal finance\n  dirforge init private --name \"finance-2025\" --encrypted\n\n  # Photo archive\n  dirforge init private --name \"family-photos\"\n\n  # Personal documents\n  dirforge init private --name \"documents\" --backup-enabled"
-    
-    help_content+="$(format_header "Examples" 2)\n"
-    while IFS= read -r line; do
-        help_content+="$(gray "$line")\n"
-    done <<< "$examples"
-    help_content+="\n"
-    
-    # Display with automatic pager integration
-    display_with_pager "$help_content"
+    # Fallback: show short help
+    show_private_help_short "v1.0.23"
 }
 
 # Show detailed help for the validate-config command
 show_validate_config_help() {
-    local help_content=""
-    help_content+="$(format_header "dirforge validate-config" 1)\n"
-    help_content+="\n"
-    help_content+="Validate a world configuration file against the DirForge schema.\n"
-    help_content+="\n"
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="$(format_command "dirforge validate-config [options] <config_file>")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Arguments" 2)\n"
-    help_content+="$(format_command "<config_file>" "Path to YAML configuration file to validate")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Options" 2)\n"
-    help_content+="$(format_command "--verbose, -v" "Show detailed validation messages")\n"
-    help_content+="$(format_command "--help, -h" "Show this help message")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Exit Codes" 2)\n"
-    help_content+="$(format_command "0" "Validation passed - config is valid")\n"
-    help_content+="$(format_command "1" "Validation failed - config has errors")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Validation Rules" 2)\n"
-    help_content+="- All required fields must be present (world.type, description, metadata fields)\n"
-    help_content+="- world.type must be one of: CODING_WORLD, RESEARCH_WORLD, JOURNAL_WORLD, LECTURE_WORLD, OFFICE_WORLD, PRIVATE_WORLD, LITERATURE_WORLD\n"
-    help_content+="- metadata.constitution_version should match current version (1.0.22)\n"
-    help_content+="- metadata.integrity_required must be a valid boolean (true/false/yes/no/on/off)\n"
-    help_content+="- parent_directories and subdirectories must be arrays\n"
-    help_content+="- permissions object must have valid directory and file permission specs\n"
-    help_content+="\n"
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="$(format_command "dirforge validate-config templates/world-configs/coding.world.yaml" "Validate a built-in config")\n"
-    help_content+="$(format_command "dirforge validate-config --verbose my-config.yaml" "Validate with verbose output")\n"
-    help_content+="$(format_command "dirforge validate-config /path/to/world.yaml" "Validate a custom config file")\n"
-    help_content+="\n"
-    help_content+="$(format_header "See Also" 2)\n"
-    help_content+="$(format_command "dirforge list-configs" "List all available world configurations")\n"
-    help_content+="\n"
-    display_with_pager "$help_content"
+    # Load and display help from YAML file
+    get_command_help "validate-config" "long"
 }
 
 # Show detailed help for the list-configs command
 show_list_configs_help() {
-    local help_content=""
-    help_content+="$(format_header "dirforge list-configs" 1)\n"
-    help_content+="\n"
-    help_content+="List all available world configuration files and their validation status.\n"
-    help_content+="\n"
-    help_content+="$(format_header "Usage" 2)\n"
-    help_content+="$(format_command "dirforge list-configs [options]")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Options" 2)\n"
-    help_content+="$(format_command "--show-invalid" "Show detailed error messages for invalid configs")\n"
-    help_content+="$(format_command "--help, -h" "Show this help message")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Output" 2)\n"
-    help_content+="- Lists all *.world.yaml files found in templates/world-configs/\n"
-    help_content+="- Shows validation status (✓ valid or ✗ invalid) for each config\n"
-    help_content+="- Displays the world type (e.g., CODING_WORLD, RESEARCH_WORLD)\n"
-    help_content+="- Provides a summary count of valid and invalid configs\n"
-    help_content+="\n"
-    help_content+="$(format_header "Exit Codes" 2)\n"
-    help_content+="$(format_command "0" "Listing completed (even with invalid configs)")\n"
-    help_content+="$(format_command "1" "Error: Could not list configs (e.g., directory not found)")\n"
-    help_content+="\n"
-    help_content+="$(format_header "Built-in Configurations" 2)\n"
-    help_content+="DirForge provides 7 world type configurations:\n"
-    help_content+="- $(green "CODING_WORLD")      Software development projects\n"
-    help_content+="- $(green "RESEARCH_WORLD")    Academic research projects\n"
-    help_content+="- $(green "JOURNAL_WORLD")     Journal-related activities\n"
-    help_content+="- $(green "LECTURE_WORLD")     Educational materials\n"
-    help_content+="- $(green "OFFICE_WORLD")      Business and administration\n"
-    help_content+="- $(green "PRIVATE_WORLD")     Personal documents and files\n"
-    help_content+="- $(green "LITERATURE_WORLD")  Books and literature\n"
-    help_content+="\n"
-    help_content+="$(format_header "Examples" 2)\n"
-    help_content+="$(format_command "dirforge list-configs" "List all available configs")\n"
-    help_content+="$(format_command "dirforge list-configs --show-invalid" "Show details for any invalid configs")\n"
-    help_content+="\n"
-    help_content+="$(format_header "See Also" 2)\n"
-    help_content+="$(format_command "dirforge validate-config" "Validate a single configuration file")\n"
-    help_content+="\n"
-    display_with_pager "$help_content"
+    # Load and display help from YAML file
+    get_command_help "list-configs" "long"
 }
 
 ################################################################################
@@ -1800,9 +1078,9 @@ show_world_help() {
             ;;
     esac
     
-    # Try to load from YAML parser first
-    if load_help_yaml "$world_type"; then
-        format_help_output "long"
+    # Try to load from YAML parser first (remove .yaml suffix since get_command_help uses help name)
+    local help_name="${help_file%.yaml}"
+    if get_command_help "$help_name" "long" 2>/dev/null; then
         return 0
     fi
     

@@ -21,8 +21,9 @@
 ################################################################################
 
 # Source required libraries
-source "${DIRFORGE_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/lib/colors.sh" 2>/dev/null || true
-source "${DIRFORGE_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/lib/terminal.sh" 2>/dev/null || true
+SCRIPT_DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR_HELPER}/colors.sh" 2>/dev/null || true
+source "${SCRIPT_DIR_HELPER}/terminal.sh" 2>/dev/null || true
 
 # Cache directory for parsed help files
 HELP_CACHE_DIR="${HELP_CACHE_DIR:-.cache/help}"
@@ -60,7 +61,26 @@ _init_help_cache() {
 ################################################################################
 load_help_yaml() {
     local help_name="${1:?Error: help_name required}"
-    local help_file="${DIRFORGE_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/templates/help/${help_name}.yaml"
+    
+    # Detect the correct base directory (development vs installed)
+    local base_dir
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    if [[ -d "$script_dir/../templates/help" ]]; then
+        # Development mode: lib/help_yaml_parser.sh -> ../templates/help
+        base_dir="$script_dir/.."
+    elif [[ -d "$script_dir/templates/help" ]]; then
+        # Installation mode: ~/.local/lib/dirforge/help_yaml_parser.sh -> ./templates/help
+        base_dir="$script_dir"
+    elif [[ -n "${DIRFORGE_HOME:-}" && -d "$DIRFORGE_HOME/templates/help" ]]; then
+        # Explicit DIRFORGE_HOME provided
+        base_dir="$DIRFORGE_HOME"
+    else
+        # Fallback to development mode assumption
+        base_dir="$script_dir/.."
+    fi
+    
+    local help_file="$base_dir/templates/help/${help_name}.yaml"
     
     # Check cache first
     if [[ "$HELP_CACHE_ENABLED" == "1" ]]; then
@@ -192,24 +212,13 @@ get_command_help() {
     local command_name="${1:?Error: command_name required}"
     local variant="${2:-long}"  # Default to long help
     
-    # Load help YAML
-    local help_content
-    help_content=$(load_help_yaml "$command_name" 2>/dev/null)
-    
-    if [[ $? -ne 0 ]]; then
-        # Provide fallback minimal help
-        printf "%s\n" "Help: $command_name"
-        printf "%s\n" "No detailed help available. Help file will be created."
-        return 1
-    fi
-    
-    # Format based on variant
+    # Format based on variant - pass command name not content
     case "$variant" in
         short)
-            _format_short_help "$help_content"
+            _format_short_help "$command_name"
             ;;
         long)
-            _format_long_help "$help_content"
+            _format_long_help "$command_name"
             ;;
         *)
             printf "Error: Unknown help variant: %s\n" "$variant" >&2
@@ -217,7 +226,7 @@ get_command_help() {
             ;;
     esac
     
-    return 0
+    return $?
 }
 
 ################################################################################
@@ -243,7 +252,23 @@ get_command_help() {
 #
 ################################################################################
 get_global_help() {
-    local help_dir="${DIRFORGE_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/templates/help"
+    # Detect the correct base directory
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local help_dir
+    
+    if [[ -d "$script_dir/../templates/help" ]]; then
+        # Development mode
+        help_dir="$script_dir/../templates/help"
+    elif [[ -d "$script_dir/templates/help" ]]; then
+        # Installation mode
+        help_dir="$script_dir/templates/help"
+    elif [[ -n "${DIRFORGE_HOME:-}" && -d "$DIRFORGE_HOME/templates/help" ]]; then
+        # Explicit DIRFORGE_HOME
+        help_dir="$DIRFORGE_HOME/templates/help"
+    else
+        # Fallback
+        help_dir="$script_dir/../templates/help"
+    fi
     
     printf "%s\n" "DirForge YAML Configuration System - Available Commands"
     printf "%s\n" ""
@@ -323,36 +348,94 @@ format_help_output() {
 # Format short help variant (essential info only)
 #
 # Parameters:
-#   $1: YAML content
+#   $1: Help file name (without .yaml extension)
 #
 # Output:
 #   Formatted short help to STDOUT
 #
 ################################################################################
 _format_short_help() {
-    local yaml_content="${1:?Error: yaml_content required}"
+    local help_name="${1:?Error: help_name required}"
     
-    # Extract command and description
-    local command
-    local description
+    # Check if yq is available
+    if ! command -v yq &>/dev/null; then
+        printf "%s\n" "Warning: yq not found. Install it for YAML help support." >&2
+        printf "%s\n" "Falling back to basic help..." >&2
+        return 1
+    fi
     
-    command=$(printf "%s\n" "$yaml_content" | grep "^command:" | sed 's/^command: "\(.*\)"/\1/' | head -1)
-    description=$(printf "%s\n" "$yaml_content" | grep "^description:" | sed 's/^description: "\(.*\)"/\1/' | head -1)
+    # Detect the correct base directory
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local base_dir
     
-    # Extract short_help.summary
-    local summary
-    summary=$(printf "%s\n" "$yaml_content" | awk '/^short_help:/,/^[a-z_]+:/ {print}' | \
-        awk '/^  summary:/,/^  [a-z_]+:/ {print}' | sed '1d;$d' | sed 's/^    //')
+    if [[ -d "$script_dir/../templates/help" ]]; then
+        base_dir="$script_dir/.."
+    elif [[ -d "$script_dir/templates/help" ]]; then
+        base_dir="$script_dir"
+    else
+        base_dir="$script_dir/.."
+    fi
     
-    # Extract short_help.synopsis
-    local synopsis
-    synopsis=$(printf "%s\n" "$yaml_content" | awk '/^short_help:/,/^[a-z_]+:/ {print}' | \
-        awk '/^  synopsis:/,/^  [a-z_]+:/ {print}' | sed '1d;$d' | sed 's/^    //')
+    local help_file="$base_dir/templates/help/${help_name}.yaml"
     
-    # Display formatted output
-    [[ -n "$command" ]] && printf "%s\n\n" "$(printf '%s' "$command" | tr '[:lower:]' '[:upper:]')"
-    [[ -n "$description" ]] && printf "%s\n\n" "$description"
-    [[ -n "$synopsis" ]] && printf "%s\n" "$synopsis"
+    if [[ ! -f "$help_file" ]]; then
+        printf "%s\n" "Help file not found: $help_file" >&2
+        return 1
+    fi
+    
+    # Source formatting functions from help.sh if available
+    if [[ -f "$script_dir/help.sh" ]]; then
+        source "$script_dir/colors.sh" 2>/dev/null || true
+        source "$script_dir/terminal.sh" 2>/dev/null || true
+    fi
+    
+    # Extract data using yq
+    local command summary
+    command=$(yq e '.command' "$help_file" 2>/dev/null)
+    summary=$(yq e '.short_help.summary' "$help_file" 2>/dev/null)
+    local version=$(yq e '.constitution_section // .updated' "$help_file" 2>/dev/null)
+    
+    # Build formatted output
+    printf "\n%s — %s\n" "$command" "$summary"
+    printf "%s\n" "================================================================================"
+    [[ -n "$version" && "$version" != "null" ]] && printf "Constitution Version: %s\n" "$version"
+    printf "\n"
+    
+    # Usage section
+    printf "\n%s\n" "Usage"
+    printf "%s\n" "-----"
+    local usage=$(yq e '.short_help.usage' "$help_file" 2>/dev/null)
+    [[ -n "$usage" && "$usage" != "null" ]] && printf "  %s\n" "$usage"
+    
+    # Sections (commands, world_types, global_options, etc.)
+    local section_keys=$(yq e '.sections | keys | .[]' "$help_file" 2>/dev/null)
+    if [[ -n "$section_keys" && "$section_keys" != "null" ]]; then
+        while IFS= read -r section_key; do
+            [[ -z "$section_key" || "$section_key" == "null" ]] && continue
+            
+            local title=$(yq e ".sections.$section_key.title" "$help_file" 2>/dev/null)
+            local content=$(yq e ".sections.$section_key.content" "$help_file" 2>/dev/null)
+            
+            [[ -z "$title" || "$title" == "null" ]] && continue
+            
+            printf "\n\n%s\n" "$title"
+            printf "%s\n" "-----------"
+            [[ -n "$content" && "$content" != "null" ]] && echo "$content"
+        done <<< "$section_keys"
+    fi
+    
+    # Examples (first 3 only for short help)
+    printf "\n\n%s\n" "Quick Examples"
+    printf "%s\n" "--------------"
+    yq e '.examples[:3] | .[] | "  " + .command + "\n    " + .description' "$help_file" 2>/dev/null | head -15
+    
+    # Footer
+    local related=$(yq e '.related_commands[0]' "$help_file" 2>/dev/null)
+    if [[ -n "$related" && "$related" != "null" ]]; then
+        printf "\n%s\n" "Use '$related' for world-specific help"
+        printf "%s\n" "Use 'dirforge --help-long' for comprehensive documentation"
+    fi
+    printf "\n"
     
     return 0
 }
@@ -363,64 +446,126 @@ _format_short_help() {
 # Format long help variant (complete details)
 #
 # Parameters:
-#   $1: YAML content
+#   $1: Help file name (without .yaml extension)
 #
 # Output:
 #   Formatted long help to STDOUT
 #
 ################################################################################
 _format_long_help() {
-    local yaml_content="${1:?Error: yaml_content required}"
+    local help_name="${1:?Error: help_name required}"
     
-    # Extract all major sections
-    local command
-    local description
-    local syntax
-    local examples
-    local options
+    # Check if yq is available
+    if ! command -v yq &>/dev/null; then
+        printf "%s\n" "Warning: yq not found. Install it for YAML help support." >&2
+        printf "%s\n" "Falling back to basic help..." >&2
+        return 1
+    fi
     
-    command=$(printf "%s\n" "$yaml_content" | grep "^command:" | sed 's/^command: "\(.*\)"/\1/' | head -1)
-    description=$(printf "%s\n" "$yaml_content" | grep "^description:" | sed 's/^description: "\(.*\)"/\1/' | head -1)
+    # Detect the correct base directory
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local base_dir
     
-    # Display formatted output
-    printf "%s\n" "═════════════════════════════════════════════════════════════"
-    [[ -n "$command" ]] && printf "%s\n" "$(printf '%s' "$command" | tr '[:lower:]' '[:upper:]')"
-    printf "%s\n" "═════════════════════════════════════════════════════════════"
+    if [[ -d "$script_dir/../templates/help" ]]; then
+        base_dir="$script_dir/.."
+    elif [[ -d "$script_dir/templates/help" ]]; then
+        base_dir="$script_dir"
+    else
+        base_dir="$script_dir/.."
+    fi
+    
+    local help_file="$base_dir/templates/help/${help_name}.yaml"
+    
+    if [[ ! -f "$help_file" ]]; then
+        printf "%s\n" "Help file not found: $help_file" >&2
+        return 1
+    fi
+    
+    # Extract data using yq
+    local command description
+    command=$(yq e '.command' "$help_file" 2>/dev/null)
+    description=$(yq e '.description' "$help_file" 2>/dev/null)
+    local version=$(yq e '.constitution_section // .updated' "$help_file" 2>/dev/null)
+    
+    # Header
+    printf "\n%s\n" "================================================================================"
+    printf "%s\n" "$command"
+    printf "%s\n" "================================================================================"
+    [[ -n "$version" && "$version" != "null" ]] && printf "Constitution Version: %s\n" "$version"
     printf "\n"
+    [[ -n "$description" && "$description" != "null" ]] && printf "%s\n\n" "$description"
     
-    [[ -n "$description" ]] && printf "%s\n\n" "$description"
-    
-    # Extract and display long_help.summary
-    local long_summary
-    long_summary=$(printf "%s\n" "$yaml_content" | awk '/^long_help:/,/^[a-z_]+:/ {print}' | \
-        awk '/^  summary:/,/^  [a-z_]+:/ {print}' | sed '1d;$d' | sed 's/^    //')
-    
-    if [[ -n "$long_summary" ]]; then
-        printf "%s\n" "SUMMARY:"
-        printf "%s\n\n" "$long_summary"
+    # Syntax
+    local syntax=$(yq e '.syntax' "$help_file" 2>/dev/null)
+    if [[ -n "$syntax" && "$syntax" != "null" ]]; then
+        echo "SYNTAX"
+        echo "------"
+        while IFS= read -r line; do
+            echo "  $line"
+        done <<< "$syntax"
+        echo ""
     fi
     
-    # Extract and display long_help.details
-    local long_details
-    long_details=$(printf "%s\n" "$yaml_content" | awk '/^long_help:/,/^[a-z_]+:/ {print}' | \
-        awk '/^  details:/,/^  [a-z_]+:/ {print}' | sed '1d;$d' | sed 's/^    //')
-    
-    if [[ -n "$long_details" ]]; then
-        printf "%s\n" "DETAILS:"
-        printf "%s\n\n" "$long_details"
+    # Sections (commands, options, etc.)
+    local section_keys=$(yq e '.sections | keys | .[]' "$help_file" 2>/dev/null)
+    if [[ -n "$section_keys" && "$section_keys" != "null" ]]; then
+        while IFS= read -r section_key; do
+            [[ -z "$section_key" || "$section_key" == "null" ]] && continue
+            
+            local title=$(yq e ".sections.$section_key.title" "$help_file" 2>/dev/null)
+            local content=$(yq e ".sections.$section_key.content" "$help_file" 2>/dev/null)
+            
+            [[ -z "$title" || "$title" == "null" ]] && continue
+            
+            echo "${title}" | tr '[:lower:]' '[:upper:]'
+            printf "%s\n" "$(printf '%*s' ${#title} '' | tr ' ' '-')"
+            [[ -n "$content" && "$content" != "null" ]] && echo "$content"
+            printf "\n"
+        done <<< "$section_keys"
     fi
     
-    # Extract and display long_help.important_notes
-    local important_notes
-    important_notes=$(printf "%s\n" "$yaml_content" | awk '/^long_help:/,/^[a-z_]+:/ {print}' | \
-        awk '/^  important_notes:/,/^  [a-z_]+:/ {print}' | sed '1d;$d' | sed 's/^    //')
-    
-    if [[ -n "$important_notes" ]]; then
-        printf "%s\n" "IMPORTANT NOTES:"
-        printf "%s\n\n" "$important_notes"
+    # Examples
+    local has_examples=$(yq e '.examples | length' "$help_file" 2>/dev/null)
+    if [[ "$has_examples" != "0" && "$has_examples" != "null" ]]; then
+        echo "EXAMPLES"
+        echo "--------"
+        local example_count=$(yq e '.examples | length' "$help_file" 2>/dev/null)
+        for ((i=0; i<example_count; i++)); do
+            local ex_title=$(yq e ".examples[$i].title" "$help_file" 2>/dev/null)
+            local ex_command=$(yq e ".examples[$i].command" "$help_file" 2>/dev/null)
+            local ex_desc=$(yq e ".examples[$i].description" "$help_file" 2>/dev/null)
+            
+            if [[ -n "$ex_title" && "$ex_title" != "null" ]]; then
+                echo ""
+                echo "$ex_title:"
+            fi
+            [[ -n "$ex_command" && "$ex_command" != "null" ]] && echo "  \$ $ex_command"
+            [[ -n "$ex_desc" && "$ex_desc" != "null" ]] && echo "  $ex_desc"
+        done
+        echo ""
     fi
     
-    printf "%s\n" "═════════════════════════════════════════════════════════════"
+    # Related commands
+    local has_related=$(yq e '.related_commands | length' "$help_file" 2>/dev/null)
+    if [[ "$has_related" != "0" && "$has_related" != "null" ]]; then
+        echo "SEE ALSO"
+        echo "--------"
+        yq e '.related_commands[]' "$help_file" 2>/dev/null | while read -r cmd; do
+            [[ -n "$cmd" && "$cmd" != "null" ]] && echo "  $cmd"
+        done
+        echo ""
+    fi
+    
+    # See also documentation
+    local has_see_also=$(yq e '.see_also | length' "$help_file" 2>/dev/null)
+    if [[ "$has_see_also" != "0" && "$has_see_also" != "null" ]]; then
+        echo "DOCUMENTATION"
+        echo "-------------"
+        yq e '.see_also[]' "$help_file" 2>/dev/null | while read -r doc; do
+            [[ -n "$doc" && "$doc" != "null" ]] && echo "  $doc"
+        done
+        echo ""
+    fi
     
     return 0
 }

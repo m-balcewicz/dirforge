@@ -1,6 +1,6 @@
 ---
 # Global Help - DirForge Overview
-# Version: 1.0.22
+# Version: 1.0.23
 # Purpose: Main help menu with command listing and world types
 
 command: dirforge
@@ -72,5 +72,6 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system guide"
   - "YAML-CONFIG-SYSTEM - Learn about config-driven initialization"
 
-constitution_section: "v1.0.22"
+constitution_section: "v1.0.23"
+updated: "2025-12-30"
 updated: "2025-12-30"

@@ -1,0 +1,96 @@
+---
+# Update Command Help
+# Version: 1.0.22
+# Purpose: Help for 'dirforge update' command for upgrading existing structures
+
+command: "dirforge update"
+syntax: |
+  dirforge update [path] [options]
+  dirforge update --here [options]
+  dirforge update --path=<path> [options]
+
+short_help:
+  summary: "Upgrade an existing DirForge project structure to the latest constitution version"
+  usage: "dirforge update [path] [options]"
+
+description: |
+  Upgrades an existing DirForge project structure to the latest constitution version.
+  Safely adds new directories/files as required by the latest standards. Never deletes
+  or overwrites existing files. Validates structure before and after update.
+
+sections:
+  basic_options:
+    title: "Basic Options"
+    content: |
+      [path]                         Target directory to update (default: current directory)
+      --here                         Explicitly use current directory
+      --path=PATH                    Specify target directory as a flag
+  
+  advanced_options:
+    title: "Advanced Options"
+    content: |
+      --dry-run, --preview           Preview changes without making modifications
+      --json                         Output machine-readable JSON summary of planned changes
+      --backup                       Create timestamped backup before updating
+      --force                        Override version/world detection errors (use with caution)
+  
+  behavior:
+    title: "Behavior"
+    content: |
+      Only adds missing directories/files - never deletes or overwrites
+      Validates structure before and after update
+      Supports nested subprojects - recursively updates all detected projects
+      Provides clear user messaging and comprehensive error handling
+
+examples:
+  - title: "Update current directory"
+    command: "dirforge update"
+    description: "Updates current directory to latest constitution version"
+  
+  - title: "Explicitly update current directory"
+    command: "dirforge update --here"
+    description: "Same as above, using explicit flag"
+  
+  - title: "Update specific project by path"
+    command: "dirforge update /path/to/project"
+    description: "Updates project in specified directory"
+  
+  - title: "Update using path flag"
+    command: "dirforge update --path=/path/to/project"
+    description: "Alternative syntax for specifying target directory"
+  
+  - title: "Preview changes without modifying"
+    command: "dirforge update --dry-run"
+    description: "Shows what would be created without making changes"
+  
+  - title: "Create backup before updating"
+    command: "dirforge update --backup"
+    description: "Creates timestamped backup then updates"
+  
+  - title: "Get JSON summary for automation"
+    command: "dirforge update --json"
+    description: "Outputs update plan in JSON format for scripting"
+  
+  - title: "Update with backup preview"
+    command: "dirforge update --backup --dry-run"
+    description: "Preview backup location and changes without executing"
+
+important_notes:
+  - "Manual migration steps may be required for some world types/versions"
+  - "See migration guide in docs/ for detailed migration information"
+  - "Exit code: 0 on success, non-zero on errors"
+  - "Use --dry-run first to review changes before applying"
+  - "Use --backup for important projects before updating"
+
+related_commands:
+  - "dirforge init - Create new project structures"
+  - "dirforge validate-config - Validate configuration files"
+  - "dirforge list-configs - List available world configurations"
+
+see_also:
+  - "docs/migration-*.md - Migration guides for different versions"
+  - "constitution.md - DirForge Constitution"
+  - "troubleshooting-update.md - Troubleshooting update issues"
+
+constitution_section: "Constitution v1.0.22"
+updated: "2025-12-30"

@@ -30,7 +30,7 @@ git clone https://github.com/m-balcewicz/dirforge.git
 cd dirforge
 
 # Run the installation wizard
-./scripts/dirforge_install_wizard.sh
+./scripts/install_dirforge.sh --wizard
 ```
 
 The wizard will:
@@ -40,13 +40,16 @@ The wizard will:
 - Run tests to verify installation
 - Provide clear feedback and next steps
 
-### Manual Installation
+### Installation Modes
 
-If you prefer manual installation, use the traditional script:
+The `install_dirforge.sh` script supports three modes:
 
 ```bash
+# Interactive wizard mode (recommended)
+bash scripts/install_dirforge.sh --wizard
+
 # Local installation (recommended, no sudo required)
-bash scripts/install_dirforge.sh
+bash scripts/install_dirforge.sh --local
 
 # System-wide installation (requires sudo)
 sudo bash scripts/install_dirforge.sh --system

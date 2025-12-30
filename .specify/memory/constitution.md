@@ -863,6 +863,188 @@ All reusable templates, boilerplate content, and reference materials MUST be sto
 
 Rationale: Clear separation between reusable templates/reference materials (`templates/`) and actual project demonstrations (`examples/`) improves maintainability and user understanding.
 
+### IV.A YAML-Based Help System
+
+The DirForge help system MUST use YAML-based content files for all help output, replacing hard-coded help text in bash functions. This approach provides maintainable, version-controlled, and easily extensible help documentation.
+
+#### IV.A.I Help System Architecture
+
+**Help Content Location:**
+- All help content MUST be stored in YAML files within `templates/help/`
+- Each command or world type MUST have a corresponding YAML file: `<command-name>.yaml` or `<world-type>-world.yaml`
+- Help files MUST follow a standardized schema for consistent parsing and formatting
+
+**Required Help Files:**
+The following help files MUST be maintained in `templates/help/`:
+- `global-help.yaml` — Main dirforge command help (`dirforge --help`)
+- `init.yaml` — Init command help (`dirforge init --help`)
+- `update.yaml` — Update command help (`dirforge update --help`)
+- `validate-config.yaml` — Validate-config command help
+- `list-configs.yaml` — List-configs command help
+- `research-world.yaml` — Research world type help
+- `lecture-world.yaml` — Lecture world type help
+- `coding-world.yaml` — Coding world type help
+- `journal-world.yaml` — Journal world type help
+- `office-world.yaml` — Office world type help
+- `private-world.yaml` — Private world type help
+- `yaml-config-system.yaml` — YAML configuration system documentation
+
+#### IV.A.II Help File Schema
+
+Each help YAML file MUST conform to the following schema:
+
+```yaml
+# Help file schema for dirforge commands and world types
+command: "dirforge <command> [options]"          # REQUIRED: command syntax
+syntax: |                                        # REQUIRED: multi-line syntax documentation
+  dirforge <command> [options]
+  dirforge <command> --help
+
+short_help:                                      # REQUIRED: brief summary for short help output
+  summary: "Brief one-line description"
+  usage: "dirforge <command> [options]"
+
+description: |                                   # REQUIRED: detailed command description
+  Multi-line description of the command purpose,
+  use cases, and expected behavior.
+
+sections:                                        # REQUIRED: organized content sections
+  section_name:
+    title: "Section Title"                       # REQUIRED: section heading
+    content: |                                   # REQUIRED: section content
+      Multi-line content with formatting.
+      Can include bullet points, code examples, etc.
+
+examples:                                        # REQUIRED: usage examples
+  - title: "Example title"                       # REQUIRED: example description
+    command: "dirforge init research --name 'My Project'"  # REQUIRED: command to run
+    description: "What this example demonstrates"  # OPTIONAL: additional context
+
+related_commands:                                # OPTIONAL: related commands
+  - command: "dirforge init"
+    description: "Initialize new projects"
+
+see_also:                                        # OPTIONAL: additional documentation
+  - "Section IV.B for world configuration details"
+  - "templates/world-configs/ for configuration examples"
+
+constitution_section: "§III.V"                   # REQUIRED: constitution reference
+version: "1.0.23"                                # REQUIRED: help file version
+updated: "2025-12-30"                            # REQUIRED: last update date
+```
+
+#### IV.A.III Help Content Guidelines
+
+**Content Requirements:**
+1. **Clarity**: Help text MUST be clear, concise, and actionable
+2. **Examples**: Every command MUST include at least 2-3 practical usage examples
+3. **Constitution References**: Help content MUST reference the relevant constitution section
+4. **Version Tracking**: Help files MUST include version and update date metadata
+5. **Consistency**: All help files MUST follow the same schema and formatting conventions
+
+**Formatting Standards:**
+- Use multi-line YAML blocks (|) for content sections to preserve formatting
+- Include proper indentation and line breaks for readability
+- Use backticks for command names and file paths in descriptions
+- Structure examples with title, command, and description fields
+- Keep short_help summaries under 100 characters
+
+#### IV.A.IV Help System Implementation
+
+**Parser Requirements:**
+- Help parsing MUST use `yq` (YAML query tool) for robust YAML processing
+- Parser MUST support both short (`--help`) and long (`--help-long`) help variants
+- Parser MUST handle missing or malformed YAML files gracefully with fallback messages
+- Parser MUST format output with proper headers, sections, and examples
+
+**Display Requirements:**
+- Short help MUST display: command, summary, usage, key options, and quick examples
+- Long help MUST display: full description, all sections, comprehensive examples, related commands
+- Help output MUST use terminal formatting (colors, bold, underlines) for readability
+- Long help MUST use automatic pager integration for content longer than terminal height
+
+**Fallback Mechanism:**
+- Each help function MUST attempt YAML-based help first using `get_command_help`
+- If YAML loading fails, functions MUST fall back to minimal hard-coded help text
+- Fallback help MUST provide basic usage information and reference the YAML help system
+- Error messages MUST clearly indicate when YAML help is unavailable
+
+**Code Integration:**
+Help functions in `lib/help.sh` MUST follow this pattern:
+
+```bash
+show_<command>_help() {
+    local mode="${1:-short}"  # default to short
+    
+    if [ "$mode" = "short" ]; then
+        # Try YAML first
+        if get_command_help "<command-name>" "short" 2>/dev/null; then
+            return 0
+        fi
+        
+        # Fallback to minimal hard-coded help
+        show_<command>_help_short "v1.0.23"
+        return
+    fi
+    
+    # Try YAML-based long help
+    if get_command_help "<command-name>" "long" 2>/dev/null; then
+        return 0
+    fi
+    
+    # Fallback: show short help
+    show_<command>_help_short "v1.0.23"
+}
+```
+
+#### IV.A.V Help System Maintenance
+
+**Update Process:**
+1. When adding new commands: Create corresponding YAML file in `templates/help/`
+2. When modifying functionality: Update relevant YAML help file with new information
+3. When releasing versions: Update `version` and `updated` fields in all modified help files
+4. When changing structure: Update `constitution_section` references as needed
+
+**Validation:**
+- Help files MUST be validated with `yq` before committing changes
+- New help files MUST be tested with both `--help` and `--help-long` flags
+- Help output MUST be verified for proper formatting and completeness
+- Examples in help files MUST be tested for correctness
+
+**Documentation:**
+- Help file schema MUST be documented in `docs/yaml-parsing-api.md`
+- Parser implementation MUST be documented in `lib/help_yaml_parser.sh`
+- Migration from hard-coded help MUST follow procedures in `docs/migration-to-yaml-configs.md`
+
+#### IV.A.VI Benefits and Rationale
+
+**Separation of Concerns:**
+- Help content is decoupled from implementation logic in bash scripts
+- Content changes can be made without modifying code
+- Help files can be edited by non-programmers
+
+**Maintainability:**
+- All help content is centralized in `templates/help/`
+- Changes to help text don't require script modifications
+- Version tracking is explicit in each help file
+
+**Consistency:**
+- Standardized schema ensures uniform help output
+- Automated formatting provides consistent user experience
+- Examples follow the same structure across all commands
+
+**Extensibility:**
+- New commands only require adding a YAML file
+- Help content can be easily translated or customized
+- Advanced features (search, filtering) can be added to parser
+
+**Version Control:**
+- Help content changes are tracked in git history
+- Help file versions align with constitution versions
+- Documentation updates are visible in commit logs
+
+**Rationale**: YAML-based help system transforms dirforge documentation from scattered hard-coded strings into a maintainable, extensible content management system that improves user experience, simplifies updates, and enables future enhancements while keeping code clean and focused.
+
 ### IV.B World Configuration System (YAML-Driven Scaffolding)
 
 The DirForge scaffolding system MUST use YAML-based configuration files to define and generate world structures dynamically, replacing hard-coded folder definitions in the main `dirforge` script. This approach enables flexible, maintainable, and extensible project structure definitions.
@@ -1279,4 +1461,4 @@ Versioning policy (semantic):
 - MINOR: New principle or materially expanded guidance.
 - PATCH: Wording clarifications, typos, or non-semantic refinements.
 
-**Version**: 1.0.22 | **Ratified**: 2025-12-15 | **Last Amended**: 2025-12-15
+**Version**: 1.0.23 | **Ratified**: 2025-12-15 | **Last Amended**: 2025-12-31

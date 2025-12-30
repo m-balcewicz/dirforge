@@ -354,7 +354,7 @@
   - Consistent error formatting across all world types
   - Separation of error detection (in dirforge) and formatting (in error.sh)
   - Improved user experience with actionable error messages
-- **Installation Wizard**: Interactive terminal-based installation wizard (`scripts/dirforge_install_wizard.sh`)
+- **Installation Wizard**: Interactive terminal-based installation via `install_dirforge.sh --wizard`
   - User-friendly installation process with system detection
   - Automatic PATH configuration
   - Post-installation testing
