@@ -16,7 +16,7 @@ pushd "$TMPDIR" >/dev/null
 for LANG in python matlab fortran bash; do
   PROJ="test_${LANG}"
   echo "Testing dry-run JSON for $LANG"
-  OUT="$("$DIRFORGE" --dry-run --json init coding --language $LANG --project $PROJ --no-conda --no-git 2>&1)" || true
+  OUT="$("$DIRFORGE" --dry-run --json create coding --language $LANG --project $PROJ --no-conda --no-git 2>&1)" || true
   # Look for the expected CODING_WORLD path in the JSON output
   EXPECT="CODING_WORLD/$LANG/$PROJ"
   echo "$OUT" | grep -F "$EXPECT" >/dev/null || {

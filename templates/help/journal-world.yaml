@@ -1,6 +1,6 @@
 ---
 # Journal World Help
-# Version: 1.0.22
+# Version: 1.1.0
 # Constitution: §III.VI Journal Activities
 
 command: "dirforge init journal"

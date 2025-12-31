@@ -24,7 +24,7 @@ echo "Test workspace: $TEST_WORKSPACE"
 
 # Test 1: Research project dry-run
 echo "Test 1: Research project with --dry-run"
-output=$("$DIRFORGE" --dry-run init research --name "Test Project" --no-conda 2>&1)
+output=$("$DIRFORGE" --dry-run create research --name "Test Project" --no-conda 2>&1)
 echo "$output"
 
 if echo "$output" | grep -q "DRY RUN"; then
@@ -46,7 +46,7 @@ fi
 # Test 2: Lecture project dry-run with --preview alias
 echo ""
 echo "Test 2: Lecture project with --preview"
-output=$("$DIRFORGE" --preview init lecture --name "Test Lecture" --no-conda 2>&1)
+output=$("$DIRFORGE" --preview create lecture --name "Test Lecture" --no-conda 2>&1)
 
 if echo "$output" | grep -q "DRY RUN"; then
   echo "✅ Preview mode works (--preview alias)"
@@ -67,7 +67,7 @@ fi
 # Test 3: Coding project dry-run
 echo ""
 echo "Test 3: Coding project with --dry-run"
-output=$("$DIRFORGE" --dry-run init coding --language python --project test_toolkit 2>&1)
+output=$("$DIRFORGE" --dry-run create coding --language python --project test_toolkit 2>&1)
 
 if echo "$output" | grep -q "DRY RUN"; then
   echo "✅ Dry-run mode detected"

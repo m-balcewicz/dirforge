@@ -730,7 +730,7 @@ show_global_help_short() {
     fi
     
     # Fallback to hard-coded help if YAML fails
-    local constitution_version="v1.0.23"
+    local constitution_version="v1.1.0"
     
     # Check cache first
     local cache_key
@@ -940,7 +940,7 @@ show_journal_help() {
     fi
     
     # Fallback: if YAML unavailable, call short help
-    show_journal_help_short "v1.0.21"
+    show_journal_help_short "v1.1.0"
 }
 
 # Short help for office projects
@@ -974,7 +974,7 @@ show_office_help() {
         fi
         
         # Fallback
-        show_office_help_short "v1.0.23"
+        show_office_help_short "v1.1.0"
         return
     fi
     
@@ -984,7 +984,7 @@ show_office_help() {
     fi
     
     # Fallback: show short help
-    show_office_help_short "v1.0.23"
+    show_office_help_short "v1.1.0"
 }
 
 # Short help for private projects
@@ -1018,7 +1018,7 @@ show_private_help() {
         fi
         
         # Fallback
-        show_private_help_short "v1.0.23"
+        show_private_help_short "v1.1.0"
         return
     fi
     
@@ -1028,7 +1028,7 @@ show_private_help() {
     fi
     
     # Fallback: show short help
-    show_private_help_short "v1.0.23"
+    show_private_help_short "v1.1.0"
 }
 
 # Show detailed help for the validate-config command

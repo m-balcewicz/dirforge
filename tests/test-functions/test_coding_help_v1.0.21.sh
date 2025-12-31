@@ -9,7 +9,7 @@ if [ ! -x "$DIRFORGE" ]; then
   exit 1
 fi
 
-OUT="$("$DIRFORGE" init coding --help 2>&1)"
+OUT="$("$DIRFORGE" create coding --help 2>&1)"
 
 # Ensure each language is mentioned in the help text
 for LANG in python matlab fortran bash; do

@@ -110,9 +110,9 @@ test_performance "Global help (--help)" "'$DIRFORGE' --help" || true
 test_performance "Global help (-h)" "'$DIRFORGE' -h" || true
 test_performance "Version info (--version)" "'$DIRFORGE' --version" || true
 test_performance "Init command help" "'$DIRFORGE' init --help" || true
-test_performance "Research world help" "'$DIRFORGE' init research --help" || true
-test_performance "Lecture world help" "'$DIRFORGE' init lecture --help" || true
-test_performance "Journal world help" "'$DIRFORGE' init journal --help" || true
+test_performance "Research world help" "'$DIRFORGE' create research --help" || true
+test_performance "Lecture world help" "'$DIRFORGE' create lecture --help" || true
+test_performance "Journal world help" "'$DIRFORGE' create journal --help" || true
 
 echo
 

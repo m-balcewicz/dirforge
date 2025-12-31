@@ -457,8 +457,8 @@ echo
 
 # Test 3: Directory Structure Accuracy  
 info "Testing directory structure accuracy..."
-test_directory_structure_accuracy "Research Directories" "'$DIRFORGE' init research --help" "research" || true
-test_directory_structure_accuracy "Lecture Directories" "'$DIRFORGE' init lecture --help" "lecture" || true
+test_directory_structure_accuracy "Research Directories" "'$DIRFORGE' create research --help" "research" || true
+test_directory_structure_accuracy "Lecture Directories" "'$DIRFORGE' create lecture --help" "lecture" || true
 
 echo
 
@@ -473,7 +473,7 @@ echo
 # Test 5: Section Reference Accuracy
 info "Testing section reference accuracy..."
 test_section_references "Global Help Sections" "'$DIRFORGE' --help" || true
-test_section_references "Research Sections" "'$DIRFORGE' init research --help" || true
+test_section_references "Research Sections" "'$DIRFORGE' create research --help" || true
 
 echo
 

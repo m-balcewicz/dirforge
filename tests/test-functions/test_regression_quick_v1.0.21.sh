@@ -25,7 +25,7 @@ info "Testing: Research project with --dry-run --no-conda"
 CURRENT_YEAR=$(date +%Y)
 EXPECTED_RESEARCH_PROJECT="RESEARCH_WORLD/${CURRENT_YEAR}_test-research"
 
-output=$("$DIRFORGE_PATH" init research --name "test-research" --dry-run --no-conda 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create research --name "test-research" --dry-run --no-conda 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Research project dry-run failed: $output"
 fi
@@ -38,7 +38,7 @@ fi
 
 # Test 2: Journal project with dry-run
 info "Testing: Journal project with --dry-run"
-output=$("$DIRFORGE_PATH" init journal --journal "test-journal" --id "TEST-001" --dry-run 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create journal --journal "test-journal" --id "TEST-001" --dry-run 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Journal project dry-run failed: $output"
 fi
@@ -51,7 +51,7 @@ fi
 
 # Test 3: Coding project with dry-run
 info "Testing: Coding project with --dry-run"
-output=$("$DIRFORGE_PATH" init coding --language "python" --project "test-python" --dry-run 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create coding --language "python" --project "test-python" --dry-run 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Coding project dry-run failed: $output"
 fi
@@ -104,7 +104,7 @@ fi
 info "Testing: Error handling for invalid full project options"
 
 # Test invalid research project name
-output=$("$DIRFORGE_PATH" init research --name "" 2>&1 || echo "EXPECTED_ERROR")
+output=$("$DIRFORGE_PATH" create research --name "" 2>&1 || echo "EXPECTED_ERROR")
 if [[ "$output" == *"EXPECTED_ERROR"* ]] || [[ "$output" == *"Error"* ]] || [[ "$output" == *"error"* ]]; then
     pass "Error handling works correctly for invalid project name"
 else
@@ -112,7 +112,7 @@ else
 fi
 
 # Test invalid coding language
-output=$("$DIRFORGE_PATH" init coding --language "invalid_language" --project "test" 2>&1 || echo "EXPECTED_ERROR")
+output=$("$DIRFORGE_PATH" create coding --language "invalid_language" --project "test" 2>&1 || echo "EXPECTED_ERROR")
 if [[ "$output" == *"EXPECTED_ERROR"* ]] || [[ "$output" == *"Error"* ]] || [[ "$output" == *"error"* ]] || [[ "$output" == *"Unknown language"* ]]; then
     pass "Error handling works correctly for invalid coding language"
 else

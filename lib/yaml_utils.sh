@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # yaml_utils.sh - YAML parsing and manipulation utilities for DirForge
-# Part of the YAML-Driven World Configuration System (Constitution v1.0.22, Section IV.B)
+# Part of the YAML-Driven World Configuration System (Constitution v1.1.0, Section IV.B)
 
 set -euo pipefail
 

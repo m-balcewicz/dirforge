@@ -35,7 +35,7 @@ cd "$TEMP_WORKSPACE"
 
 # Create primary authorship project with current year default
 CURRENT_YEAR=$(date +%Y)
-assert_success "run_dirforge init journal --name 'thermal_conductivity_review' --first" \
+assert_success "run_dirforge create journal --name 'thermal_conductivity_review' --first" \
   "Create primary authorship project with current year"
 
 # Verify directory structure
@@ -62,7 +62,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_primary_year_test")
 cd "$TEMP_WORKSPACE"
 
 # Create project with explicit year
-assert_success "run_dirforge init journal --name 'ai_geophysics_survey' --first --year 2024" \
+assert_success "run_dirforge create journal --name 'ai_geophysics_survey' --first --year 2024" \
   "Create primary authorship project with explicit year"
 
 # Verify correct year in path
@@ -83,7 +83,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_embedded_year_test")
 cd "$TEMP_WORKSPACE"
 
 # Create project with year embedded in name
-assert_success "run_dirforge init journal --name '2021_elastic_properties_of_carbonates' --first" \
+assert_success "run_dirforge create journal --name '2021_elastic_properties_of_carbonates' --first" \
   "Create project with embedded year in name"
 
 # Verify year was extracted correctly
@@ -101,7 +101,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_sanitization_test")
 cd "$TEMP_WORKSPACE"
 
 # Create project with complex paper name requiring sanitization
-assert_success "run_dirforge init journal --name 'Biot Coefficient Analysis in Porous Media' --first" \
+assert_success "run_dirforge create journal --name 'Biot Coefficient Analysis in Porous Media' --first" \
   "Create project with complex name requiring sanitization"
 
 # Verify name was sanitized correctly
@@ -120,11 +120,11 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_conflict_test")
 cd "$TEMP_WORKSPACE"
 
 # Create first project
-assert_success "run_dirforge init journal --name 'test_paper' --first" \
+assert_success "run_dirforge create journal --name 'test_paper' --first" \
   "Create first project"
 
 # Try to create project with same name (should fail)
-assert_failure "run_dirforge init journal --name 'test_paper' --first" \
+assert_failure "run_dirforge create journal --name 'test_paper' --first" \
   "Attempt to create duplicate project should fail"
 
 cleanup_temp_workspace
@@ -138,7 +138,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_dryrun_test")
 cd "$TEMP_WORKSPACE"
 
 # Run in dry-run mode
-output=$(run_dirforge --dry-run init journal --name 'test_paper_dry_run' --first 2>&1)
+output=$(run_dirforge --dry-run create journal --name 'test_paper_dry_run' --first 2>&1)
 
 # Verify dry-run message appears
 if echo "$output" | grep -q "DRY RUN"; then
@@ -164,7 +164,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_invalid_name_test")
 cd "$TEMP_WORKSPACE"
 
 # Test invalid characters in paper name
-assert_failure "run_dirforge init journal --name 'Invalid@Paper#Name!' --first" \
+assert_failure "run_dirforge create journal --name 'Invalid@Paper#Name!' --first" \
   "Invalid paper name with special characters should fail"
 
 cleanup_temp_workspace
@@ -178,14 +178,14 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_year_validation_test")
 cd "$TEMP_WORKSPACE"
 
 # Test invalid year formats
-assert_failure "run_dirforge init journal --name 'test_paper' --first --year 25" \
+assert_failure "run_dirforge create journal --name 'test_paper' --first --year 25" \
   "Invalid year format (2 digits) should fail"
 
-assert_failure "run_dirforge init journal --name 'test_paper' --first --year abcd" \
+assert_failure "run_dirforge create journal --name 'test_paper' --first --year abcd" \
   "Invalid year format (letters) should fail"
 
 # Test valid historical year
-assert_success "run_dirforge init journal --name 'historical_paper' --first --year 2000" \
+assert_success "run_dirforge create journal --name 'historical_paper' --first --year 2000" \
   "Valid historical year should succeed"
 
 cleanup_temp_workspace
@@ -199,11 +199,11 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_missing_flags_test")
 cd "$TEMP_WORKSPACE"
 
 # Test missing paper name
-assert_failure "run_dirforge init journal --first" \
+assert_failure "run_dirforge create journal --first" \
   "Missing --name flag should fail"
 
 # Test missing role flag
-assert_failure "run_dirforge init journal --name 'test_paper'" \
+assert_failure "run_dirforge create journal --name 'test_paper'" \
   "Missing role flag (--first) should fail"
 
 cleanup_temp_workspace
@@ -217,7 +217,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_root_test")
 cd "$TEMP_WORKSPACE"
 
 # First project should create JOURNAL_WORLD structure
-assert_success "run_dirforge init journal --name 'first_project' --first" \
+assert_success "run_dirforge create journal --name 'first_project' --first" \
   "First project creation should establish JOURNAL_WORLD"
 
 # Verify role structure exists
@@ -228,7 +228,7 @@ assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites" "Coauthor role directory"
 assert_dir_exists "JOURNAL_WORLD/03_journal_service" "Journal service role directory"
 
 # Second project should use existing structure
-assert_success "run_dirforge init journal --name 'second_project' --first" \
+assert_success "run_dirforge create journal --name 'second_project' --first" \
   "Second project should use existing JOURNAL_WORLD"
 
 cleanup_temp_workspace
@@ -242,7 +242,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_help_test")
 cd "$TEMP_WORKSPACE"
 
 # Test journal help output
-help_output=$(run_dirforge init journal --help 2>&1)
+help_output=$(run_dirforge create journal --help 2>&1)
 
 # Verify help contains primary authorship examples (case-insensitive)
 if echo "$help_output" | grep -qi "Primary Authorship\|Primary authorship"; then
@@ -255,7 +255,7 @@ fi
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Verify help contains command examples (case-insensitive)
-if echo "$help_output" | grep -qi "dirforge init journal --name.*--first"; then
+if echo "$help_output" | grep -qi "dirforge create journal --name.*--first"; then
   echo "✓ Help contains primary authorship command examples"
   PASSED_COUNT=$((PASSED_COUNT + 1))
 else
@@ -275,7 +275,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_path_test")
 cd "$TEMP_WORKSPACE"
 
 # Create project and verify path construction is correct
-assert_success "run_dirforge init journal --name 'path_test_paper' --first --year 2023" \
+assert_success "run_dirforge create journal --name 'path_test_paper' --first --year 2023" \
   "Create project for path validation"
 
 # Check if the constructed path follows the expected pattern
@@ -298,14 +298,14 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_flag_combo_test")
 cd "$TEMP_WORKSPACE"
 
 # Test all valid primary authorship flag combinations
-assert_success "run_dirforge init journal --name 'combo_test1' --first" \
+assert_success "run_dirforge create journal --name 'combo_test1' --first" \
   "Valid: --name and --first only"
 
-assert_success "run_dirforge init journal --name 'combo_test2' --first --year 2023" \
+assert_success "run_dirforge create journal --name 'combo_test2' --first --year 2023" \
   "Valid: --name, --first, and --year"
 
 # Test invalid flag combinations (conflicting roles)
-assert_failure "run_dirforge init journal --name 'combo_test3' --first --coauthor" \
+assert_failure "run_dirforge create journal --name 'combo_test3' --first --coauthor" \
   "Invalid: --first and --coauthor together should fail"
 
 cleanup_temp_workspace
@@ -319,7 +319,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_constitution_test")
 cd "$TEMP_WORKSPACE"
 
 # Create project and validate it follows constitutional requirements
-assert_success "run_dirforge init journal --name 'constitution_test' --first" \
+assert_success "run_dirforge create journal --name 'constitution_test' --first" \
   "Create project for constitution validation"
 
 # Verify the structure matches constitutional requirements from fixtures
@@ -359,7 +359,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_error_msg_test")
 cd "$TEMP_WORKSPACE"
 
 # Test specific error messages match expected content from fixtures
-error_output=$(run_dirforge init journal --name 'Invalid@Name!' --first 2>&1 || true)
+error_output=$(run_dirforge create journal --name 'Invalid@Name!' --first 2>&1 || true)
 
 if echo "$error_output" | grep -q "Error: Paper name can only contain letters, numbers, spaces, hyphens, and underscores"; then
   echo "✓ Correct error message for invalid paper name"
@@ -373,7 +373,7 @@ fi
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Test year validation error message
-year_error_output=$(run_dirforge init journal --name 'test_paper' --first --year abc 2>&1 || true)
+year_error_output=$(run_dirforge create journal --name 'test_paper' --first --year abc 2>&1 || true)
 
 if echo "$year_error_output" | grep -q "Error: Year must be a 4-digit number (YYYY)"; then
   echo "✓ Correct error message for invalid year"

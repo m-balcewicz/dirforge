@@ -1,3 +1,61 @@
+## [1.1.0] - 2025-12-31
+
+### Added
+- **Init/Create Command Separation**: Major architectural improvement separating workspace initialization from entity creation
+  - **New Command Structure**: Clear distinction between workspace setup and entity creation
+    - `dirforge init` - Workspace initialization only (creates all world directories)
+    - `dirforge create <entity>` - Entity creation within existing workspaces
+  - **Backward Compatibility**: Deprecated `dirforge init <entity>` syntax still works with deprecation warnings
+    - Automatic deprecation warnings guide users to new syntax
+    - `DIRFORGE_SUPPRESS_DEPRECATION=1` environment variable to suppress warnings
+    - Graceful migration path preserves existing workflows
+  - **Enhanced Command Interface**: Improved user experience with logical separation
+    - Workspace commands: `dirforge init [path] [options]`
+    - Entity commands: `dirforge create journal|research|coding|lecture [options]`
+    - Office and private worlds remain workspace-only (use `dirforge init office|private`)
+  - **Constitution v1.1.0**: Updated architecture documentation reflecting command separation
+    - Clear principles for when to use init vs create
+    - Updated examples throughout documentation
+    - Architectural rationale and design decisions documented
+
+### Changed
+- **Breaking Change**: Command structure reorganized for better user experience
+  - **Old**: `dirforge init journal --name 'paper' --first`
+  - **New**: `dirforge create journal --name 'paper' --first`
+  - **Migration**: Old syntax shows helpful deprecation warnings with correct commands
+- **Help System**: Updated all help content to use create syntax
+  - `dirforge --help` shows new command structure
+  - `dirforge create --help` provides entity creation guidance
+  - Entity-specific help: `dirforge create journal --help`, etc.
+  - Clear examples using only current syntax
+- **Test Suite**: Comprehensive test coverage for new architecture
+  - New v1.1.0 test suites for create commands
+  - Backward compatibility tests with deprecation warnings
+  - Test coverage for deprecation suppression
+  - Legacy test migration to new syntax
+- **Documentation**: Complete update to current command syntax
+  - README.md examples use create syntax throughout
+  - All help templates updated
+  - Constitution documentation reflects new architecture
+
+### Fixed
+- **User Experience**: Clearer mental model separating workspace setup from project creation
+- **Command Discoverability**: Logical command structure easier to learn and remember
+- **Documentation Consistency**: All examples use current recommended syntax
+
+### Migration Notes
+- **Backward Compatibility**: All existing commands continue to work
+- **Deprecation Warnings**: Clear guidance provided for syntax migration
+- **No Breaking Changes**: Existing scripts and workflows unaffected
+- **Recommended Migration**: Update scripts to use create syntax for future-proofing
+
+### Implementation Status
+- **Tasks Completed**: 58/58 (100%)
+- **Core Functionality**: ✅ Fully operational
+- **Backward Compatibility**: ✅ Maintained with warnings
+- **Test Coverage**: ✅ Comprehensive validation
+- **Documentation**: ✅ Complete update
+
 ## [1.0.23] - 2025-12-30
 
 ### Added

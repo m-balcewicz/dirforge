@@ -388,8 +388,8 @@ cmd_update() {
     fi
   fi
 
-  # Target version is always the latest (v1.0.22 with .integrity system)
-  local target_version="1.0.22"
+  # Target version is always the latest (v1.1.0 with init/create command separation)
+  local target_version="1.1.0"
 
   # Handle detection failures with consistent error handling
   # Pattern matching handles "unknown" with or without trailing newlines from detection functions
@@ -642,7 +642,7 @@ cmd_update() {
       return 5
     fi
     
-    # Create .integrity directory structure (v1.0.22) based on organizational level
+    # Create .integrity directory structure (v1.1.0) based on organizational level
     if ! has_integrity_structure "$target_dir" 2>/dev/null; then
       if [[ "$json_flag" != true ]]; then
         echo "📁 Creating .integrity directory structure ($org_level level)..."
@@ -715,7 +715,7 @@ cmd_update() {
       fi
     fi
     
-    # Update version in .integrity/*.yaml files to v1.0.22 (FR-011: always update version)
+    # Update version in .integrity/*.yaml files to v1.1.0 (Init/Create Command Separation: always update version)
     if [[ -d "$target_dir/.integrity" ]]; then
       if [[ "$json_flag" != true ]]; then
         echo "📝 Updating version tracking in .integrity metadata..."
@@ -933,7 +933,7 @@ if [ -f "$LIB_DIR/help_yaml_parser.sh" ]; then
     source "$LIB_DIR/help_yaml_parser.sh"
 fi
 
-CONSTITUTION_VERSION="v1.0.21"
+CONSTITUTION_VERSION="v1.1.0"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -2188,7 +2188,275 @@ $(for p in $packages; do echo "  - $p"; done)
 EOF
 }
 
-init_research() {
+# T001: Main dispatcher for 'create' commands
+cmd_create() {
+  local entity_type="${1:-}"
+  
+  # Check for help flags first
+  case "$entity_type" in
+    --help|-h)
+      # Use YAML-based help system (Constitution v1.1.0)
+      if declare -F get_command_help >/dev/null 2>&1; then
+        get_command_help "create" "short" 2>/dev/null || {
+          echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]"
+          echo "Entity types: research, coding, lecture, journal"
+        }
+      else
+        echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]"
+        echo "Entity types: research, coding, lecture, journal"
+      fi
+      return 0
+      ;;
+    "")
+      echo "Error: create command requires an entity type" >&2
+      echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]" >&2
+      echo "Run '$PROG_NAME create --help' for available entity types" >&2
+      return 1
+      ;;
+  esac
+  
+  shift  # Remove entity_type from arguments
+  
+  # Route to appropriate creation function
+  case "$entity_type" in
+    research)
+      create_research "$@"
+      ;;
+    coding)
+      create_coding "$@"
+      ;;
+    lecture)
+      create_lecture "$@"
+      ;;
+    journal)
+      create_journal "$@"
+      ;;
+    *)
+      echo "Error: unknown entity type '$entity_type'" >&2
+      echo "Supported entity types: research, coding, lecture, journal" >&2
+      echo "Run '$PROG_NAME create --help' for details" >&2
+      return 1
+      ;;
+  esac
+}
+
+# T002: Show deprecation warning for old init syntax
+show_deprecation_warning() {
+  local old_syntax="$1"
+  local new_syntax="$2"
+  
+  # Check if deprecation warnings are suppressed
+  if [[ "${DIRFORGE_SUPPRESS_DEPRECATION:-}" == "1" ]]; then
+    return 0
+  fi
+  
+  echo "⚠️  DEPRECATION WARNING:" >&2
+  echo "   The syntax '$old_syntax' is deprecated and will be removed in the next version." >&2
+  echo "   Please use '$new_syntax' instead." >&2
+  echo "" >&2
+  echo "   To suppress this warning, set: export DIRFORGE_SUPPRESS_DEPRECATION=1" >&2
+  echo "" >&2
+}
+
+# T003: Journal subcommand dispatcher
+create_journal() {
+  local subtype="${1:-}"
+  
+  # Check for help flags first
+  case "$subtype" in
+    --help|-h)
+      # Use YAML-based help system (Constitution v1.1.0)
+      if declare -F get_command_help >/dev/null 2>&1; then
+        get_command_help "create-journal" "short" 2>/dev/null || {
+          echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
+          echo "Subtypes: primary, coauthor, service"
+        }
+      else
+        echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
+        echo "Subtypes: primary, coauthor, service"
+      fi
+      return 0
+      ;;
+    "")
+      echo "Error: journal creation requires a subtype" >&2
+      echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]" >&2
+      echo "Run '$PROG_NAME create journal --help' for available subtypes" >&2
+      return 1
+      ;;
+  esac
+  
+  shift  # Remove subtype from arguments
+  
+  # Route to specific journal creation function
+  case "$subtype" in
+    primary)
+      create_journal_primary "$@"
+      ;;
+    coauthor)
+      create_journal_coauthor "$@"
+      ;;
+    service)
+      create_journal_service "$@"
+      ;;
+    *)
+      echo "Error: unknown journal subtype '$subtype'" >&2
+      echo "Supported subtypes: primary, coauthor, service" >&2
+      echo "Run '$PROG_NAME create journal --help' for details" >&2
+      return 1
+      ;;
+  esac
+}
+
+# T031: create_journal_primary() for primary authorship projects
+create_journal_primary() {
+  local name="" year=""
+  
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --paper|--name|-n) shift; name="$1";;
+      --year|-y) shift; year="$1";;
+      --help|-h)
+        if declare -F get_command_help >/dev/null 2>&1; then
+          get_command_help "create-journal-primary" "short" 2>/dev/null || {
+            echo "Usage: $PROG_NAME create journal primary --paper <name> [--year <YYYY>]"
+            echo "Create a journal project for primary authorship (your papers as lead author)"
+          }
+        else
+          echo "Usage: $PROG_NAME create journal primary --paper <name> [--year <YYYY>]"
+          echo "Create a journal project for primary authorship (your papers as lead author)"
+        fi
+        return 0
+        ;;
+      *) 
+        echo "Unknown arg for journal primary: $1" >&2
+        echo "Valid options: --paper <name>, --year <YYYY>, --help" >&2
+        exit 1
+        ;;
+    esac
+    shift
+  done
+  
+  if [ -z "$name" ]; then
+    echo "Error: --paper is required for primary authorship projects" >&2
+    echo "Usage: $PROG_NAME create journal primary --paper <name> [--year <YYYY>]" >&2
+    exit 1
+  fi
+  
+  # Ensure JOURNAL_WORLD structure exists
+  if ! is_in_journal_world; then
+    create_journal_role_structure || exit 1
+  fi
+  
+  # Handle year logic
+  local paper_name="$name"
+  if [ -z "$year" ]; then
+    # Extract year from paper name or use current year
+    year=$(extract_year_from_paper_name "$paper_name")
+    paper_name=$(strip_year_from_paper_name "$paper_name")
+  fi
+  
+  create_primary_authorship_project "$paper_name" "$year"
+}
+
+# T032: create_journal_coauthor() for coauthor collaboration projects
+create_journal_coauthor() {
+  local name="" year=""
+  
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --paper|--name|-n) shift; name="$1";;
+      --year|-y) shift; year="$1";;
+      --help|-h)
+        if declare -F get_command_help >/dev/null 2>&1; then
+          get_command_help "create-journal-coauthor" "short" 2>/dev/null || {
+            echo "Usage: $PROG_NAME create journal coauthor --paper <name> [--year <YYYY>]"
+            echo "Create a journal project for co-author collaboration"
+          }
+        else
+          echo "Usage: $PROG_NAME create journal coauthor --paper <name> [--year <YYYY>]"
+          echo "Create a journal project for co-author collaboration"
+        fi
+        return 0
+        ;;
+      *) 
+        echo "Unknown arg for journal coauthor: $1" >&2
+        echo "Valid options: --paper <name>, --year <YYYY>, --help" >&2
+        exit 1
+        ;;
+    esac
+    shift
+  done
+  
+  if [ -z "$name" ]; then
+    echo "Error: --paper is required for coauthor projects" >&2
+    echo "Usage: $PROG_NAME create journal coauthor --paper <name> [--year <YYYY>]" >&2
+    exit 1
+  fi
+  
+  # Ensure JOURNAL_WORLD structure exists
+  if ! is_in_journal_world; then
+    create_journal_role_structure || exit 1
+  fi
+  
+  # Handle year logic
+  local paper_name="$name"
+  if [ -z "$year" ]; then
+    # Extract year from paper name or use current year
+    year=$(extract_year_from_paper_name "$paper_name")
+    paper_name=$(strip_year_from_paper_name "$paper_name")
+  fi
+  
+  create_coauthor_project "$paper_name" "$year"
+}
+
+# T033: create_journal_service() for journal service projects
+create_journal_service() {
+  local journal_name="" manuscript_id=""
+  
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --journal|--name|-n) shift; journal_name="$1";;
+      --id|--manuscript-id|-m) shift; manuscript_id="$1";;
+      --help|-h)
+        if declare -F get_command_help >/dev/null 2>&1; then
+          get_command_help "create-journal-service" "short" 2>/dev/null || {
+            echo "Usage: $PROG_NAME create journal service --journal <name> --id <manuscript_id>"
+            echo "Create a journal project for service activities (reviews, editorial work)"
+          }
+        else
+          echo "Usage: $PROG_NAME create journal service --journal <name> --id <manuscript_id>"
+          echo "Create a journal project for service activities (reviews, editorial work)"
+        fi
+        return 0
+        ;;
+      *) 
+        echo "Unknown arg for journal service: $1" >&2
+        echo "Valid options: --journal <name>, --id <manuscript_id>, --help" >&2
+        exit 1
+        ;;
+    esac
+    shift
+  done
+  
+  if [ -z "$journal_name" ] || [ -z "$manuscript_id" ]; then
+    echo "Error: Both --journal and --id are required for journal service projects" >&2
+    echo "Usage: $PROG_NAME create journal service --journal <name> --id <manuscript_id>" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  $PROG_NAME create journal service --journal \"Geophysics\" --id \"GEO-2025-0451\"" >&2
+    echo "  $PROG_NAME create journal service --journal \"Nature Geoscience\" --id \"REVIEWER_2024_Q4\"" >&2
+    exit 1
+  fi
+  
+  # Ensure JOURNAL_WORLD structure exists
+  if ! is_in_journal_world; then
+    create_journal_role_structure || exit 1
+  fi
+  
+  create_journal_service_project "$journal_name" "$manuscript_id"
+}
+
+create_research() {
   local name="${NAME:-}" project_id="" study_name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -2206,7 +2474,7 @@ init_research() {
   # Determine operation mode
   if [ -n "$project_id" ] && [ -n "$study_name" ]; then
     # Study creation mode
-    init_research_study --project "$project_id" --study "$study_name"
+    create_research_study --project "$project_id" --study "$study_name"
     return
   elif [ -n "$name" ] && [ -n "$study_name" ]; then
     # Combined project + study creation
@@ -2216,7 +2484,7 @@ init_research() {
     [ -n "$py_ver" ] && args+=(--python "$py_ver")
     [ "$no_conda" = true ] && args+=(--no-conda)
     [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
-    init_research_project_only "${args[@]}"
+    create_research_project "${args[@]}"
     # Extract project ID from what was just created
     local id_raw
     id_raw=$(to_snake_case "$name")
@@ -2227,7 +2495,7 @@ init_research() {
     else
       project_id="${year}_$id_raw"
     fi
-    init_research_study --project "$project_id" --study "$study_name"
+    create_research_study --project "$project_id" --study "$study_name"
     return
   elif [ -n "$name" ]; then
     # Project creation mode
@@ -2236,7 +2504,7 @@ init_research() {
     [ -n "$py_ver" ] && args+=(--python "$py_ver")
     [ "$no_conda" = true ] && args+=(--no-conda)
     [ -n "$extra_pkgs" ] && args+=(--conda-packages "$extra_pkgs")
-    init_research_project_only "${args[@]}"
+    create_research_project "${args[@]}"
     return
   else
     show_research_missing_args_error "$PROG_NAME"
@@ -2244,7 +2512,7 @@ init_research() {
   fi
 }
 
-init_research_project_only() {
+create_research_project() {
   local name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -2331,16 +2599,16 @@ init_research_project_only() {
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/MSc_Thesis"
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/PhD_Supervision"
 
-  # Create .integrity directories (constitution v1.0.22 with metadata files)
+  # Create .integrity directories (constitution v1.1.0 with metadata files)
   do_mkdir_p "$RESEARCH_ROOT/.integrity/checksums"
   do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
 
-  # Create .integrity/project.yaml for v1.0.22 compliance
+  # Create .integrity/project.yaml for v1.1.0 compliance
   local integrity_yaml="$RESEARCH_ROOT/.integrity/project.yaml"
   write_file "$integrity_yaml" <<EOF
 name: "$title"
 world_type: "RESEARCH_WORLD"
-version: "1.0.22"
+version: "1.1.0"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2354,7 +2622,7 @@ Conda env: $CONDA_NAME
 
 ## Project Structure
 
-This research project follows the DirForge Constitution v1.0.17 study-based organization:
+This research project follows the DirForge Constitution v1.1.0 study-based organization:
 
 - \`00_admin/\` - Project contracts, ethics, agreements
 - \`01_project_management/\` - Proposals, reports, budgets
@@ -2401,7 +2669,7 @@ EOF
   fi
 }
 
-init_research_study() {
+create_research_study() {
   local project_id="" study_name=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -2463,11 +2731,11 @@ init_research_study() {
   do_mkdir_p "$STUDY_ROOT/.integrity/checksums"
   do_mkdir_p "$STUDY_ROOT/.integrity/manifests"
 
-  # Create .integrity/study.yaml for v1.0.22 compliance
+  # Create .integrity/study.yaml for v1.1.0 compliance
   local study_integrity_yaml="$STUDY_ROOT/.integrity/study.yaml"
   write_file "$study_integrity_yaml" <<EOF
 name: "$study_name"
-version: "1.0.22"
+version: "1.1.0"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2507,11 +2775,13 @@ EOF
   fi
 }
 
-init_lecture() {
-  local name="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
+create_lecture() {
+  local name="" course="" title="" py_ver="${PY:-3.11}" no_conda=false extra_pkgs=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --name|-n) shift; name="$1";;
+      --course|-c) shift; course="$1";;
+      --title|-t) shift; title="$1";;
       --python) shift; py_ver="$1";;
       --no-conda) no_conda=true;;
       --conda-packages) shift; extra_pkgs="$1";;
@@ -2519,9 +2789,18 @@ init_lecture() {
     esac
     shift
   done
-  if [ -z "$name" ]; then
+  
+  # Determine name from course+title or direct name
+  if [ -z "$name" ] && [ -n "$course" ] && [ -n "$title" ]; then
+    name="${course}: ${title}"
+  elif [ -z "$name" ] && [ -n "$course" ]; then
+    name="$course"
+  elif [ -z "$name" ] && [ -n "$title" ]; then
+    name="$title"
+  elif [ -z "$name" ]; then
     read -r -p "Lecture name: " name
   fi
+  
   lecture_id=$(to_snake_case "$name")
   if [ "$JSON_OUTPUT" = false ]; then
     echo "Lecture name converted to ID: $lecture_id"
@@ -2570,16 +2849,16 @@ init_lecture() {
     do_mkdir_p "$LECTURE_ROOT/$d"
   done
 
-  # Create .integrity directories (constitution v1.0.22 with metadata files)
+  # Create .integrity directories (constitution v1.1.0 with metadata files)
   do_mkdir_p "$LECTURE_ROOT/.integrity/checksums"
   do_mkdir_p "$LECTURE_ROOT/.integrity/manifests"
 
-  # Create .integrity/lecture.yaml for v1.0.22 compliance
+  # Create .integrity/lecture.yaml for v1.1.0 compliance
   local lecture_integrity_yaml="$LECTURE_ROOT/.integrity/lecture.yaml"
   write_file "$lecture_integrity_yaml" <<EOF
 name: "$name"
 world_type: "LECTURE_WORLD"
-version: "1.0.22"
+version: "1.1.0"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2631,7 +2910,7 @@ EOF
   fi
 }
 
-init_coding() {
+create_coding() {
   local language="" project="" py_ver="${PY:-3.11}" skip_conda=false skip_git=false
   local no_git=false no_conda=false
   while [ "$#" -gt 0 ]; do
@@ -2908,7 +3187,7 @@ EOF
   fi
 }
 
-init_journal() {
+create_journal_legacy() {
   # Handle help flags first before processing any other arguments (T034)
   for arg in "$@"; do
     case "$arg" in
@@ -3172,6 +3451,42 @@ init_journal() {
   fi
 }
 
+# ============================================================================
+# Backward Compatibility Wrapper Functions (T013)
+# ============================================================================
+# These wrapper functions maintain compatibility with the old init_* naming
+# while routing to the new create_* implementations
+
+# Backward compatibility wrapper for init_research -> create_research
+init_research() {
+  create_research "$@"
+}
+
+# Backward compatibility wrapper for init_research_project_only -> create_research_project
+init_research_project_only() {
+  create_research_project "$@"
+}
+
+# Backward compatibility wrapper for init_research_study -> create_research_study
+init_research_study() {
+  create_research_study "$@"
+}
+
+# Backward compatibility wrapper for init_coding -> create_coding
+init_coding() {
+  create_coding "$@"
+}
+
+# Backward compatibility wrapper for init_lecture -> create_lecture
+init_lecture() {
+  create_lecture "$@"
+}
+
+# Backward compatibility wrapper for init_journal -> create_journal_legacy
+init_journal() {
+  create_journal_legacy "$@"
+}
+
 handle_help_request() {
   # Route help requests to appropriate help functions based on context
   # Usage: handle_help_request [command] [world-type-or-subcommand] [world-type]
@@ -3209,11 +3524,17 @@ handle_help_request() {
   
   case "$cmd" in
     ""|"help"|"--help"|"-h")
-      # Default to short help for quick reference
-      if declare -F show_global_help_short >/dev/null 2>&1; then
-        show_global_help_short
+      # Check if this is a specific help request like "dirforge help create"
+      if [ -n "$subcmd" ]; then
+        # Route to handle_help_request for specific command help
+        handle_help_request "$subcmd" "$world"
       else
-        show_global_help
+        # Default to short help for quick reference
+        if declare -F show_global_help_short >/dev/null 2>&1; then
+          show_global_help_short
+        else
+          show_global_help
+        fi
       fi
       ;;
     "--help-long")
@@ -3245,6 +3566,158 @@ handle_help_request() {
         show_command_help "update"
       else
         show_global_help
+      fi
+      ;;
+    "create")
+      # Handle create command help routing
+      if [ -n "$subcmd" ] && [ "$subcmd" != "help" ]; then
+        # Entity-specific help: dirforge create research --help, dirforge create journal primary --help
+        case "$subcmd" in
+          research)
+            # Try YAML-based help first, fallback to simple help
+            if declare -F get_command_help >/dev/null 2>&1; then
+              get_command_help "create-research" "short" 2>/dev/null || {
+                echo "Usage: $PROG_NAME create research [OPTIONS]"
+                echo ""
+                echo "Create research projects and studies using the new create command syntax."
+                echo ""
+                echo "Examples:"
+                echo "  $PROG_NAME create research --name \"Project Name\""
+                echo "  $PROG_NAME create research --project \"2025_project\" --study \"Study Name\""
+                echo ""
+                echo "For detailed help: $PROG_NAME create research --help"
+              }
+            else
+              echo "Usage: $PROG_NAME create research [OPTIONS]"
+              echo ""
+              echo "Create research projects and studies."
+              echo ""
+              echo "For detailed help: $PROG_NAME create research --help"
+            fi
+            ;;
+          coding)
+            # Try YAML-based help first, fallback to simple help
+            if declare -F get_command_help >/dev/null 2>&1; then
+              get_command_help "create-coding" "short" 2>/dev/null || {
+                echo "Usage: $PROG_NAME create coding [OPTIONS]"
+                echo ""
+                echo "Create coding projects with language support."
+                echo ""
+                echo "Examples:"
+                echo "  $PROG_NAME create coding --language python --project \"mylib\""
+                echo "  $PROG_NAME create coding --language matlab --project \"analysis\""
+                echo ""
+                echo "For detailed help: $PROG_NAME create coding --help"
+              }
+            else
+              echo "Usage: $PROG_NAME create coding [OPTIONS]"
+              echo ""
+              echo "Create coding projects with language support."
+              echo ""
+              echo "For detailed help: $PROG_NAME create coding --help"
+            fi
+            ;;
+          lecture)
+            # Try YAML-based help first, fallback to simple help
+            if declare -F get_command_help >/dev/null 2>&1; then
+              get_command_help "create-lecture" "short" 2>/dev/null || {
+                echo "Usage: $PROG_NAME create lecture [OPTIONS]"
+                echo ""
+                echo "Create lecture materials and course content."
+                echo ""
+                echo "Examples:"
+                echo "  $PROG_NAME create lecture --course \"CS101\" --title \"Intro Course\""
+                echo "  $PROG_NAME create lecture --name \"Course Name\""
+                echo ""
+                echo "For detailed help: $PROG_NAME create lecture --help"
+              }
+            else
+              echo "Usage: $PROG_NAME create lecture [OPTIONS]"
+              echo ""
+              echo "Create lecture materials and course content."
+              echo ""
+              echo "For detailed help: $PROG_NAME create lecture --help"
+            fi
+            ;;
+          journal)
+            # Handle journal subcommands: dirforge create journal primary --help
+            if [ -n "$world" ]; then
+              # Specific journal subcommand help
+              case "$world" in
+                primary|coauthor|service)
+                  # Try YAML-based help first, fallback to simple help
+                  if declare -F get_command_help >/dev/null 2>&1; then
+                    get_command_help "create-journal-$world" "short" 2>/dev/null || {
+                      echo "Usage: $PROG_NAME create journal $world [OPTIONS]"
+                      echo ""
+                      echo "Create journal $world projects."
+                      echo ""
+                      echo "For detailed help: $PROG_NAME create journal $world --help"
+                    }
+                  else
+                    echo "Usage: $PROG_NAME create journal $world [OPTIONS]"
+                    echo ""
+                    echo "Create journal $world projects."
+                  fi
+                  ;;
+                *)
+                  echo "Unknown journal subtype: $world" >&2
+                  echo "Supported subtypes: primary, coauthor, service" >&2
+                  ;;
+              esac
+            else
+              # General journal help: dirforge create journal --help
+              if declare -F get_command_help >/dev/null 2>&1; then
+                get_command_help "create-journal" "short" 2>/dev/null || {
+                  echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
+                  echo ""
+                  echo "Create journal projects with role-based structure."
+                  echo ""
+                  echo "Subtypes:"
+                  echo "  primary     Primary authorship projects"
+                  echo "  coauthor    Co-author collaboration projects" 
+                  echo "  service     Journal service projects (reviews, editorial)"
+                  echo ""
+                  echo "Examples:"
+                  echo "  $PROG_NAME create journal primary --paper \"Paper Title\""
+                  echo "  $PROG_NAME create journal coauthor --paper \"Collaboration\""
+                  echo "  $PROG_NAME create journal service --journal \"Geophysics\" --id \"GEO-2025-0451\""
+                  echo ""
+                  echo "For detailed help: $PROG_NAME create journal <subtype> --help"
+                }
+              else
+                echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
+                echo ""
+                echo "Create journal projects with role-based structure."
+                echo ""
+                echo "Subtypes: primary, coauthor, service"
+              fi
+            fi
+            ;;
+          *)
+            echo "Unknown entity type: $subcmd" >&2
+            echo "Supported entity types: research, coding, lecture, journal" >&2
+            echo ""
+            echo "For help: $PROG_NAME create --help" >&2
+            ;;
+        esac
+      else
+        # Main create command help: dirforge create --help
+        # Use cmd_create directly since it has working YAML integration
+        cmd_create --help 2>/dev/null || {
+          # Fallback if cmd_create unavailable
+          echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]"
+          echo ""
+          echo "Create new projects using the create command structure."
+          echo ""
+          echo "Entity types:"
+          echo "  research    Create research projects and studies"
+          echo "  coding      Create coding projects with language support"
+          echo "  lecture     Create lecture materials and course content"
+          echo "  journal     Create journal projects with role-based structure"
+          echo ""
+          echo "For detailed help: $PROG_NAME create <entity_type> --help"
+        }
       fi
       ;;
     "validate-config")
@@ -3356,17 +3829,62 @@ init_all_worlds() {
         auto_create=true
         shift
         ;;
+      # T016: Reject additional workspace flags to keep init focused on basic workspace initialization
       --here)
-        target_path="."
-        shift
+        echo "Error: Flag '$1' is not supported by 'dirforge init'." >&2
+        echo "" >&2
+        echo "The 'init' command only accepts basic workspace initialization flags:" >&2
+        echo "  $PROG_NAME init [path] [--auto|--yes|-y]" >&2
+        echo "" >&2
+        echo "Use '.' or omit path for current directory initialization:" >&2
+        echo "  $PROG_NAME init --auto" >&2
+        echo "  $PROG_NAME init /path/to/workspace --auto" >&2
+        echo "" >&2
+        exit 1
         ;;
       --path=*)
-        target_path="${1#--path=}"
-        shift
+        echo "Error: Flag '--path=' is not supported by 'dirforge init'." >&2
+        echo "" >&2
+        echo "The 'init' command only accepts basic workspace initialization:" >&2
+        echo "  $PROG_NAME init [path] [--auto|--yes|-y]" >&2
+        echo "" >&2
+        echo "Specify the path directly as an argument instead:" >&2
+        target_path_suggested="${1#--path=}"
+        echo "  $PROG_NAME init \"$target_path_suggested\" --auto" >&2
+        echo "" >&2
+        exit 1
+        ;;
+      # T014: Reject entity-specific flags that belong to create commands
+      --project|--study|--language|--course|--title|--paper|--journal|--manuscript|--id|--first|--coauthor|--service|--py-ver|--python|--skip-conda|--skip-git|--name|--year)
+        echo "Error: Entity-specific flag '$1' is not supported by 'dirforge init'." >&2
+        echo "" >&2
+        echo "The 'init' command is for workspace initialization only:" >&2
+        echo "  $PROG_NAME init [path] [--auto|--yes|-y]" >&2
+        echo "" >&2
+        echo "For project/entity creation, use the 'create' command instead:" >&2
+        case "$1" in
+          --project|--study|--name)
+            echo "  $PROG_NAME create research $1 \"value\"" >&2
+            ;;
+          --language)
+            echo "  $PROG_NAME create coding $1 python --project \"name\"" >&2
+            ;;
+          --course|--title)
+            echo "  $PROG_NAME create lecture $1 \"value\"" >&2
+            ;;
+          --paper|--journal|--manuscript|--id|--first|--coauthor|--service|--year)
+            echo "  $PROG_NAME create journal [primary|coauthor|service] --name \"value\"" >&2
+            ;;
+          --py-ver|--python|--skip-conda|--skip-git)
+            echo "  $PROG_NAME create coding --language python $1" >&2
+            ;;
+        esac
+        echo "" >&2
+        exit 1
         ;;
       -*)
         echo "Unknown option: $1" >&2
-        echo "Usage: $PROG_NAME init [path] [--auto|--yes|-y] [--here] [--path=PATH]" >&2
+        echo "Usage: $PROG_NAME init [path] [--auto|--yes|-y]" >&2
         exit 1
         ;;
       *)
@@ -3407,7 +3925,7 @@ init_all_worlds() {
   # Create base directory if it doesn't exist
   do_mkdir_p "$target_path"
   
-  # Define all world types - per DirForge Constitution v1.0.17
+  # Define all world types - per DirForge Constitution v1.1.0
   local worlds=(
     "CODING_WORLD"
     "JOURNAL_WORLD" 
@@ -3474,7 +3992,7 @@ init_all_worlds() {
     echo "DRY RUN: would create complete DirForge workspace at $target_path"
   else
     # Create workspace-level integrity metadata
-    create_workspace_integrity_metadata "$target_path" "1.0.22" || {
+    create_workspace_integrity_metadata "$target_path" "1.1.0" || {
       echo "Warning: Could not create workspace metadata" >&2
     }
     
@@ -3482,18 +4000,18 @@ init_all_worlds() {
     echo "✅ Workspace initialized at: $target_path"
     echo
     echo "Created world directories:"
-    echo "  CODING_WORLD/           (empty - use 'dirforge init coding' to create projects)"
-    echo "  JOURNAL_WORLD/          (empty - use 'dirforge init journal' to create activities)"
-    echo "  LECTURE_WORLD/          (empty - use 'dirforge init lecture' to create courses)"
+    echo "  CODING_WORLD/           (empty - use 'dirforge create coding' to create projects)"
+    echo "  JOURNAL_WORLD/          (empty - use 'dirforge create journal' to create activities)"
+    echo "  LECTURE_WORLD/          (empty - use 'dirforge create lecture' to create courses)"
     echo "  LITERATURE_WORLD/       (empty - user-managed)"
     echo "  OFFICE_WORLD/           (with 7 subfolders)"
     echo "  PRIVATE_WORLD/          (with 10 subfolders)"
-    echo "  RESEARCH_WORLD/         (empty - use 'dirforge init research' to create projects)"
+    echo "  RESEARCH_WORLD/         (empty - use 'dirforge create research' to create projects)"
     echo
-    echo "Constitution version: v1.0.22"
+    echo "Constitution version: v1.1.0"
     echo
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "⚡ IMPORTANT: Configure workspace environment variable"
+    echo "⚡ WORKSPACE SETUP: Configure environment variable"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo
     echo "To use dirforge commands from anywhere in your system, add this to your shell:"
@@ -3501,19 +4019,19 @@ init_all_worlds() {
     echo "  echo 'export DIRFORGE_WORKSPACE_ROOT=\"$target_path\"' >> ~/.zshrc"
     echo "  source ~/.zshrc"
     echo
-    echo "After configuration, you can run commands like:"
-    echo "  dirforge init research --project myproject"
-    echo "  dirforge init coding --language python --project mytool"
+    echo "After configuration, you can run entity creation commands like:"
+    echo "  dirforge create research --name \"myproject\""
+    echo "  dirforge create coding --language python --project \"mytool\""
     echo
     echo "From anywhere, and projects will be created in: $target_path"
     echo
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo
-    echo "Next steps:"
-    echo "  • Create a research project: $PROG_NAME init research --name \"Project Name\""
-    echo "  • Create a lecture: $PROG_NAME init lecture --name \"Course Name\""
-    echo "  • Create a coding project: $PROG_NAME init coding --language python --project \"name\""
-    echo "  • Create a journal activity: $PROG_NAME init journal --journal \"Journal Name\" --id \"MS-ID\""
+    echo "Next steps - Create your first project:"
+    echo "  • Research project:  $PROG_NAME create research --name \"Project Name\""
+    echo "  • Coding project:    $PROG_NAME create coding --language python --project \"name\""
+    echo "  • Lecture materials: $PROG_NAME create lecture --course \"CS101\" --title \"Course Name\""
+    echo "  • Journal activity:  $PROG_NAME create journal primary --paper \"Paper Title\""
   fi
 }
 
@@ -3543,37 +4061,50 @@ suggest_world_help() {
 usage() {
   cat <<EOF
 Usage: 
-  $PROG_NAME init <world> [options]        # Create specific world project
-  $PROG_NAME init [path] [--auto]          # Initialize complete workspace with all worlds
+  $PROG_NAME init [path] [--auto]          # Initialize complete workspace with all world directories
+  $PROG_NAME create <type> [options]       # Create specific projects/entities
 
-World types: research, lecture, coding, journal, office, private
+Workspace Initialization (init):
+  $PROG_NAME init [path] [--auto|--yes|-y]
+  
+  path                    Target directory (default: current directory)
+  --auto, --yes, -y       Create automatically without prompts
+
+Entity Creation (create):
+  $PROG_NAME create research [options]     # Research projects and studies
+  $PROG_NAME create coding [options]       # Coding projects (python, matlab, fortran, bash)
+  $PROG_NAME create lecture [options]      # Lecture materials and courses
+  $PROG_NAME create journal [subtype]      # Journal activities (primary, coauthor, service)
 
 Global options:
   --dry-run, --preview    Preview changes without writing to filesystem
   --json                  Output machine-readable JSON plan (requires --dry-run)
   --force                 Overwrite existing projects without prompting
   --backup                Create timestamped backups before overwriting
-  --yes, -y               Skip interactive prompts and proceed
-
-Complete workspace initialization:
-  path                    Target directory (default: current directory)
-  --auto, --yes, -y       Create automatically without prompts
-  --here                  Explicitly use current directory
+  --help, -h              Show help for specific command or entity type
 
 Examples:
-  # Initialize complete workspace
+  # Workspace initialization (creates all world directories)
   $PROG_NAME init
   $PROG_NAME init /path/to/workspace --auto
   $PROG_NAME init ~/myworkspace
+
+  # Entity creation (creates specific projects within existing workspace)
+  $PROG_NAME create research --name "Thermal Model Analysis"
+  $PROG_NAME create coding --language python --project ml_toolkit
+  $PROG_NAME create lecture --course "CS101" --title "Digital Rock Physics"
+  $PROG_NAME create journal primary --paper "My Research Paper"
   
-  # Create specific world projects
-  $PROG_NAME init research --name "Thermal Model Analysis" --python 3.11
-  $PROG_NAME init lecture --name "Digital Rock Physics"
-  $PROG_NAME init coding --language python --project ml_toolkit
+  # Get help on specific commands
+  $PROG_NAME init --help
+  $PROG_NAME create research --help
+  $PROG_NAME create coding --help
   
   # Preview changes
   $PROG_NAME --dry-run init ~/test-workspace
-  $PROG_NAME --dry-run --json init research --name "Test" | jq .
+  $PROG_NAME --dry-run create research --name "Test Project"
+
+Note: Old 'dirforge init <world>' syntax is deprecated. Use 'dirforge create <type>' instead.
 EOF
 }
 
@@ -3870,6 +4401,11 @@ main() {
       cmd_update "$@"
       exit $?
       ;;
+    create)
+      # T004: Route 'create' commands to cmd_create() dispatcher
+      cmd_create "$@"
+      exit $?
+      ;;
     init)
       # Check if there are any arguments
       if [ "$#" -eq 0 ]; then
@@ -3883,9 +4419,29 @@ main() {
             exit 0
             ;;
           research|lecture|coding|journal|office|private)
-            # Traditional world-specific init
+            # T005: Detect deprecated 'init <world>' syntax and show warning
             world="$1"
             shift
+            
+            # Show deprecation warning for old syntax (T005)
+            case "$world" in
+              research)
+                show_deprecation_warning "dirforge init research" "dirforge create research"
+                ;;
+              coding)
+                show_deprecation_warning "dirforge init coding" "dirforge create coding"
+                ;;
+              lecture)
+                show_deprecation_warning "dirforge init lecture" "dirforge create lecture"
+                ;;
+              journal)
+                show_deprecation_warning "dirforge init journal" "dirforge create journal"
+                ;;
+              office|private)
+                # These are workspace-level commands, so no deprecation warning needed
+                # They remain valid under init
+                ;;
+            esac
             
             # Check for help flags before processing world
             case "${1:-}" in
@@ -3910,10 +4466,10 @@ main() {
               create_world_parent "$world"
             else
               case "$world" in
-                research) init_research "$@" ;;
-                lecture) init_lecture "$@" ;;
-                coding) init_coding "$@" ;;
-                journal) init_journal "$@" ;;
+                research) create_research "$@" ;;
+                lecture) create_lecture "$@" ;;
+                coding) create_coding "$@" ;;
+                journal) create_journal_legacy "$@" ;;
                 office)
                 echo "Creating OFFICE_WORLD standard folders..."
                 if [ ! -d "$WORKSPACE_ROOT/OFFICE_WORLD" ]; then
@@ -4159,7 +4715,7 @@ main() {
               echo "YAML STRUCTURE"
               echo "  world:"
               echo "    type: CUSTOM_WORLD"
-              echo "    version: '1.0.22'"
+              echo "    version: '1.1.0'"
               echo "  parent_directories:"
               echo "    - name: 01_projects"
               echo "      subdirectories:"
@@ -4194,6 +4750,31 @@ main() {
             }
           else
             handle_help_request "init"
+          fi
+          exit 0
+          ;;
+        create)
+          # Handle create help with subcommands: dirforge help create, dirforge help create research
+          shift # Remove 'create' from arguments
+          local entity_type="${1:-}"
+          
+          if [ -z "$entity_type" ]; then
+            # dirforge help create (no entity) - show main create help
+            handle_help_request "create"
+          else
+            # dirforge help create research, dirforge help create journal, etc.
+            case "$entity_type" in
+              research|coding|lecture|journal)
+                handle_help_request "create" "$entity_type"
+                ;;
+              *)
+                echo "Unknown create entity type: $entity_type" >&2
+                echo "Supported entity types: research, coding, lecture, journal" >&2
+                echo ""
+                echo "For help: dirforge help create" >&2
+                exit 1
+                ;;
+            esac
           fi
           exit 0
           ;;

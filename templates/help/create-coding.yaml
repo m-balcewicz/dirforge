@@ -1,0 +1,80 @@
+---
+# Create Coding Command Help
+# Version: 1.1.0  
+# Constitution: §III.I CODING_WORLD
+
+command: "dirforge create coding"
+syntax: |
+  dirforge create coding --language <lang> --project <name> [options]
+
+short_help:
+  summary: "Create coding projects with language-specific structure and tooling"
+  usage: "dirforge create coding --language <lang> --project <name>"
+
+description: |
+  Creates language-specific coding projects in CODING_WORLD with proper scaffolding,
+  dependency management, and development environment setup. Supports multiple 
+  programming languages with tailored project structures.
+
+sections:
+  required_options:
+    title: "Required Options"
+    content: |
+      --language <lang>              Programming language (python, matlab, fortran, bash)
+      --project <name>               Project name (converted to snake_case directory)
+
+  language_specific:
+    title: "Language-Specific Options"
+    content: |
+      Python:
+        --py-ver 3.11                Python version for environment (default: 3.11)
+        --skip-conda                 Skip conda environment creation
+        --conda-packages "pkg1,pkg2" Additional packages for environment
+      
+      MATLAB:
+        --matlab-version R2023b       MATLAB version (default: latest)
+        --toolboxes "signal,image"    Required MATLAB toolboxes
+      
+      Fortran:
+        --compiler gfortran           Fortran compiler (gfortran, ifort)
+        --standard f2018              Fortran standard (f95, f2003, f2008, f2018)
+      
+      Bash:
+        --shell-version bash5         Shell version requirement
+        --linting shellcheck          Enable ShellCheck linting
+
+  project_structure:
+    title: "Project Structure (Constitution §III.I)"
+    content: |
+      CODING_WORLD/<language>/
+      ├── .integrity/project.yaml    # Language-level metadata
+      └── <project_name>/
+          ├── .integrity/project.yaml # Project metadata
+          ├── src/<project_name>/     # Source code
+          ├── tests/                  # Test files
+          ├── docs/                   # Documentation
+          ├── README.md              # Project documentation
+          └── [language-specific files]
+
+usage_examples:
+  - title: "Python Project"
+    command: "dirforge create coding --language python --project ml_toolkit --py-ver 3.11"
+  - title: "MATLAB Project"
+    command: 'dirforge create coding --language matlab --project signal_processing'
+  - title: "Fortran Project"
+    command: 'dirforge create coding --language fortran --project numerical_solver --compiler gfortran'
+  - title: "Bash Project"
+    command: 'dirforge create coding --language bash --project automation_scripts'
+
+global_options:
+  - name: "--dry-run, --preview" 
+    description: "Preview changes without writing to filesystem"
+  - name: "--force"
+    description: "Overwrite existing projects without prompting"
+  - name: "--skip-git"
+    description: "Skip Git repository initialization"
+
+related_commands:
+  - "dirforge create research       - Create research projects"
+  - "dirforge create lecture        - Create lecture materials" 
+  - "dirforge init [path]           - Initialize workspace"

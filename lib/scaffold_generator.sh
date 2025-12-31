@@ -4,7 +4,7 @@
 # Generates directory structures from YAML configuration files with atomic
 # transactions and automatic rollback on failure.
 #
-# Part of YAML-Driven World Configuration System (Constitution v1.0.22, Section IV.B)
+# Part of YAML-Driven World Configuration System (Constitution v1.1.0, Section IV.B)
 #
 # Usage:
 #   source lib/scaffold_generator.sh

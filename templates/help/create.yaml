@@ -1,0 +1,60 @@
+---
+# Create Command Help
+# Version: 1.1.0
+# Purpose: Help for 'dirforge create' command with entity types and options
+
+command: "dirforge create"
+syntax: |
+  dirforge create <entity-type> [options]
+  dirforge create <entity-type> --help
+
+short_help:
+  summary: "Create new projects using the create command structure"
+  usage: "dirforge create <entity-type> [options]"
+
+description: |
+  Create new projects and entities within an existing workspace. The create command
+  is separated from workspace initialization (init) to provide clear single-responsibility
+  commands following DirForge Constitution v1.1.0.
+
+sections:
+  entity_types:
+    title: "Entity Types"
+    content: |
+      research          Create research projects and studies
+      coding            Create coding projects with language support
+      lecture           Create lecture materials and course content
+      journal           Create journal projects with role-based structure
+
+  usage_examples:
+    title: "Usage Examples"
+    content: |
+      # Create research project
+      dirforge create research --project "Thermal Analysis" --python 3.11
+      
+      # Create coding project  
+      dirforge create coding --language python --project mylib
+      
+      # Create lecture materials
+      dirforge create lecture --course CS101 --title "Intro Course"
+      
+      # Create journal projects
+      dirforge create journal primary --paper "Paper Title" --year 2025
+
+  detailed_help:
+    title: "Detailed Help"
+    content: |
+      For detailed help on a specific entity type:
+        dirforge create <entity-type> --help
+
+global_options:
+  - name: "--dry-run, --preview"
+    description: "Preview changes without writing to filesystem"
+  - name: "--force"
+    description: "Overwrite existing projects without prompting"
+  - name: "--help, -h"
+    description: "Show this help message"
+
+related_commands:
+  - "dirforge init [path]         - Initialize complete workspace"
+  - "dirforge init --help         - Workspace initialization help"

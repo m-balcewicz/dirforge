@@ -19,7 +19,7 @@ echo "====================================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_basic_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'collaborative_study' --coauthor" \
+assert_success "run_dirforge create journal --name 'collaborative_study' --coauthor" \
   "Create co-author project with current year"
   
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/$(date +%Y)_collaborative_study" \
@@ -50,7 +50,7 @@ echo "============================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_year_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'international_study' --coauthor --year 2023" \
+assert_success "run_dirforge create journal --name 'international_study' --coauthor --year 2023" \
   "Create co-author project with explicit year"
   
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/2023_international_study" \
@@ -75,7 +75,7 @@ echo "============================================================"
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_embedded_year_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name '2021_elastic_properties_of_carbonates' --coauthor" \
+assert_success "run_dirforge create journal --name '2021_elastic_properties_of_carbonates' --coauthor" \
   "Create co-author project with embedded year in name"
   
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/2021_elastic_properties_of_carbonates" \
@@ -91,7 +91,7 @@ echo "======================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_sanitization_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'Machine Learning for Pore Pressure Analysis' --coauthor" \
+assert_success "run_dirforge create journal --name 'Machine Learning for Pore Pressure Analysis' --coauthor" \
   "Create co-author project with complex name requiring sanitization"
   
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/$(date +%Y)_machine_learning_for_pore_pressure_analysis" \
@@ -107,11 +107,11 @@ echo "==============================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_conflict_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'test_collaboration' --coauthor" \
+assert_success "run_dirforge create journal --name 'test_collaboration' --coauthor" \
   "Create first co-author project"
 
 # Attempt to create the same project again should fail
-assert_failure "run_dirforge init journal --name 'test_collaboration' --coauthor" \
+assert_failure "run_dirforge create journal --name 'test_collaboration' --coauthor" \
   "Attempt to create duplicate co-author project should fail"
 
 cleanup_temp_workspace
@@ -125,7 +125,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "coauthor_dry_run_test")
 cd "$TEMP_WORKSPACE"
 
 # Test dry-run mode
-output=$(run_dirforge --dry-run init journal --name 'test_coauthor_dry_run' --coauthor 2>&1)
+output=$(run_dirforge --dry-run create journal --name 'test_coauthor_dry_run' --coauthor 2>&1)
 
 # Check for dry-run indicators in output
 if echo "$output" | grep -q "DRY RUN"; then
@@ -149,7 +149,7 @@ echo "====================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_invalid_name_test")
 cd "$TEMP_WORKSPACE"
 
-assert_failure "run_dirforge init journal --name 'Invalid@Paper#Name!' --coauthor" \
+assert_failure "run_dirforge create journal --name 'Invalid@Paper#Name!' --coauthor" \
   "Invalid paper name with special characters should fail"
 
 cleanup_temp_workspace
@@ -162,13 +162,13 @@ echo "=================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_year_validation_test")
 cd "$TEMP_WORKSPACE"
 
-assert_failure "run_dirforge init journal --name 'test_paper' --coauthor --year 25" \
+assert_failure "run_dirforge create journal --name 'test_paper' --coauthor --year 25" \
   "Invalid year format (2 digits) should fail"
 
-assert_failure "run_dirforge init journal --name 'test_paper' --coauthor --year abcd" \
+assert_failure "run_dirforge create journal --name 'test_paper' --coauthor --year abcd" \
   "Invalid year format (letters) should fail"
 
-assert_success "run_dirforge init journal --name 'historical_collaboration' --coauthor --year 2000" \
+assert_success "run_dirforge create journal --name 'historical_collaboration' --coauthor --year 2000" \
   "Valid historical year should succeed"
 
 cleanup_temp_workspace
@@ -181,10 +181,10 @@ echo "=============================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_missing_flags_test")
 cd "$TEMP_WORKSPACE"
 
-assert_failure "run_dirforge init journal --coauthor" \
+assert_failure "run_dirforge create journal --coauthor" \
   "Missing --name flag should fail"
 
-assert_failure "run_dirforge init journal --name 'test_paper'" \
+assert_failure "run_dirforge create journal --name 'test_paper'" \
   "Missing role flag (--coauthor) should fail"
 
 cleanup_temp_workspace
@@ -197,7 +197,7 @@ echo "==========================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_exclusion_test")
 cd "$TEMP_WORKSPACE"
 
-assert_failure "run_dirforge init journal --name 'test_paper' --coauthor --first" \
+assert_failure "run_dirforge create journal --name 'test_paper' --coauthor --first" \
   "Combining --coauthor and --first flags should fail"
 
 cleanup_temp_workspace
@@ -211,7 +211,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "coauthor_root_test")
 cd "$TEMP_WORKSPACE"
 
 # First co-author project should create JOURNAL_WORLD
-assert_success "run_dirforge init journal --name 'first_collaboration' --coauthor" \
+assert_success "run_dirforge create journal --name 'first_collaboration' --coauthor" \
   "First co-author project creation should establish JOURNAL_WORLD"
 
 assert_dir_exists "JOURNAL_WORLD" "JOURNAL_WORLD root directory"
@@ -221,7 +221,7 @@ assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites" "Coauthor role directory"
 assert_dir_exists "JOURNAL_WORLD/03_journal_service" "Journal service role directory"
 
 # Second co-author project should use existing JOURNAL_WORLD
-assert_success "run_dirforge init journal --name 'second_collaboration' --coauthor" \
+assert_success "run_dirforge create journal --name 'second_collaboration' --coauthor" \
   "Second co-author project should use existing JOURNAL_WORLD"
 
 cleanup_temp_workspace
@@ -235,7 +235,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "coauthor_help_test")
 cd "$TEMP_WORKSPACE"
 
 # Test journal help output
-help_output=$(run_dirforge init journal --help 2>&1)
+help_output=$(run_dirforge create journal --help 2>&1)
 
 # Verify help contains co-author collaboration examples (case-insensitive)
 if echo "$help_output" | grep -qi "Co-author collaboration\|co-author collaboration"; then
@@ -248,7 +248,7 @@ fi
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Verify help contains command examples (case-insensitive)
-if echo "$help_output" | grep -qi "dirforge init journal --name.*--coauthor"; then
+if echo "$help_output" | grep -qi "dirforge create journal --name.*--coauthor"; then
   echo "✓ Help contains co-author collaboration command examples"
   PASSED_COUNT=$((PASSED_COUNT + 1))
 else
@@ -267,7 +267,7 @@ echo "==============================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_path_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'path_validation_study' --coauthor --year 2023" \
+assert_success "run_dirforge create journal --name 'path_validation_study' --coauthor --year 2023" \
   "Create co-author project for path validation"
 
 # Check path follows YYYY_paper_name pattern
@@ -301,13 +301,13 @@ TEMP_WORKSPACE=$(create_temp_workspace "coauthor_year_extraction_test")
 cd "$TEMP_WORKSPACE"
 
 # Test various year extraction scenarios
-assert_success "run_dirforge init journal --name '2019_historical_analysis' --coauthor" \
+assert_success "run_dirforge create journal --name '2019_historical_analysis' --coauthor" \
   "Year extraction: 2019 from paper name"
 
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/2019_historical_analysis" \
   "2019 extracted correctly"
 
-assert_success "run_dirforge init journal --name '2024_modern_methods' --coauthor" \
+assert_success "run_dirforge create journal --name '2024_modern_methods' --coauthor" \
   "Year extraction: 2024 from paper name"
 
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/2024_modern_methods" \
@@ -323,7 +323,7 @@ echo "==========================================="
 TEMP_WORKSPACE=$(create_temp_workspace "coauthor_constitution_test")
 cd "$TEMP_WORKSPACE"
 
-assert_success "run_dirforge init journal --name 'constitution_collaboration' --coauthor" \
+assert_success "run_dirforge create journal --name 'constitution_collaboration' --coauthor" \
   "Create co-author project for constitution validation"
 
 # Check that exactly 3 subdirectories are created (constitutional compliance)
@@ -359,7 +359,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "coauthor_error_test")
 cd "$TEMP_WORKSPACE"
 
 # Test invalid paper name error message
-error_output=$(run_dirforge init journal --name 'Invalid@Name!' --coauthor 2>&1 || true)
+error_output=$(run_dirforge create journal --name 'Invalid@Name!' --coauthor 2>&1 || true)
 if echo "$error_output" | grep -q "Error: Paper name can only contain letters, numbers, spaces, hyphens, and underscores."; then
   echo "✓ Correct error message for invalid paper name"
   PASSED_COUNT=$((PASSED_COUNT + 1))
@@ -370,7 +370,7 @@ fi
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Test invalid year error message
-error_output=$(run_dirforge init journal --name 'test_paper' --coauthor --year 99 2>&1 || true)
+error_output=$(run_dirforge create journal --name 'test_paper' --coauthor --year 99 2>&1 || true)
 if echo "$error_output" | grep -q "Error: Year must be a 4-digit number (YYYY)"; then
   echo "✓ Correct error message for invalid year"
   PASSED_COUNT=$((PASSED_COUNT + 1))

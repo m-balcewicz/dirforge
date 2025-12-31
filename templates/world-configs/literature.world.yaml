@@ -1,7 +1,7 @@
 ################################################################################
 # LITERATURE_WORLD Configuration Template
 #
-# @schema-version: 1.0.22
+# @schema-version: 1.1.0
 # @template-version: 1.0
 # @world-type: LITERATURE_WORLD
 # @last-updated: 2025-12-23
@@ -17,8 +17,8 @@ world:
   description: "Literature and knowledge management workspace (placeholder for future expansion)"
 
 metadata:
-  version: "1.0.22"
-  constitution_version: "1.0.22"
+  version: "1.1.0"
+  constitution_version: "1.1.0"
   created: "${DATE}"
   author: "${USER}"
   creation_template: "world.yaml.template"

@@ -16,7 +16,7 @@ cd "$TEST_DIR"
 echo "=== Test init_outputs: research scaffold ==="
 
 # Test 1: Research project creates required files
-"$REPO_ROOT/tools/dirforge" init research --name "Test Research" --no-conda >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --name "Test Research" --no-conda >/dev/null 2>&1
 
 title="Test Research"
 # compute PROJECT_ID using same logic as tools/dirforge: to_snake_case + year prefix
@@ -207,7 +207,7 @@ echo "✅ Dry-run JSON contains README paths"
 echo "=== Test init_outputs: template escaping ==="
 # Ensure render_template handles special characters in substitutions (|, &, \)
 SPECIAL_TITLE=$'Special | Title & Backslash \\\n+'
-"$REPO_ROOT/tools/dirforge" init research --name "$SPECIAL_TITLE" --no-conda >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --name "$SPECIAL_TITLE" --no-conda >/dev/null 2>&1
 id_raw=$(printf "%s" "$SPECIAL_TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/_/g' | sed -E 's/^_+|_+$//g')
 year=$(date +%Y)
 PROJECT_ID_SPECIAL="${year}_${id_raw}"
@@ -276,7 +276,7 @@ echo "✅ project.yaml files contain required fields"
 echo "=== Test init_outputs: research study creation ==="
 
 # Test 5: Research study creates required structure
-"$REPO_ROOT/tools/dirforge" init research --project "2025_test_research" --study "Test Study" >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --project "2025_test_research" --study "Test Study" >/dev/null 2>&1
 
 STUDY_DIR="$RESEARCH_DIR/02_studies/test_study"
 
@@ -333,7 +333,7 @@ echo "✅ Research study creates correct subdirectory structure"
 echo "=== Test init_outputs: study name sanitization ==="
 
 # Test 6: Study name sanitization (spaces to underscores)
-"$REPO_ROOT/tools/dirforge" init research --project "2025_test_research" --study "My Amazing Study" >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --project "2025_test_research" --study "My Amazing Study" >/dev/null 2>&1
 
 SANITIZED_STUDY_DIR="$RESEARCH_DIR/02_studies/my_amazing_study"
 
@@ -355,8 +355,8 @@ echo "✅ Study name sanitization works correctly (spaces → underscores)"
 echo "=== Test init_outputs: multiple studies creation ==="
 
 # Test 7: Multiple studies can be created independently
-"$REPO_ROOT/tools/dirforge" init research --project "2025_test_research" --study "Study One" >/dev/null 2>&1
-"$REPO_ROOT/tools/dirforge" init research --project "2025_test_research" --study "Study Two" >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --project "2025_test_research" --study "Study One" >/dev/null 2>&1
+"$REPO_ROOT/tools/dirforge" create research --project "2025_test_research" --study "Study Two" >/dev/null 2>&1
 
 STUDY_ONE_DIR="$RESEARCH_DIR/02_studies/study_one"
 STUDY_TWO_DIR="$RESEARCH_DIR/02_studies/study_two"

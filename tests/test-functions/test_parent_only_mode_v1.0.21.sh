@@ -174,7 +174,7 @@ echo "=== Testing world type specific validation ==="
 # Test research-specific behavior
 echo "Testing research world type validation..."
 rm -rf RESEARCH_WORLD
-output=$("$DIRFORGE" init research 2>&1)
+output=$("$DIRFORGE" create research 2>&1)
 if [ -d "RESEARCH_WORLD" ] && [ "$(ls -A RESEARCH_WORLD | wc -l)" -eq 0 ]; then
   echo "✅ PASS: Research creates empty RESEARCH_WORLD directory"
 else
@@ -184,7 +184,7 @@ fi
 # Test lecture-specific behavior
 echo "Testing lecture world type validation..."
 rm -rf LECTURE_WORLD
-output=$("$DIRFORGE" init lecture 2>&1)
+output=$("$DIRFORGE" create lecture 2>&1)
 if [ -d "LECTURE_WORLD" ] && [ "$(ls -A LECTURE_WORLD | wc -l)" -eq 0 ]; then
   echo "✅ PASS: Lecture creates empty LECTURE_WORLD directory"
 else
@@ -194,7 +194,7 @@ fi
 # Test coding-specific behavior
 echo "Testing coding world type validation..."
 rm -rf CODING_WORLD
-output=$("$DIRFORGE" init coding 2>&1)
+output=$("$DIRFORGE" create coding 2>&1)
 if [ -d "CODING_WORLD" ] && [ "$(ls -A CODING_WORLD | wc -l)" -eq 0 ]; then
   echo "✅ PASS: Coding creates empty CODING_WORLD directory"
 else
@@ -248,10 +248,10 @@ echo ""
 echo "=== Testing dry-run mode with parent-only ==="
 
 # Test 7: Dry-run parent-only mode
-echo "Testing: dirforge init research --dry-run (parent-only mode)"
+echo "Testing: dirforge create research --dry-run (parent-only mode)"
 rm -rf RESEARCH_WORLD
 
-output=$("$DIRFORGE" init research --dry-run 2>&1)
+output=$("$DIRFORGE" create research --dry-run 2>&1)
 echo "Output: $output"
 
 if echo "$output" | grep -q "DRY RUN: would create parent directory: RESEARCH_WORLD"; then
@@ -275,10 +275,10 @@ echo ""
 echo "=== Testing parent-only mode vs full project mode ==="
 
 # Test 8: Verify parent-only mode vs full project mode distinction
-echo "Testing: dirforge init research --name 'Test Project' (full project mode)"
+echo "Testing: dirforge create research --name 'Test Project' (full project mode)"
 rm -rf RESEARCH_WORLD
 
-output=$("$DIRFORGE" init research --name "Test Project" --no-conda 2>&1)
+output=$("$DIRFORGE" create research --name "Test Project" --no-conda 2>&1)
 echo "Output: $output"
 
 if [ -d "RESEARCH_WORLD" ]; then
@@ -309,7 +309,7 @@ rm -rf RESEARCH_WORLD
 mkdir -p RESEARCH_WORLD
 touch RESEARCH_WORLD/existing_file.txt
 
-output=$("$DIRFORGE" init research 2>&1)
+output=$("$DIRFORGE" create research 2>&1)
 echo "Output: $output"
 
 if [ -d "RESEARCH_WORLD" ] && [ -f "RESEARCH_WORLD/existing_file.txt" ]; then
@@ -326,7 +326,7 @@ echo "Testing: Global flags with parent-only mode"
 
 # Test --dry-run with parent-only mode
 rm -rf RESEARCH_WORLD
-output=$("$DIRFORGE" --dry-run init research 2>&1)
+output=$("$DIRFORGE" --dry-run create research 2>&1)
 echo "Dry-run output: $output"
 
 if echo "$output" | grep -q "DRY RUN: would create parent directory: RESEARCH_WORLD" && [ ! -d "RESEARCH_WORLD" ]; then
@@ -415,7 +415,7 @@ echo "Testing: Parent-only vs non-parent-only mode distinction"
 
 # Test that flags disable parent-only mode for research
 rm -rf RESEARCH_WORLD
-output=$("$DIRFORGE" init research --name "Test Project" --no-conda 2>&1)
+output=$("$DIRFORGE" create research --name "Test Project" --no-conda 2>&1)
 echo "Non-parent-only research output: $output"
 
 if [ -d "RESEARCH_WORLD" ]; then
@@ -460,7 +460,7 @@ echo "Testing: Robustness and error handling"
 # Test with special characters in directory names (should work for parent-only)
 mkdir -p "test with spaces"
 cd "test with spaces"
-output=$("$DIRFORGE" init research 2>&1)
+output=$("$DIRFORGE" create research 2>&1)
 if [ -d "RESEARCH_WORLD" ]; then
   echo "✅ PASS: Parent-only mode works in directories with spaces"
 else

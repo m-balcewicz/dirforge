@@ -298,7 +298,7 @@ echo
 info "Testing NO_COLOR environment variable support..."
 test_no_color_support "Global Help" "'$DIRFORGE' --help" || true
 test_no_color_support "Init Command" "'$DIRFORGE' init --help" || true
-test_no_color_support "Research World" "'$DIRFORGE' init research --help" || true
+test_no_color_support "Research World" "'$DIRFORGE' create research --help" || true
 
 echo
 
@@ -313,7 +313,7 @@ echo
 info "Testing narrow terminal width support..."
 test_narrow_terminal "Global Help (80 cols)" "'$DIRFORGE' --help" 80 || true
 test_narrow_terminal "Global Help (60 cols)" "'$DIRFORGE' --help" 60 || true
-test_narrow_terminal "Research Help (80 cols)" "'$DIRFORGE' init research --help" 80 || true
+test_narrow_terminal "Research Help (80 cols)" "'$DIRFORGE' create research --help" 80 || true
 test_narrow_terminal "Init Command (60 cols)" "'$DIRFORGE' init --help" 60 || true
 
 echo
@@ -321,8 +321,8 @@ echo
 # Test 4: Text Readability Without Color
 info "Testing text readability without color..."
 test_text_readability "Global Help" "'$DIRFORGE' --help" || true
-test_text_readability "Research World" "'$DIRFORGE' init research --help" || true
-test_text_readability "Lecture World" "'$DIRFORGE' init lecture --help" || true
+test_text_readability "Research World" "'$DIRFORGE' create research --help" || true
+test_text_readability "Lecture World" "'$DIRFORGE' create lecture --help" || true
 
 echo
 
@@ -330,14 +330,14 @@ echo
 info "Testing screen reader compatibility..."
 test_screen_reader_compatibility "Global Help" "'$DIRFORGE' --help" || true
 test_screen_reader_compatibility "Init Command" "'$DIRFORGE' init --help" || true
-test_screen_reader_compatibility "Journal World" "'$DIRFORGE' init journal --help" || true
+test_screen_reader_compatibility "Journal World" "'$DIRFORGE' create journal --help" || true
 
 echo
 
 # Test 6: High Contrast Mode Compatibility
 info "Testing high contrast mode compatibility..."
 test_high_contrast_mode "Global Help" "'$DIRFORGE' --help" || true
-test_high_contrast_mode "Research World" "'$DIRFORGE' init research --help" || true
+test_high_contrast_mode "Research World" "'$DIRFORGE' create research --help" || true
 
 echo
 

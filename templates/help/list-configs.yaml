@@ -75,13 +75,13 @@ examples:
       World Type: CODING_WORLD
       File: templates/world-configs/coding.yaml
       Description: Programming world with 8 languages
-      Version: 1.0.22
+      Version: 1.1.0
       Status: Valid
       
       World Type: RESEARCH_WORLD
       File: templates/world-configs/research.yaml
       Description: Research project and study organization
-      Version: 1.0.22
+      Version: 1.1.0
       Status: Valid
 
   - title: "Get configuration list as JSON"
@@ -94,14 +94,14 @@ examples:
             "world_type": "CODING_WORLD",
             "file": "templates/world-configs/coding.yaml",
             "description": "Programming world with 8 languages",
-            "version": "1.0.22",
+            "version": "1.1.0",
             "valid": true
           },
           {
             "world_type": "RESEARCH_WORLD",
             "file": "templates/world-configs/research.yaml",
             "description": "Research project and study organization",
-            "version": "1.0.22",
+            "version": "1.1.0",
             "valid": true
           }
         ]

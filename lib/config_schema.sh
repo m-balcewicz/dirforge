@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # config_schema.sh - Configuration schema validation for DirForge YAML configs
-# Part of the YAML-Driven World Configuration System (Constitution v1.0.22, Section IV.B)
+# Part of the YAML-Driven World Configuration System (Constitution v1.1.0, Section IV.B)
 
 set -euo pipefail
 
@@ -17,7 +17,7 @@ init_colors
 # Schema Definition and Validation
 # ============================================================================
 
-# Define required fields for world configuration (v1.0.22)
+# Define required fields for world configuration (v1.1.0)
 # These fields MUST be present in all valid world configs
 get_required_fields() {
     cat << 'EOF'
@@ -51,7 +51,7 @@ EOF
 # validate_schema() - Validate a config file against the world schema
 # Usage: validate_schema <config_file>
 # Returns: 0 if valid, 1 if invalid
-# Validates: Required fields, field types, structure consistency per Constitution v1.0.22
+# Validates: Required fields, field types, structure consistency per Constitution v1.1.0
 validate_schema() {
     local config_file="$1"
     
@@ -100,9 +100,9 @@ validate_schema() {
     if yaml_has_field "$config_file" ".metadata.constitution_version"; then
         local const_version
         const_version=$(parse_yaml "$config_file" "metadata.constitution_version" 2>/dev/null) || const_version=""
-        if [[ "$const_version" != "1.0.22" ]]; then
+        if [[ "$const_version" != "1.1.0" ]]; then
             # Log warning but don't fail
-            report_schema_warning "Constitution version $const_version may not be fully supported (expected 1.0.22)" "$config_file"
+            report_schema_warning "Constitution version $const_version may not be fully supported (expected 1.1.0)" "$config_file"
         fi
     fi
     

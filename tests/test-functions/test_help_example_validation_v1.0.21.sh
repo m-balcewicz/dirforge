@@ -129,9 +129,9 @@ echo
 # Test different help contexts
 test_help_examples "Global Help" "'$DIRFORGE' --help" || true
 test_help_examples "Init Command" "'$DIRFORGE' init --help" || true
-test_help_examples "Research World" "'$DIRFORGE' init research --help" || true
-test_help_examples "Lecture World" "'$DIRFORGE' init lecture --help" || true
-test_help_examples "Journal World" "'$DIRFORGE' init journal --help" || true
+test_help_examples "Research World" "'$DIRFORGE' create research --help" || true
+test_help_examples "Lecture World" "'$DIRFORGE' create lecture --help" || true
+test_help_examples "Journal World" "'$DIRFORGE' create journal --help" || true
 
 echo
 
@@ -175,10 +175,10 @@ echo
 # Test 3: World-Specific Help Examples
 info "Testing world-specific help examples..."
 
-validate_help_examples "research" "'$DIRFORGE' init research --help" "Research World Help"
-validate_help_examples "lecture" "'$DIRFORGE' init lecture --help" "Lecture World Help"
+validate_help_examples "research" "'$DIRFORGE' create research --help" "Research World Help"
+validate_help_examples "lecture" "'$DIRFORGE' create lecture --help" "Lecture World Help"
 validate_help_examples "coding" "'$DIRFORGE' init coding --help" "Coding World Help"
-validate_help_examples "journal" "'$DIRFORGE' init journal --help" "Journal World Help"
+validate_help_examples "journal" "'$DIRFORGE' create journal --help" "Journal World Help"
 validate_help_examples "office" "'$DIRFORGE' init office --help" "Office World Help"
 validate_help_examples "private" "'$DIRFORGE' init private --help" "Private World Help"
 

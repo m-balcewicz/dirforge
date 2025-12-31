@@ -1,6 +1,6 @@
 ---
 # Global Help - DirForge Overview
-# Version: 1.0.23
+# Version: 1.1.0
 # Purpose: Main help menu with command listing and world types
 
 command: dirforge
@@ -19,8 +19,14 @@ sections:
   commands:
     title: "Commands"
     content: |
-      init <world-type>              Create new project structure for specific world type
-      init [path] [--auto]           Initialize complete workspace with all world types
+      init [path] [--auto]           Initialize complete workspace with all world directories
+      create <entity-type> [options] Create specific projects/entities
+      
+      Entity types:
+        research                     Research projects and studies
+        coding                       Coding projects (python, matlab, fortran, bash)
+        lecture                      Lecture materials and courses
+        journal                      Journal activities (primary, coauthor, service)
   
   global_options:
     title: "Global Options"
@@ -43,27 +49,32 @@ sections:
 examples:
   - title: "Initialize complete workspace"
     command: "dirforge init"
-    description: "Creates all world types with default structure"
+    description: "Creates all world directories for workspace setup"
   
   - title: "Initialize workspace in specific directory"
     command: "dirforge init /path/to/workspace --auto"
     description: "Creates workspace without prompts"
   
   - title: "Create research project"
-    command: 'dirforge init research --title "Thermal Analysis"'
+    command: 'dirforge create research --name "Thermal Analysis"'
     description: "Creates research project structure"
   
-  - title: "Create lecture project"
-    command: 'dirforge init lecture --name "Digital Rock Physics"'
+  - title: "Create coding project"
+    command: 'dirforge create coding --language python --project "mylib"'
+    description: "Creates Python coding project"
+  
+  - title: "Create lecture materials"
+    command: 'dirforge create lecture --course "CS101" --title "Digital Rock Physics"'
     description: "Creates lecture project structure"
   
-  - title: "Preview project structure"
-    command: 'dirforge --dry-run init research --title "Test" | jq .'
+  - title: "Preview changes"
+    command: 'dirforge --dry-run create research --name "Test" | jq .'
     description: "Shows JSON plan without creating files"
 
 related_commands:
   - "dirforge init --help"
-  - "dirforge help init"
+  - "dirforge create --help"
+  - "dirforge create research --help"
   - "dirforge validate-config"
   - "dirforge list-configs"
 
@@ -72,6 +83,6 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system guide"
   - "YAML-CONFIG-SYSTEM - Learn about config-driven initialization"
 
-constitution_section: "v1.0.23"
+constitution_section: "v1.1.0"
 updated: "2025-12-30"
 updated: "2025-12-30"

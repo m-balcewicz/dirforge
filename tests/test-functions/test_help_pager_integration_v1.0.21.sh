@@ -98,7 +98,7 @@ fi
 
 # Test 7: Research help pager integration (long content)
 info "Testing research help pager integration..."
-research_help_output=$(PAGER=cat $DIRFORGE init research --help 2>&1)
+research_help_output=$(PAGER=cat $DIRFORGE create research --help 2>&1)
 research_help_lines=$(echo "$research_help_output" | wc -l | tr -d ' ')
 if [[ $research_help_lines -gt 40 ]]; then
     pass "Research help generates long output ($research_help_lines lines, should use pager)"
