@@ -47,8 +47,8 @@ examples:
     output: |
       world_type: CODING_WORLD
       description: "Programming world with 8 languages"
-      version: "1.0.22"
-      constitution_version: "1.0.22"
+      version: "1.1.0"
+      constitution_version: "1.1.0"
       
       parent_directories:
         - name: python
@@ -102,7 +102,7 @@ short_help:
 
 long_help:
   summary: |
-    The YAML configuration system is a feature of DirForge v1.0.22 that replaces
+    The YAML configuration system is a feature of DirForge v1.1.0 that replaces
     hard-coded directory structure definitions with a flexible, configuration-driven
     approach. World structures (CODING, RESEARCH, JOURNAL, etc.) are now defined in
     YAML files stored in templates/world-configs/. This allows users to create
@@ -223,14 +223,14 @@ architecture_sections:
 
 notes:
   constitution_reference: |
-    The YAML configuration system implements Constitution v1.0.22 Section IV.B:
+    The YAML configuration system implements Constitution v1.1.0 Section IV.B:
     "Worlds are uniquely identified by their directory structure, which is defined
     in version-controlled configuration files. All worlds share a common integrity
     check mechanism (.integrity/) that validates the structure against the
     constitution version."
   
   breaking_changes: |
-    v1.0.22 Changes:
+    v1.1.0 Changes:
     - Hard-coded world structures replaced with YAML configurations
     - dirforge init now config-driven (backward compatibility warning issued)
     - New commands: validate-config, list-configs

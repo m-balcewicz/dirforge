@@ -917,19 +917,19 @@ sections:                                        # REQUIRED: organized content s
 
 examples:                                        # REQUIRED: usage examples
   - title: "Example title"                       # REQUIRED: example description
-    command: "dirforge init research --name 'My Project'"  # REQUIRED: command to run
+    command: "dirforge create research --name 'My Project'"  # REQUIRED: command to run
     description: "What this example demonstrates"  # OPTIONAL: additional context
 
 related_commands:                                # OPTIONAL: related commands
-  - command: "dirforge init"
-    description: "Initialize new projects"
+  - command: "dirforge create"
+    description: "Create new projects"
 
 see_also:                                        # OPTIONAL: additional documentation
   - "Section IV.B for world configuration details"
   - "templates/world-configs/ for configuration examples"
 
 constitution_section: "§III.V"                   # REQUIRED: constitution reference
-version: "1.0.23"                                # REQUIRED: help file version
+version: "1.1.0"                                # REQUIRED: help file version
 updated: "2025-12-30"                            # REQUIRED: last update date
 ```
 
@@ -983,7 +983,7 @@ show_<command>_help() {
         fi
         
         # Fallback to minimal hard-coded help
-        show_<command>_help_short "v1.0.23"
+        show_<command>_help_short "v1.1.0"
         return
     fi
     
@@ -993,7 +993,7 @@ show_<command>_help() {
     fi
     
     # Fallback: show short help
-    show_<command>_help_short "v1.0.23"
+    show_<command>_help_short "v1.1.0"
 }
 ```
 
@@ -1074,8 +1074,8 @@ Each `<world-type>.world.yaml` file MUST conform to the following schema:
 # World configuration file schema
 world_type: "<WORLD_TYPE>"                    # REQUIRED: e.g., CODING_WORLD, RESEARCH_WORLD
 description: "Description of world purpose"   # REQUIRED: human-readable description
-version: "1.0.22"                             # REQUIRED: configuration version
-constitution_version: "1.0.22"                # REQUIRED: constitution version this config supports
+version: "1.1.0"                             # REQUIRED: configuration version
+constitution_version: "1.1.0"                # REQUIRED: constitution version this config supports
 
 # Global metadata
 metadata:
@@ -1112,8 +1112,8 @@ subdirectories:
 ```yaml
 world_type: CODING_WORLD
 description: "Coding projects organized by programming language"
-version: "1.0.22"
-constitution_version: "1.0.22"
+version: "1.1.0"
+constitution_version: "1.1.0"
 
 metadata:
   creation_template: "world.yaml.template"
@@ -1162,8 +1162,8 @@ subdirectories: []  # Language directories are not subdivided further by config;
 ```yaml
 world_type: RESEARCH_WORLD
 description: "Research projects organized by research activity, with studies as primary units"
-version: "1.0.22"
-constitution_version: "1.0.22"
+version: "1.1.0"
+constitution_version: "1.1.0"
 
 metadata:
   creation_template: "world.yaml.template"
@@ -1241,8 +1241,8 @@ study_subdirectories:
 ```yaml
 world_type: JOURNAL_WORLD
 description: "Journal activities organized by role: primary authorship, co-author invites, and journal service"
-version: "1.0.22"
-constitution_version: "1.0.22"
+version: "1.1.0"
+constitution_version: "1.1.0"
 
 metadata:
   creation_template: "world.yaml.template"
@@ -1330,17 +1330,23 @@ subdirectories:
 #### IV.B.V Integration with dirforge Command Structure
 
 **Updated Command Syntax:**
-The `dirforge` script execution flow MUST be updated to use world configurations:
+The `dirforge` script follows clear command separation with init for workspace setup and create for entity creation:
 
 ```bash
-# Create a new world with standard structure
-dirforge init coding --world-type CODING_WORLD
+# Initialize complete workspace with all world directories (workspace setup only)
+dirforge init [path] [--auto]
 
-# Create a new research project with study structure
-dirforge init research --project "my_project" --config templates/world-configs/research.world.yaml
+# Create new research projects and studies within initialized workspace
+dirforge create research --project "my_project" [--config templates/world-configs/research.world.yaml]
 
-# Create a new study within a research project
-dirforge init research --project "my_project" --study "study_name" --config templates/world-configs/research.world.yaml
+# Create new coding projects with language support
+dirforge create coding --language python --project "my_library"
+
+# Create lecture materials and course content
+dirforge create lecture --course "CS101" --title "Course Title"
+
+# Create journal activities with role-based structure
+dirforge create journal primary --paper "Paper Title" --year 2025
 
 # Validate a world configuration file
 dirforge validate-config templates/world-configs/custom_world.world.yaml
@@ -1348,6 +1354,12 @@ dirforge validate-config templates/world-configs/custom_world.world.yaml
 # List available world configurations
 dirforge list-configs
 ```
+
+**Command Separation Principles:**
+- `dirforge init` MUST handle workspace initialization ONLY - creates all world directories but no specific projects
+- `dirforge create <entity-type>` MUST handle entity creation ONLY - creates specific projects within existing workspace
+- Backward compatibility MUST be maintained during transition with deprecation warnings
+- `init <entity-type>` syntax is deprecated but functional, redirecting to equivalent `create` commands
 
 **Configuration Discovery:**
 - `dirforge` MUST automatically discover all `<world-type>.world.yaml` files in `templates/world-configs/`
@@ -1461,4 +1473,4 @@ Versioning policy (semantic):
 - MINOR: New principle or materially expanded guidance.
 - PATCH: Wording clarifications, typos, or non-semantic refinements.
 
-**Version**: 1.0.23 | **Ratified**: 2025-12-15 | **Last Amended**: 2025-12-31
+**Version**: 1.1.0 | **Ratified**: 2025-12-15 | **Last Amended**: 2025-12-31

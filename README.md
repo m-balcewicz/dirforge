@@ -1,20 +1,23 @@
 # dirforge — workspace scaffolder (DirForge)
 
-This repository contains a small Bash-first CLI, `dirforge`, which scaffolds standardized directory structures according to the DirForge Constitution.
+This repository contains a small Bash-first CLI, `dirforge`, which scaffolds standardized directory structures according to the DirForge Constitution v1.1.0.
+
+> **⚡ New in v1.1.0**: Clear separation between workspace setup (`dirforge init`) and entity creation (`dirforge create <entity>`). Backward compatibility maintained with helpful migration guidance.
 
 ## Key Features
-- **Complete workspace initialization**: Create all 6 world types at once
-- **Individual world creation**: Research, lecture, coding (with multi-language support), journal, office, private projects
-- **Parent-only mode**: Create just the parent directory (e.g., RESEARCH_WORLD/) for any world type
+- **Clear Command Structure**: Separate workspace initialization (`dirforge init`) from entity creation (`dirforge create <entity>`)
+- **Complete workspace initialization**: Create all 7 world types at once
+- **Individual entity creation**: Research, lecture, coding (with multi-language support), journal, office, private projects
+- **Backward compatibility**: Deprecated syntax still works with helpful migration guidance
 - **Safe project updates**: Upgrade existing projects with additive-only migrations
 - **Flexible path specification**: Use `--here`, `--path=`, or positional arguments to specify targets
 - **Subdirectory-aware**: Run update from any location within project hierarchy; automatically finds project root
 - **Interactive and automated modes**: Prompts or automatic creation with flags; safe handling of unknown versions
 - **Dry-run preview**: See what will be created or updated before making changes
 - **JSON output**: Machine-readable plans for automation
-- **YAML-based configuration system** (v1.0.22+): Define custom world structures using declarative YAML configs
+- **YAML-based configuration system** (v1.1.0+): Define custom world structures using declarative YAML configs
 - **Atomic operations**: All-or-nothing scaffold generation with automatic rollback on error
-- **Constitution compliance**: All structures follow DirForge Constitution v1.0.22
+- **Constitution compliance**: All structures follow DirForge Constitution v1.1.0
 
 ## Installation
 
@@ -99,7 +102,47 @@ bash tests/run_tests.sh
 dirforge --help
 ```
 
-Help System
+## Command Structure
+
+DirForge v1.1.0 uses a clear separation between workspace setup and entity creation:
+
+```bash
+# Workspace initialization (creates all world directories)
+dirforge init [path] [options]
+
+# Entity creation within existing workspace
+dirforge create <entity-type> [entity-options] [global-options]
+
+# Workspace-only entities (office, private)
+dirforge init <world-type> [options]
+```
+
+### Entity Types
+- **research** - Academic research projects with study organization
+- **lecture** - Educational content and course management
+- **coding** - Programming projects with multi-language support
+- **journal** - Academic paper authorship and review workflows
+- **office** - Administrative and business document organization (workspace-only)
+- **private** - Personal projects and archives (workspace-only)
+
+### Backward Compatibility
+
+Deprecated `dirforge init <entity>` syntax still works but shows helpful warnings:
+
+```bash
+# Deprecated (still works with warning)
+dirforge init research --name "Project"
+
+# Shows: ⚠️ DEPRECATION WARNING: Use 'dirforge create research' instead
+
+# Current recommended syntax  
+dirforge create research --name "Project"
+
+# Suppress warnings if needed
+DIRFORGE_SUPPRESS_DEPRECATION=1 dirforge init research --name "Project"
+```
+
+## Help System
 
 The `dirforge` tool includes a comprehensive help system with progressive disclosure:
 
@@ -107,15 +150,16 @@ The `dirforge` tool includes a comprehensive help system with progressive disclo
 # Global help - tool overview and constitution reference
 dirforge --help
 
-# Command-specific help - available world types
-dirforge init --help
+# Command-specific help
+dirforge init --help              # Workspace initialization help
+dirforge create --help            # Entity creation help
 
-# World-type specific help - detailed structure and examples
-dirforge init research --help
-dirforge init lecture --help
-dirforge init coding --help
-dirforge init journal --help
-dirforge init office --help
+# Entity-specific help - detailed structure and examples
+dirforge create research --help
+dirforge create lecture --help
+dirforge create coding --help
+dirforge create journal --help
+dirforge init office --help       # Office and private are workspace-only
 dirforge init private --help
 
 # Version information with constitution version
@@ -124,20 +168,26 @@ dirforge --version
 
 ## YAML Configuration System
 
-DirForge v1.0.22 introduces a declarative YAML-based configuration system for defining custom workspace structures. Instead of hard-coded directory layouts, you can now create reusable configuration files that define your workspace organization.
+DirForge v1.1.0 introduces a declarative YAML-based configuration system for defining custom workspace structures. Instead of hard-coded directory layouts, you can now create reusable configuration files that define your workspace organization.
 
 ### Quick Start
 
-**1. Initialize with built-in world type:**
+**1. Initialize workspace:**
 ```bash
-# Initialize CODING_WORLD
-dirforge init CODING_WORLD
+# Initialize complete workspace with all world directories
+dirforge init
 
-# Initialize RESEARCH_WORLD with project and study
-dirforge init RESEARCH_WORLD --project myproject --study mystudy
+# Initialize workspace in specific directory
+dirforge init /path/to/workspace --auto
 ```
 
-**2. List available configurations:**
+**2. Create projects within workspace:**
+```bash
+# Create research project with study
+dirforge create research --project myproject --study mystudy
+```
+
+**3. List available configurations:**
 ```bash
 dirforge list-configs
 ```
@@ -151,15 +201,15 @@ dirforge validate-config templates/world-configs/coding.world.yaml
 
 DirForge provides 7 pre-configured world types:
 
-| World Type | Purpose | Metadata Levels |
-|-----------|---------|-----------------|
-| **CODING_WORLD** | Programming language projects | Workspace, World, Project |
-| **RESEARCH_WORLD** | Academic research with studies | Workspace, World, Project, Study |
-| **JOURNAL_WORLD** | Paper authorship and reviews | Workspace, World, Project |
-| **LECTURE_WORLD** | Course materials and grading | Workspace, World, Project |
-| **OFFICE_WORLD** | Administrative and business docs | Workspace, World, Project |
-| **PRIVATE_WORLD** | Personal projects and archives | Workspace, World, Project |
-| **LITERATURE_WORLD** | Extensible template | Workspace, World, Project |
+| World Type | Purpose | Command | Metadata Levels |
+|-----------|---------|---------|-----------------|
+| **CODING_WORLD** | Programming language projects | `dirforge create coding` | Workspace, World, Project |
+| **RESEARCH_WORLD** | Academic research with studies | `dirforge create research` | Workspace, World, Project, Study |
+| **JOURNAL_WORLD** | Paper authorship and reviews | `dirforge create journal` | Workspace, World, Project |
+| **LECTURE_WORLD** | Course materials and grading | `dirforge create lecture` | Workspace, World, Project |
+| **OFFICE_WORLD** | Administrative and business docs | `dirforge init office` | Workspace, World, Project |
+| **PRIVATE_WORLD** | Personal projects and archives | `dirforge init private` | Workspace, World, Project |
+| **LITERATURE_WORLD** | Extensible template | `dirforge create literature` | Workspace, World, Project |
 
 ### Creating Custom Configurations
 
@@ -172,7 +222,7 @@ world:
 
 metadata:
   version: "1.0.0"
-  constitution_version: "1.0.22"
+  constitution_version: "1.1.0"
   created_by: "${USER}"
   created_at: "${DATE}"
 
@@ -232,7 +282,7 @@ Help System
 The `dirforge` tool includes a comprehensive help system with progressive disclosure:
 - **Progressive disclosure**: More detailed help as you specify context
 - **ANSI color formatting**: Enhanced readability with terminal color support
-- **Constitution compliance**: Direct references to DirForge Constitution v1.0.19
+- **Constitution compliance**: Direct references to DirForge Constitution v1.1.0
 - **Directory structure previews**: ASCII tree views of generated structures
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
@@ -328,18 +378,25 @@ dirforge update /path --backup --dry-run
 ---
 ## Usage
 
-### Complete Workspace Initialization
+### Command Structure
 
-The `dirforge init` command can create a complete workspace with all world types or individual projects within specific worlds.
+DirForge uses a clear separation between workspace setup and entity creation:
 
 #### Syntax
 ```bash
-# Complete workspace initialization
+# Complete workspace initialization (creates all world directories)
 dirforge init [path] [options]
 
-# Individual world project creation  
-dirforge init <world-type> [world-specific-options] [global-options]
+# Individual entity creation within existing workspace
+dirforge create <entity-type> [entity-specific-options] [global-options]
+
+# Workspace-only world types (office, private)
+dirforge init <world-type> [options]
 ```
+
+### Workspace Initialization
+
+The `dirforge init` command creates complete workspaces with all world directories.
 
 #### Global Options
 - `--dry-run`, `--preview`: Preview changes without creating files
@@ -448,48 +505,48 @@ workspace/
 	│   └── .integrity/
 ```
 
-### Individual World Projects
+### Entity Creation
 
 Create specific projects within existing world directories:
 
 ```bash
 # Research projects (within RESEARCH_WORLD/)
 # Create project with study-based structure
-dirforge init research --name "Thermal Model Analysis"
-dirforge init research --name "ML Study" --python 3.12
-dirforge init research --name "Theory Work" --no-conda
+dirforge create research --name "Thermal Model Analysis"
+dirforge create research --name "ML Study" --python 3.12
+dirforge create research --name "Theory Work" --no-conda
 
 # Create project with first study in one command
-dirforge init research --name "Digital Rock Physics" --study "Porosity Analysis"
+dirforge create research --name "Digital Rock Physics" --study "Porosity Analysis"
 
 # Add studies to existing projects
-dirforge init research --project 2025_thermal_model_analysis --study "Heat Transfer Model"
-dirforge init research --project 2025_thermal_model_analysis --study "Validation Experiments"
+dirforge create research --project 2025_thermal_model_analysis --study "Heat Transfer Model"
+dirforge create research --project 2025_thermal_model_analysis --study "Validation Experiments"
 
 # Lecture projects (within LECTURE_WORLD/)  
-dirforge init lecture --name "Digital Rock Physics"
-dirforge init lecture --name "Physics 101" --backup
-dirforge init lecture --name "Advanced Course" --force
+dirforge create lecture --name "Digital Rock Physics"
+dirforge create lecture --name "Physics 101" --backup
+dirforge create lecture --name "Advanced Course" --force
 
 # Coding projects (within CODING_WORLD/)
-dirforge init coding --language python --project ml_toolkit
-dirforge init coding --language matlab --project functions
-dirforge init coding --project my_tool --dry-run
+dirforge create coding --language python --project ml_toolkit
+dirforge create coding --language matlab --project functions
+dirforge create coding --project my_tool --dry-run
 
 # Journal projects (within JOURNAL_WORLD/) - Role-Based Organization
 # Primary authorship (lead author projects)
-dirforge init journal --name "thermal_analysis" --first
-dirforge init journal --name "seismic_modeling_study" --first --year 2024
+dirforge create journal --name "thermal_analysis" --first
+dirforge create journal --name "seismic_modeling_study" --first --year 2024
 
 # Co-author collaboration (joint projects)
-dirforge init journal --name "2021_elastic_properties" --coauthor
-dirforge init journal --name "international_consortium" --coauthor
+dirforge create journal --name "2021_elastic_properties" --coauthor
+dirforge create journal --name "international_consortium" --coauthor
 
 # Journal service (reviews, editorial work)
-dirforge init journal --name "Geophysics" --id "GEO-2025-0451" --service
-dirforge init journal --name "Nature Geoscience" --id "REVIEWER_2024_Q4" --service
+dirforge create journal --name "Geophysics" --id "GEO-2025-0451" --service
+dirforge create journal --name "Nature Geoscience" --id "REVIEWER_2024_Q4" --service
 
-# Office and private world structures
+# Office and private world structures (workspace-only)
 dirforge init office    # Creates OFFICE_WORLD/ with standard directories
 dirforge init private   # Creates PRIVATE_WORLD/ with standard directories
 ```
@@ -513,7 +570,7 @@ Research projects use a study-based organization where each project can contain 
 
 ```bash
 # Create a study in an existing project
-dirforge init research --project "2025_thermal_model_analysis" --study "Heat Transfer Model"
+dirforge create research --project "2025_thermal_model_analysis" --study "Heat Transfer Model"
 
 # Study names are automatically converted to lower_snake_case
 # "Heat Transfer Model" becomes "heat_transfer_model"
@@ -562,7 +619,7 @@ Use descriptive filenames (e.g., `2025-09-01_budget_v1.xlsx`, `proposal_final.pd
 - `--year YYYY`: Explicit year for authorship projects (default: current year or extracted from name)
 - `--id "MANUSCRIPT_ID"`: Manuscript/reviewer ID (required with --service)
 
-**Role-based structure**: Projects are organized by role (admin, primary authorship, co-author, service) rather than journal name. Use `dirforge init journal --help` for complete examples and migration guidance.
+**Role-based structure**: Projects are organized by role (admin, primary authorship, co-author, service) rather than journal name. Use `dirforge create journal --help` for complete examples and migration guidance.
 
 ### Command Line Options
 
@@ -616,7 +673,7 @@ dirforge init ~/workspace --force
 dirforge init ~/workspace --backup --force
 ```
 
-Developer commands
+## Developer Commands
 - Install yq (strict YAML validation): `brew install yq`
 - Lint shell scripts: `scripts/lint_shell.sh`
 - Run full test suite: `bash tests/run_tests.sh`
@@ -625,9 +682,9 @@ Developer commands
 - Validate a manifest: `./tools/manifest.sh path/to/your.manifest.yaml`
 
 **Help System Architecture:**
-- Progressive disclosure: `dirforge --help` → `dirforge init --help` → `dirforge init <world> --help`
+- Progressive disclosure: `dirforge --help` → `dirforge create --help` → `dirforge create <entity> --help`
 - Terminal adaptation: Auto-detects color support, terminal width, paging capability
-- **Constitution integration**: Dynamic references to DirForge Constitution v1.0.20
+- **Constitution integration**: Dynamic references to DirForge Constitution v1.1.0
 - Performance optimization: Cached content generation for repeated calls (<200ms target)
 
 Notes & future directions

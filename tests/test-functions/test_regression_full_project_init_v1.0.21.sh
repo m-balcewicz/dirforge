@@ -34,7 +34,7 @@ info "Testing: Research project with full project options"
 CURRENT_YEAR=$(date +%Y)
 EXPECTED_RESEARCH_PROJECT="RESEARCH_WORLD/${CURRENT_YEAR}_test-research-project"
 
-output=$("$DIRFORGE_PATH" init research --name "test-research-project" 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create research --name "test-research-project" 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Research project creation failed: $output"
 fi
@@ -56,7 +56,7 @@ fi
 info "Testing: Journal project with full project options"
 EXPECTED_JOURNAL_PROJECT="JOURNAL_WORLD/TEST_JOURNAL/TEST-001"
 
-output=$("$DIRFORGE_PATH" init journal --journal "test-journal" --id "TEST-001" 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create journal --journal "test-journal" --id "TEST-001" 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Journal project creation failed: $output"
 fi
@@ -71,7 +71,7 @@ fi
 info "Testing: Coding project with full project options"
 EXPECTED_CODING_PROJECT="CODING_WORLD/python/test-python-project"
 
-output=$("$DIRFORGE_PATH" init coding --language "python" --project "test-python-project" 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create coding --language "python" --project "test-python-project" 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Coding project creation failed: $output"
 fi
@@ -134,7 +134,7 @@ info "Testing: Dry-run mode with full project options"
 cd /tmp  # Change to a clean directory for dry-run tests
 
 # Test dry-run with research project
-output=$("$DIRFORGE_PATH" init research --name "dry-run-test" --dry-run 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create research --name "dry-run-test" --dry-run 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "Dry-run mode failed for research project: $output"
 fi
@@ -148,7 +148,7 @@ fi
 
 # Test 7: Verify --json flag works with full projects
 info "Testing: JSON output with full project options"
-output=$("$DIRFORGE_PATH" init research --name "json-test" --dry-run --json 2>&1 || echo "FAILED")
+output=$("$DIRFORGE_PATH" create research --name "json-test" --dry-run --json 2>&1 || echo "FAILED")
 if [[ "$output" == *"FAILED"* ]]; then
     fail "JSON output failed for full project: $output"
 fi
@@ -164,7 +164,7 @@ fi
 info "Testing: Error handling for invalid full project options"
 
 # Test invalid research project name
-output=$("$DIRFORGE_PATH" init research --name "" 2>&1 || echo "EXPECTED_ERROR")
+output=$("$DIRFORGE_PATH" create research --name "" 2>&1 || echo "EXPECTED_ERROR")
 if [[ "$output" == *"EXPECTED_ERROR"* ]] || [[ "$output" == *"Error"* ]] || [[ "$output" == *"error"* ]]; then
     pass "Error handling works correctly for invalid project name"
 else
@@ -172,7 +172,7 @@ else
 fi
 
 # Test invalid coding language
-output=$("$DIRFORGE_PATH" init coding --language "invalid_language" --project "test" 2>&1 || echo "EXPECTED_ERROR")
+output=$("$DIRFORGE_PATH" create coding --language "invalid_language" --project "test" 2>&1 || echo "EXPECTED_ERROR")
 if [[ "$output" == *"EXPECTED_ERROR"* ]] || [[ "$output" == *"Error"* ]] || [[ "$output" == *"error"* ]]; then
     pass "Error handling works correctly for invalid coding language"
 else

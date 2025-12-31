@@ -196,7 +196,7 @@ run_test "Journal help shows flexible ID examples" \
 info "Testing example syntax and copy-paste readiness..."
 run_test "Research help includes copy-pasteable examples" \
     "'$DIRFORGE' init research --help" \
-    'dirforge init research --title ".*"'
+    'dirforge create research --title ".*"'
 
 run_test "Global help includes practical examples" \
     "'$DIRFORGE' --help" \

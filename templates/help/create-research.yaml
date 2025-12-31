@@ -1,0 +1,71 @@
+---
+# Create Research Command Help
+# Version: 1.1.0
+# Constitution: §III.V Research Projects
+
+command: "dirforge create research"
+syntax: |
+  dirforge create research --project "Project Name" [options]
+  dirforge create research --study "Study Name" --project existing_project [options]
+
+short_help:
+  summary: "Create research projects and studies with data management workflow"
+  usage: 'dirforge create research --project "Project Name"'
+
+description: |
+  Creates standardized research projects or studies within existing projects. Follows 
+  project-by-activity principle with co-located provenance for reproducible research. 
+  Organizes management artifacts, studies, and data analysis in dedicated folders.
+
+sections:
+  project_creation:
+    title: "Project Creation"
+    content: |
+      --project "Project Name"        Create new research project with standard structure
+      --python 3.11                  Python version for conda (default: 3.11)
+      --no-conda                     Skip conda environment creation
+      --conda-packages "pkg1,pkg2"   Additional conda packages
+
+  study_creation:
+    title: "Study Creation" 
+    content: |
+      --study "Study Name"           Create new study within existing project
+      --project existing_project     Parent project for the study
+      --python 3.11                 Python version for study environment
+      --no-conda                    Skip conda environment for study
+
+  project_structure:
+    title: "Project Structure (Constitution §III.V)"
+    content: |
+      RESEARCH_WORLD/<project_id>/
+      ├── .integrity/project.yaml    # Project metadata and validation
+      ├── 00_admin/                  # Contracts, permits, agreements
+      ├── 01_project_management/     # Proposals, reports, budgets
+      └── 02_studies/                # Individual research studies
+          └── <study_name>/
+              ├── .integrity/study.yaml
+              ├── 00_protocols/      # Experimental protocols
+              ├── 01_code/          # Analysis code and scripts
+              ├── 02_data/          # Raw and processed data
+              ├── 03_outputs/       # Results and figures
+              ├── 04_publication/   # Manuscript drafts
+              └── 05_presentations/ # Slides and talks
+
+usage_examples:
+  - title: "Create Research Project"
+    command: 'dirforge create research --project "Thermal Analysis Study" --python 3.11'
+  - title: "Create Study in Existing Project"  
+    command: 'dirforge create research --study "Wave Propagation" --project thermal_analysis_study'
+  - title: "Project with Custom Packages"
+    command: 'dirforge create research --project "ML Analysis" --conda-packages "tensorflow,scikit-learn"'
+
+global_options:
+  - name: "--dry-run, --preview"
+    description: "Preview changes without writing to filesystem"
+  - name: "--force"
+    description: "Overwrite existing projects without prompting"
+
+related_commands:
+  - "dirforge create coding         - Create coding projects"
+  - "dirforge create lecture        - Create lecture materials"
+  - "dirforge init [path]           - Initialize workspace"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # config_error.sh - Error handling and reporting utilities for configuration system
-# Part of the YAML-Driven World Configuration System (Constitution v1.0.22, Section IV.B)
+# Part of the YAML-Driven World Configuration System (Constitution v1.1.0, Section IV.B)
 
 set -euo pipefail
 

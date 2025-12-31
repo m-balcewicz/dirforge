@@ -1,22 +1,21 @@
 ---
 # Init Command Help
-# Version: 1.0.22
+# Version: 1.1.0
 # Purpose: Help for 'dirforge init' command with world types and options
 
 command: "dirforge init"
 syntax: |
-  dirforge init <world-type> [options]
-  dirforge init [path] [--auto]
-  dirforge init <world-type> --help
+  dirforge init [path] [--auto|--yes|-y]
+  dirforge init --help
 
 short_help:
-  summary: "Create new project structure based on DirForge Constitution"
-  usage: "dirforge init <world-type> [options]"
+  summary: "Initialize complete workspace with all world directories"
+  usage: "dirforge init [path] [--auto|--yes|-y]"
 
 description: |
-  Initialize new projects or complete workspaces. Use 'dirforge init <world-type> 
-  --help' to see world-specific options like --title for research projects or 
-  --language for coding projects.
+  Initialize a complete workspace with all world type directories (RESEARCH_WORLD, 
+  CODING_WORLD, etc.). This command is for workspace setup only. To create specific 
+  projects and entities, use 'dirforge create <entity-type>' instead.
 
 sections:
   workspace_initialization:
@@ -28,15 +27,27 @@ sections:
       --auto, --yes, -y              Create automatically without prompts
       --here                         Explicitly use current directory
   
-  world_types:
-    title: "World Types"
+  workspace_structure:
+    title: "Workspace Structure"
     content: |
-      research                       Academic research projects with data management
-      lecture                        Educational content with grading workflows
-      coding                         Software development projects
-      journal                        Journal activities: submissions, reviews, editorial
-      office                         Administrative and business documents
-      private                        Personal projects with privacy controls
+      Creates the following world directories:
+      
+      RESEARCH_WORLD/            Academic research projects with data management
+      LECTURE_WORLD/             Educational content with grading workflows
+      CODING_WORLD/              Software development projects
+      JOURNAL_WORLD/             Journal activities: submissions, reviews, editorial
+      OFFICE_WORLD/              Administrative and business documents
+      PRIVATE_WORLD/             Personal projects with privacy controls
+  
+  world_types:
+    title: "Creating Projects (Use 'create' instead)"
+    content: |
+      To create specific projects within the workspace, use:
+      
+      dirforge create research   Research projects and studies
+      dirforge create coding     Coding projects with language support
+      dirforge create lecture    Lecture materials and courses
+      dirforge create journal    Journal activities with role-based structure
   
   common_options:
     title: "Common Options"
@@ -53,37 +64,38 @@ sections:
 examples:
   - title: "Initialize workspace in current directory"
     command: "dirforge init"
-    description: "Creates all world types with interactive prompts"
+    description: "Creates all world directories with interactive prompts"
   
-  - title: "Initialize workspace with auto-confirm"
+  - title: "Initialize workspace automatically"
     command: "dirforge init ~/my-workspace --auto"
     description: "Creates workspace without prompts"
   
-  - title: "Create research project"
-    command: 'dirforge init research --title "Thermal Analysis"'
-    description: "Creates research project structure"
+  - title: "Initialize current directory automatically"
+    command: "dirforge init --yes"
+    description: "Creates workspace in current directory without prompts"
   
-  - title: "Create lecture project"
-    command: 'dirforge init lecture --name "Physics 101"'
-    description: "Creates lecture project structure"
+  - title: "After workspace setup, create projects"
+    command: 'dirforge create research --name "Thermal Analysis"'
+    description: "Creates research project in initialized workspace"
   
-  - title: "Get world-specific help"
-    command: "dirforge init research --help"
-    description: "Shows detailed help for research projects"
+  - title: "Create coding project"
+    command: 'dirforge create coding --language python --project "mylib"'
+    description: "Creates coding project in initialized workspace"
   
-  - title: "Preview structure without creating"
-    command: 'dirforge init research --title "Test" --dry-run'
-    description: "Shows what would be created"
+  - title: "Preview workspace structure"
+    command: 'dirforge init --dry-run'
+    description: "Shows what workspace structure would be created"
 
 related_commands:
-  - "dirforge init research"
-  - "dirforge init lecture"
-  - "dirforge init coding"
-  - "dirforge init journal"
+  - "dirforge create --help          - Create projects and entities"
+  - "dirforge create research --help  - Create research projects"
+  - "dirforge create coding --help    - Create coding projects"
+  - "dirforge create lecture --help   - Create lecture materials"
+  - "dirforge create journal --help   - Create journal projects"
 
 see_also:
   - "constitution.md - Naming conventions and structure specifications"
   - "dirforge help <world-type> - World-specific detailed help"
 
-constitution_section: "Constitution v1.0.22"
+constitution_section: "Constitution v1.1.0"
 updated: "2025-12-30"

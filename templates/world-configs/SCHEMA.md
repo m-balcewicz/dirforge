@@ -1,9 +1,9 @@
 # World Configuration Schema Specification
 
-**Version:** 1.0.22  
+**Version:** 1.1.0  
 **Status:** Active  
 **Date:** 2025-12-23  
-**Reference:** Constitution v1.0.22
+**Reference:** Constitution v1.1.0
 
 ---
 
@@ -66,8 +66,8 @@ Defines metadata and version information.
 
 | Field | Type | Required | Description | Format/Values |
 |-------|------|----------|-------------|----------------|
-| `version` | string | Yes | Constitution version | `"1.0.22"` |
-| `constitution_version` | string | Yes | Constitution version this config conforms to | `"1.0.22"` |
+| `version` | string | Yes | Constitution version | `"1.1.0"` |
+| `constitution_version` | string | Yes | Constitution version this config conforms to | `"1.1.0"` |
 | `created` | string | Yes | Creation timestamp (variable placeholder) | `"${DATE}"` (expands to ISO 8601 UTC) |
 | `author` | string | Yes | Creator username (variable placeholder) | `"${USER}"` (expands to current user) |
 | `creation_template` | string | Yes | Template filename (must be standard name) | `"world.yaml.template"` (not world-type-specific) |

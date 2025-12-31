@@ -83,7 +83,7 @@ echo "Test 3: Help System Migration Guidance"
 echo "======================================"
 
 # Test migration guidance in journal help
-OUTPUT=$(run_dirforge init journal --help-long 2>&1 || run_dirforge init journal --help 2>&1 || true)
+OUTPUT=$(run_dirforge create journal --help-long 2>&1 || run_dirforge create journal --help 2>&1 || true)
 assert_output_contains "$OUTPUT" "migration" "Help contains migration guidance"
 assert_output_contains "$OUTPUT" "v1.0.21" "Help contains current constitution version"
 assert_output_contains "$OUTPUT" "Constitution" "Help references constitution"
@@ -126,7 +126,7 @@ mkdir -p JOURNAL_WORLD
 echo "# Old journal structure test" > JOURNAL_WORLD/test_paper.txt
 
 # New command should work with new structure
-assert_success "run_dirforge init journal --name 'test_paper' --first" \
+assert_success "run_dirforge create journal --name 'test_paper' --first" \
   "New command pattern works with role-based structure"
 
 # Verify new structure was created correctly (not old style)
@@ -144,20 +144,20 @@ TEMP_WORKSPACE=$(create_temp_workspace "migration_flag_test")
 cd "$TEMP_WORKSPACE"
 
 # Test that new unified --name flag works for all contexts
-assert_success "run_dirforge init journal --name 'test_primary' --first" \
+assert_success "run_dirforge create journal --name 'test_primary' --first" \
   "Unified --name flag works for primary authorship"
 
-assert_success "run_dirforge init journal --name 'test_coauthor' --coauthor" \
+assert_success "run_dirforge create journal --name 'test_coauthor' --coauthor" \
   "Unified --name flag works for co-author"
 
-assert_success "run_dirforge init journal --name 'test_journal' --id 'TEST-123' --service" \
+assert_success "run_dirforge create journal --name 'test_journal' --id 'TEST-123' --service" \
   "Unified --name flag works for journal service"
 
 # Test that old --paper flag is no longer supported (breaking change)
-assert_failure "run_dirforge init journal --paper 'test_paper' --first" \
+assert_failure "run_dirforge create journal --paper 'test_paper' --first" \
   "Old --paper flag should fail (breaking change)"
 
-assert_failure "run_dirforge init journal --journal 'test_journal' --service" \
+assert_failure "run_dirforge create journal --journal 'test_journal' --service" \
   "Old --journal flag should fail without --id (breaking change)"
 
 cleanup_temp_workspace
@@ -171,12 +171,12 @@ TEMP_WORKSPACE=$(create_temp_workspace "migration_error_test")
 cd "$TEMP_WORKSPACE"
 
 # Test error messages provide migration guidance
-OUTPUT=$(run_dirforge init journal --paper 'test' --first 2>&1 || true)
+OUTPUT=$(run_dirforge create journal --paper 'test' --first 2>&1 || true)
 if echo "$OUTPUT" | grep -q "paper"; then
     assert_output_contains "$OUTPUT" "name" "Error suggests using --name instead of --paper"
 fi
 
-OUTPUT=$(run_dirforge init journal --journal 'test' --service 2>&1 || true)  
+OUTPUT=$(run_dirforge create journal --journal 'test' --service 2>&1 || true)  
 if echo "$OUTPUT" | grep -q "journal"; then
     assert_output_contains "$OUTPUT" "name" "Error suggests using --name instead of --journal"
 fi
@@ -189,7 +189,7 @@ echo "Test 8: Migration Documentation Accessibility"
 echo "============================================="
 
 # Test help system provides migration documentation access
-OUTPUT=$(run_dirforge init journal --help 2>&1 || true)
+OUTPUT=$(run_dirforge create journal --help 2>&1 || true)
 assert_output_contains "$OUTPUT" "Constitution" "Help provides access to constitutional information"
 
 # Test version information is easily accessible
@@ -209,7 +209,7 @@ mkdir -p JOURNAL_WORLD/test_existing
 echo "existing content" > JOURNAL_WORLD/test_existing/important.txt
 
 # Create new journal project should not affect existing content
-assert_success "run_dirforge init journal --name 'new_project' --first" \
+assert_success "run_dirforge create journal --name 'new_project' --first" \
   "New project creation preserves existing content"
 
 assert_file_exists "JOURNAL_WORLD/test_existing/important.txt" \
@@ -231,13 +231,13 @@ TEMP_WORKSPACE=$(create_temp_workspace "migration_completeness_test")
 cd "$TEMP_WORKSPACE"
 
 # Test all role-based functionality works
-assert_success "run_dirforge init journal --name 'test1' --first" \
+assert_success "run_dirforge create journal --name 'test1' --first" \
   "Primary authorship role fully functional"
 
-assert_success "run_dirforge init journal --name 'test2' --coauthor" \
+assert_success "run_dirforge create journal --name 'test2' --coauthor" \
   "Co-author role fully functional"
 
-assert_success "run_dirforge init journal --name 'nature' --id 'TEST-123' --service" \
+assert_success "run_dirforge create journal --name 'nature' --id 'TEST-123' --service" \
   "Journal service role fully functional"
 
 # Verify all role directories exist

@@ -12,7 +12,7 @@
 #
 # Exit Code: 0 on success, 1 on failure
 #
-# Constitution v1.0.22 Section IV.C: Scaffold Generation & Integration
+# Constitution v1.1.0 Section IV.C: Scaffold Generation & Integration
 
 set -euo pipefail
 

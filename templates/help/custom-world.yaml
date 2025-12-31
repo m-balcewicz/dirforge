@@ -50,8 +50,8 @@ examples:
     output: |
       world_type: CODING_WORLD_CUSTOM
       description: "My specialized coding world"
-      version: "1.0.22"
-      constitution_version: "1.0.22"
+      version: "1.1.0"
+      constitution_version: "1.1.0"
       
       parent_directories:
         - name: python
@@ -112,8 +112,8 @@ examples:
     output: |
       world_type: RESEARCH_WORLD_TEAMS
       description: "Research world organized by teams"
-      version: "1.0.22"
-      constitution_version: "1.0.22"
+      version: "1.1.0"
+      constitution_version: "1.1.0"
       
       parent_directories:
         - name: team-ai
@@ -242,8 +242,8 @@ long_help:
     Root section: Metadata about the world
     $ world_type: CUSTOM_NAME            # unique identifier
     $ description: "Description"         # purpose and use
-    $ version: "1.0.22"                  # config version
-    $ constitution_version: "1.0.22"     # DirForge version
+    $ version: "1.1.0"                  # config version
+    $ constitution_version: "1.1.0"     # DirForge version
     
     parent_directories: Main folder categories
     $ - name: category1                  # folder name
@@ -321,7 +321,7 @@ long_help:
     
     invalid_field_type: |
       Error: Field 'version' expected string, got integer
-      Solution: Use quotes around version: version: "1.0.22"
+      Solution: Use quotes around version: version: "1.1.0"
     
     invalid_nested_structure: |
       Error: 'subdirectories' must be array

@@ -4,8 +4,8 @@
 # Help YAML Parser Library
 #
 # Purpose: Dynamically parse and display help content from YAML files
-# Version: 1.0.22
-# Constitution: v1.0.22, Section IV.B
+# Version: 1.1.0
+# Constitution: v1.1.0, Section IV.B
 #
 # Functions:
 #   - load_help_yaml()        Load a help YAML file by command/topic name

@@ -4,7 +4,7 @@
 # Generates metadata files at different levels (workspace, world, project, study)
 # with automatic template expansion and integrity tracking.
 #
-# Part of YAML-Driven World Configuration System (Constitution v1.0.22, Section IV.B)
+# Part of YAML-Driven World Configuration System (Constitution v1.1.0, Section IV.B)
 #
 # Usage:
 #   source lib/metadata_generator.sh

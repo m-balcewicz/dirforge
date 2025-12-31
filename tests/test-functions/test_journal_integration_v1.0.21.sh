@@ -93,7 +93,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_primary")
 cd "$TEMP_WORKSPACE"
 
 # Test basic primary authorship creation
-assert_success "run_dirforge init journal --name 'thermal_conductivity_review' --first" \
+assert_success "run_dirforge create journal --name 'thermal_conductivity_review' --first" \
   "Create primary authorship project"
 
 # Verify complete directory structure
@@ -107,7 +107,7 @@ assert_dir_exists "JOURNAL_WORLD/01_primary_authorship/${CURRENT_YEAR}_thermal_c
   "Correspondence subdirectory"
 
 # Test with explicit year
-assert_success "run_dirforge init journal --name 'seismic_hazard_analysis' --first --year 2023" \
+assert_success "run_dirforge create journal --name 'seismic_hazard_analysis' --first --year 2023" \
   "Create primary authorship project with explicit year"
 
 assert_dir_exists "JOURNAL_WORLD/01_primary_authorship/2023_seismic_hazard_analysis" \
@@ -124,7 +124,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_coauthor")
 cd "$TEMP_WORKSPACE"
 
 # Test basic co-author creation
-assert_success "run_dirforge init journal --name 'elastic_properties_study' --coauthor" \
+assert_success "run_dirforge create journal --name 'elastic_properties_study' --coauthor" \
   "Create co-author collaboration project"
 
 # Verify complete directory structure
@@ -138,7 +138,7 @@ assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/${CURRENT_YEAR}_elastic_pro
   "Co-author correspondence subdirectory"
 
 # Test with embedded year in paper name
-assert_success "run_dirforge init journal --name '2022_carbonates_microstructure' --coauthor" \
+assert_success "run_dirforge create journal --name '2022_carbonates_microstructure' --coauthor" \
   "Create co-author project with embedded year"
 
 assert_dir_exists "JOURNAL_WORLD/02_coauthor_invites/2022_carbonates_microstructure" \
@@ -155,7 +155,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_service")
 cd "$TEMP_WORKSPACE"
 
 # Test journal service creation
-assert_success "run_dirforge init journal --name 'nature_geoscience' --id 'NGS-2024-12345' --service" \
+assert_success "run_dirforge create journal --name 'nature_geoscience' --id 'NGS-2024-12345' --service" \
   "Create journal service project"
 
 # Verify two-level directory structure
@@ -169,7 +169,7 @@ assert_dir_exists "JOURNAL_WORLD/03_journal_service/nature_geoscience/NGS-2024-1
   "Service correspondence subdirectory"
 
 # Test different journal and manuscript ID formats
-assert_success "run_dirforge init journal --name 'GJI Seismology' --id 'GJI-S-25-0928' --service" \
+assert_success "run_dirforge create journal --name 'GJI Seismology' --id 'GJI-S-25-0928' --service" \
   "Create service project with different format"
 
 assert_dir_exists "JOURNAL_WORLD/03_journal_service/gji_seismology/GJI-S-25-0928" \
@@ -186,7 +186,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_admin")
 cd "$TEMP_WORKSPACE"
 
 # Test help system contains admin guidance
-OUTPUT=$(run_dirforge init journal --help 2>&1 || true)
+OUTPUT=$(run_dirforge create journal --help 2>&1 || true)
 assert_output_contains "$OUTPUT" "00_admin" "Help mentions admin directory"
 assert_output_contains "$OUTPUT" "manual" "Help explains manual admin organization"
 
@@ -201,39 +201,39 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_validation")
 cd "$TEMP_WORKSPACE"
 
 # Test invalid paper name validation
-assert_failure "run_dirforge init journal --name 'Invalid@Paper#Name!' --first" \
+assert_failure "run_dirforge create journal --name 'Invalid@Paper#Name!' --first" \
   "Invalid paper name should fail with detailed error"
 
 # Test year validation
-assert_failure "run_dirforge init journal --name 'test_paper' --first --year 25" \
+assert_failure "run_dirforge create journal --name 'test_paper' --first --year 25" \
   "Invalid year format should fail"
 
-assert_failure "run_dirforge init journal --name 'test_paper' --first --year abcd" \
+assert_failure "run_dirforge create journal --name 'test_paper' --first --year abcd" \
   "Non-numeric year should fail"
 
 # Test journal name validation for service
-assert_failure "run_dirforge init journal --name 'Invalid<Journal>' --id 'TEST-123' --service" \
+assert_failure "run_dirforge create journal --name 'Invalid<Journal>' --id 'TEST-123' --service" \
   "Invalid journal name should fail"
 
 # Test manuscript ID validation
-assert_failure "run_dirforge init journal --name 'nature' --id 'Invalid@ID' --service" \
+assert_failure "run_dirforge create journal --name 'nature' --id 'Invalid@ID' --service" \
   "Invalid manuscript ID should fail"
 
 # Test mutual exclusion of flags
-assert_failure "run_dirforge init journal --name 'test' --first --coauthor" \
+assert_failure "run_dirforge create journal --name 'test' --first --coauthor" \
   "Mutual exclusion of --first and --coauthor should fail"
 
-assert_failure "run_dirforge init journal --name 'test' --first --service" \
+assert_failure "run_dirforge create journal --name 'test' --first --service" \
   "Mutual exclusion of --first and --service should fail"
 
 # Test missing required flags
-assert_failure "run_dirforge init journal --name 'test'" \
+assert_failure "run_dirforge create journal --name 'test'" \
   "Missing role flag should fail"
 
-assert_failure "run_dirforge init journal --first" \
+assert_failure "run_dirforge create journal --first" \
   "Missing --name flag should fail"
 
-assert_failure "run_dirforge init journal --name 'test' --service" \
+assert_failure "run_dirforge create journal --name 'test' --service" \
   "Missing --id flag for service should fail"
 
 cleanup_temp_workspace
@@ -247,11 +247,11 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_conflicts")
 cd "$TEMP_WORKSPACE"
 
 # Create initial project
-assert_success "run_dirforge init journal --name 'conflict_test' --first" \
+assert_success "run_dirforge create journal --name 'conflict_test' --first" \
   "Create initial project"
 
 # Try to create duplicate project
-assert_failure "run_dirforge init journal --name 'conflict_test' --first" \
+assert_failure "run_dirforge create journal --name 'conflict_test' --first" \
   "Duplicate project creation should fail with helpful error"
 
 # Verify original project still exists and is intact
@@ -269,7 +269,7 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_help")
 cd "$TEMP_WORKSPACE"
 
 # Test global journal help
-OUTPUT=$(run_dirforge init journal --help 2>&1 || true)
+OUTPUT=$(run_dirforge create journal --help 2>&1 || true)
 assert_output_contains "$OUTPUT" "JOURNAL_WORLD" "Help contains JOURNAL_WORLD reference"
 assert_output_contains "$OUTPUT" "Constitution" "Help contains constitution reference"
 assert_output_contains "$OUTPUT" "v1.0.21" "Help contains current constitution version"
@@ -297,13 +297,13 @@ TEMP_WORKSPACE=$(create_temp_workspace "journal_integration_multi")
 cd "$TEMP_WORKSPACE"
 
 # Create projects for all three automated roles
-assert_success "run_dirforge init journal --name 'project_alpha' --first" \
+assert_success "run_dirforge create journal --name 'project_alpha' --first" \
   "Create primary authorship project"
 
-assert_success "run_dirforge init journal --name 'project_beta' --coauthor" \
+assert_success "run_dirforge create journal --name 'project_beta' --coauthor" \
   "Create co-author project"
 
-assert_success "run_dirforge init journal --name 'nature_geoscience' --id 'NG-2024-001' --service" \
+assert_success "run_dirforge create journal --name 'nature_geoscience' --id 'NG-2024-001' --service" \
   "Create journal service project"
 
 # Verify all role directories exist
@@ -351,10 +351,10 @@ OUTPUT=$(run_dirforge --version 2>&1 || true)
 assert_output_contains "$OUTPUT" "v1.0.21" "Version command shows constitution v1.0.21"
 
 # Test role-based separation requirements
-assert_success "run_dirforge init journal --name 'test_primary' --first" \
+assert_success "run_dirforge create journal --name 'test_primary' --first" \
   "Primary authorship follows constitution"
 
-assert_success "run_dirforge init journal --name 'test_coauthor' --coauthor" \
+assert_success "run_dirforge create journal --name 'test_coauthor' --coauthor" \
   "Co-author collaboration follows constitution"
 
 # Verify constitutional role separation is maintained
@@ -376,7 +376,7 @@ cd "$TEMP_WORKSPACE"
 
 # Test directory creation performance (should be fast)
 TIME_START=$(date +%s%N)
-assert_success "run_dirforge init journal --name 'performance_test' --first" \
+assert_success "run_dirforge create journal --name 'performance_test' --first" \
   "Directory creation performance test"
 TIME_END=$(date +%s%N)
 TIME_DIFF=$(((TIME_END - TIME_START) / 1000000)) # Convert to milliseconds
@@ -390,18 +390,18 @@ fi
 
 # Test edge case: very long valid paper name
 LONG_NAME="very_long_paper_name_about_thermal_conductivity_in_geological_materials_but_still_under_limit"
-assert_success "run_dirforge init journal --name '$LONG_NAME' --first" \
+assert_success "run_dirforge create journal --name '$LONG_NAME' --first" \
   "Long valid paper name should work"
 
 # Test edge case: minimum length names
-assert_success "run_dirforge init journal --name 'abc' --first" \
+assert_success "run_dirforge create journal --name 'abc' --first" \
   "Minimum length paper name should work"
 
 # Test edge case: year boundary cases
-assert_success "run_dirforge init journal --name 'historical' --first --year 1990" \
+assert_success "run_dirforge create journal --name 'historical' --first --year 1990" \
   "Historical year boundary should work"
 
-assert_success "run_dirforge init journal --name 'future' --first --year 2030" \
+assert_success "run_dirforge create journal --name 'future' --first --year 2030" \
   "Future year boundary should work"
 
 cleanup_temp_workspace

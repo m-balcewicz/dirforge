@@ -1,6 +1,6 @@
 ---
 # Update Command Help
-# Version: 1.0.22
+# Version: 1.1.0
 # Purpose: Help for 'dirforge update' command for upgrading existing structures
 
 command: "dirforge update"
@@ -92,5 +92,5 @@ see_also:
   - "constitution.md - DirForge Constitution"
   - "troubleshooting-update.md - Troubleshooting update issues"
 
-constitution_section: "Constitution v1.0.22"
+constitution_section: "Constitution v1.1.0"
 updated: "2025-12-30"

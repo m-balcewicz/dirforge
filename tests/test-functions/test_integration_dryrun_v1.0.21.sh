@@ -30,7 +30,7 @@ echo "Files/directories before dry-run: $BEFORE_COUNT"
 echo ""
 echo "Running: dirforge --dry-run init research --name 'Thermal Analysis' --no-conda"
 set +e
-"$DIRFORGE" --dry-run init research --name "Thermal Analysis" --no-conda > /tmp/dryrun_output.txt 2>&1
+"$DIRFORGE" --dry-run create research --name "Thermal Analysis" --no-conda > /tmp/dryrun_output.txt 2>&1
 EXIT_CODE=$?
 set -e
 

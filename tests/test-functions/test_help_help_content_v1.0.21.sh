@@ -99,8 +99,8 @@ test_format_command() {
     assert_contains "dirforge init" "$result" "format_command() should contain command text"
     
     # Test command with description
-    result=$(format_command "dirforge init research" "Create a research project")
-    assert_contains "dirforge init research" "$result" "format_command() should contain command with description"
+    result=$(format_command "dirforge create research" "Create a research project")
+    assert_contains "dirforge create research" "$result" "format_command() should contain command with description"
     assert_contains "Create a research project" "$result" "format_command() should contain description text"
     
     # Test that command is properly indented
