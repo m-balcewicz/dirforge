@@ -5,6 +5,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROG_NAME="$(basename "${BASH_SOURCE[0]}")"
 
+# Set workspace root for world directories
+# Use DIRFORGE_WORKSPACE_ROOT if set, otherwise try to detect from current location, or use current directory
+if [[ -n "${DIRFORGE_WORKSPACE_ROOT:-}" ]]; then
+    WORKSPACE_ROOT="$DIRFORGE_WORKSPACE_ROOT"
+elif [[ -d "$HOME/Documents" ]]; then
+    # Common default location
+    WORKSPACE_ROOT="$HOME/Documents"
+else
+    # Fallback to current directory (legacy behavior)
+    WORKSPACE_ROOT="$(pwd)"
+fi
+
 # Helper function to prompt user for world type when it cannot be detected
 # Usage: prompt_for_world_type <target_dir>
 prompt_for_world_type() {
@@ -889,12 +901,12 @@ fi
 if [ -d "$SCRIPT_DIR/../templates" ]; then
     # Development mode - templates in templates/
     TEMPLATES_DIR="$(cd "$SCRIPT_DIR/../templates" && pwd)"
-elif [ -d "$HOME/.local/share/dirforge/templates" ]; then
+elif [ -d "$HOME/.local/lib/dirforge/templates" ]; then
     # Local installation mode
-    TEMPLATES_DIR="$HOME/.local/share/dirforge/templates"
-elif [ -d "/usr/local/share/dirforge/templates" ]; then
+    TEMPLATES_DIR="$HOME/.local/lib/dirforge/templates"
+elif [ -d "/usr/local/lib/dirforge/templates" ]; then
     # System installation mode
-    TEMPLATES_DIR="/usr/local/share/dirforge/templates"
+    TEMPLATES_DIR="/usr/local/lib/dirforge/templates"
 else
     # Fallback
     TEMPLATES_DIR="$SCRIPT_DIR/../templates"
@@ -1188,8 +1200,11 @@ create_world_parent() {
     office)
       # Office creates standard structure even in parent-only mode
       echo "Creating OFFICE_WORLD standard folders..."
+      if [ ! -d "$WORKSPACE_ROOT/OFFICE_WORLD" ]; then
+        echo "Created parent directory: $WORKSPACE_ROOT/OFFICE_WORLD"
+      fi
       for d in 00_admin 01_finance 02_hr_administration 03_faculty 04_inventory_equipment 05_software_licenses 06_public_relations; do
-        do_mkdir_p "OFFICE_WORLD/$d"
+        do_mkdir_p "$WORKSPACE_ROOT/OFFICE_WORLD/$d"
       done
       if [ "$DRY_RUN" = true ]; then
         if [ "$JSON_OUTPUT" = false ]; then
@@ -1202,8 +1217,11 @@ create_world_parent() {
     private)
       # Private creates standard structure even in parent-only mode
       echo "Creating PRIVATE_WORLD standard folders..."
+      if [ ! -d "$WORKSPACE_ROOT/PRIVATE_WORLD" ]; then
+        echo "Created parent directory: $WORKSPACE_ROOT/PRIVATE_WORLD"
+      fi
       for d in 00_admin 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
-        do_mkdir_p "PRIVATE_WORLD/$d"
+        do_mkdir_p "$WORKSPACE_ROOT/PRIVATE_WORLD/$d"
       done
       if [ "$DRY_RUN" = true ]; then
         if [ "$JSON_OUTPUT" = false ]; then
@@ -1787,15 +1805,19 @@ construct_primary_authorship_path() {
     return 1
   fi
   
-  # Use provided journal root or find it
+  # Use provided journal root or use WORKSPACE_ROOT
   if [ -z "$journal_root" ]; then
-    journal_root="$(find_journal_world_root)"
-    if [ -z "$journal_root" ]; then
-      if [ "$DRY_RUN" = true ]; then
-        journal_root="$(pwd)/JOURNAL_WORLD"
-      else
-        echo "Error: JOURNAL_WORLD not found" >&2
-        return 1
+    journal_root="$WORKSPACE_ROOT/JOURNAL_WORLD"
+    
+    # Create parent directories if they don't exist
+    if [ "$DRY_RUN" = false ]; then
+      if [ ! -d "$WORKSPACE_ROOT/JOURNAL_WORLD" ]; then
+        do_mkdir_p "$WORKSPACE_ROOT/JOURNAL_WORLD"
+        echo "Created parent directory: $WORKSPACE_ROOT/JOURNAL_WORLD"
+      fi
+      if [ ! -d "$journal_root/01_primary_authorship" ]; then
+        do_mkdir_p "$journal_root/01_primary_authorship"
+        echo "Created category directory: $journal_root/01_primary_authorship"
       fi
     fi
   fi
@@ -1823,15 +1845,19 @@ construct_coauthor_path() {
     return 1
   fi
   
-  # Use provided journal root or find it
+  # Use provided journal root or use WORKSPACE_ROOT
   if [ -z "$journal_root" ]; then
-    journal_root="$(find_journal_world_root)"
-    if [ -z "$journal_root" ]; then
-      if [ "$DRY_RUN" = true ]; then
-        journal_root="$(pwd)/JOURNAL_WORLD"
-      else
-        echo "Error: JOURNAL_WORLD not found" >&2
-        return 1
+    journal_root="$WORKSPACE_ROOT/JOURNAL_WORLD"
+    
+    # Create parent directories if they don't exist
+    if [ "$DRY_RUN" = false ]; then
+      if [ ! -d "$WORKSPACE_ROOT/JOURNAL_WORLD" ]; then
+        do_mkdir_p "$WORKSPACE_ROOT/JOURNAL_WORLD"
+        echo "Created parent directory: $WORKSPACE_ROOT/JOURNAL_WORLD"
+      fi
+      if [ ! -d "$journal_root/02_coauthor_invites" ]; then
+        do_mkdir_p "$journal_root/02_coauthor_invites"
+        echo "Created category directory: $journal_root/02_coauthor_invites"
       fi
     fi
   fi
@@ -1859,15 +1885,23 @@ construct_service_path() {
     return 1
   fi
   
-  # Use provided journal root or find it
+  # Use provided journal root or use WORKSPACE_ROOT
   if [ -z "$journal_root" ]; then
-    journal_root="$(find_journal_world_root)"
-    if [ -z "$journal_root" ]; then
-      if [ "$DRY_RUN" = true ]; then
-        journal_root="$(pwd)/JOURNAL_WORLD"
-      else
-        echo "Error: JOURNAL_WORLD not found" >&2
-        return 1
+    journal_root="$WORKSPACE_ROOT/JOURNAL_WORLD"
+    
+    # Create parent directories if they don't exist
+    if [ "$DRY_RUN" = false ]; then
+      if [ ! -d "$WORKSPACE_ROOT/JOURNAL_WORLD" ]; then
+        do_mkdir_p "$WORKSPACE_ROOT/JOURNAL_WORLD"
+        echo "Created parent directory: $WORKSPACE_ROOT/JOURNAL_WORLD"
+      fi
+      if [ ! -d "$journal_root/03_journal_service" ]; then
+        do_mkdir_p "$journal_root/03_journal_service"
+        echo "Created category directory: $journal_root/03_journal_service"
+      fi
+      if [ ! -d "$journal_root/03_journal_service/${sanitized_journal}" ]; then
+        do_mkdir_p "$journal_root/03_journal_service/${sanitized_journal}"
+        echo "Created journal directory: $journal_root/03_journal_service/${sanitized_journal}"
       fi
     fi
   fi
@@ -2241,7 +2275,16 @@ init_research_project_only() {
   id_no_year=$(strip_year_prefix "$PROJECT_ID")
   CONDA_NAME="research_${id_no_year}"
 
-  RESEARCH_ROOT="RESEARCH_WORLD/$PROJECT_ID"
+  RESEARCH_ROOT="$WORKSPACE_ROOT/RESEARCH_WORLD/$PROJECT_ID"
+  
+  # Create RESEARCH_WORLD parent directory if it doesn't exist
+  if [ ! -d "$WORKSPACE_ROOT/RESEARCH_WORLD" ]; then
+    do_mkdir_p "$WORKSPACE_ROOT/RESEARCH_WORLD"
+    if [ "$DRY_RUN" = false ]; then
+      echo "Created parent directory: $WORKSPACE_ROOT/RESEARCH_WORLD"
+    fi
+  fi
+  
   if [ -d "$RESEARCH_ROOT" ]; then
     if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
       echo "Project '$PROJECT_ID' already exists at $RESEARCH_ROOT" >&2
@@ -2378,7 +2421,7 @@ init_research_study() {
     exit 1
   fi
 
-  local PROJECT_ROOT="RESEARCH_WORLD/$project_id"
+  local PROJECT_ROOT="$WORKSPACE_ROOT/RESEARCH_WORLD/$project_id"
   
   # Check if project exists (skip in dry-run mode for combined operations)
   if [ "$DRY_RUN" = false ] && [ ! -d "$PROJECT_ROOT" ]; then
@@ -2484,7 +2527,16 @@ init_lecture() {
     echo "Lecture name converted to ID: $lecture_id"
   fi
 
-  LECTURE_ROOT="LECTURE_WORLD/$lecture_id"
+  LECTURE_ROOT="$WORKSPACE_ROOT/LECTURE_WORLD/$lecture_id"
+  
+  # Create LECTURE_WORLD parent directory if it doesn't exist
+  if [ ! -d "$WORKSPACE_ROOT/LECTURE_WORLD" ]; then
+    do_mkdir_p "$WORKSPACE_ROOT/LECTURE_WORLD"
+    if [ "$DRY_RUN" = false ]; then
+      echo "Created parent directory: $WORKSPACE_ROOT/LECTURE_WORLD"
+    fi
+  fi
+  
   if [ -d "$LECTURE_ROOT" ]; then
     if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
       echo "Lecture '$lecture_id' already exists at $LECTURE_ROOT" >&2
@@ -2621,7 +2673,21 @@ init_coding() {
   esac
 
   proj_id=$(to_snake_case "$project")
-  local ROOT="CODING_WORLD/${language}/${proj_id}"
+  local ROOT="$WORKSPACE_ROOT/CODING_WORLD/${language}/${proj_id}"
+  
+  # Create CODING_WORLD and language parent directories if they don't exist
+  if [ ! -d "$WORKSPACE_ROOT/CODING_WORLD" ]; then
+    do_mkdir_p "$WORKSPACE_ROOT/CODING_WORLD"
+    if [ "$DRY_RUN" = false ]; then
+      echo "Created parent directory: $WORKSPACE_ROOT/CODING_WORLD"
+    fi
+  fi
+  if [ ! -d "$WORKSPACE_ROOT/CODING_WORLD/${language}" ]; then
+    do_mkdir_p "$WORKSPACE_ROOT/CODING_WORLD/${language}"
+    if [ "$DRY_RUN" = false ]; then
+      echo "Created language directory: $WORKSPACE_ROOT/CODING_WORLD/${language}"
+    fi
+  fi
 
   if [ -d "$ROOT" ]; then
     if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
@@ -3426,6 +3492,23 @@ init_all_worlds() {
     echo
     echo "Constitution version: v1.0.22"
     echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "⚡ IMPORTANT: Configure workspace environment variable"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo "To use dirforge commands from anywhere in your system, add this to your shell:"
+    echo
+    echo "  echo 'export DIRFORGE_WORKSPACE_ROOT=\"$target_path\"' >> ~/.zshrc"
+    echo "  source ~/.zshrc"
+    echo
+    echo "After configuration, you can run commands like:"
+    echo "  dirforge init research --project myproject"
+    echo "  dirforge init coding --language python --project mytool"
+    echo
+    echo "From anywhere, and projects will be created in: $target_path"
+    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
     echo "Next steps:"
     echo "  • Create a research project: $PROG_NAME init research --name \"Project Name\""
     echo "  • Create a lecture: $PROG_NAME init lecture --name \"Course Name\""
@@ -3833,8 +3916,11 @@ main() {
                 journal) init_journal "$@" ;;
                 office)
                 echo "Creating OFFICE_WORLD standard folders..."
+                if [ ! -d "$WORKSPACE_ROOT/OFFICE_WORLD" ]; then
+                  echo "Created parent directory: $WORKSPACE_ROOT/OFFICE_WORLD"
+                fi
                 for d in 00_admin 01_finance 02_hr_administration 03_faculty 04_inventory_equipment 05_software_licenses 06_public_relations; do
-                  do_mkdir_p "OFFICE_WORLD/$d"
+                  do_mkdir_p "$WORKSPACE_ROOT/OFFICE_WORLD/$d"
                 done
                 if [ "$DRY_RUN" = true ]; then
                   echo "DRY RUN: would create OFFICE_WORLD/"
@@ -3843,8 +3929,11 @@ main() {
                 fi ;;
               private)
                 echo "Creating PRIVATE_WORLD standard folders..."
+                if [ ! -d "$WORKSPACE_ROOT/PRIVATE_WORLD" ]; then
+                  echo "Created parent directory: $WORKSPACE_ROOT/PRIVATE_WORLD"
+                fi
                 for d in 00_admin 01_credentials 02_id_contracts 03_finance 04_documents 05_photos 06_movies 07_hiking 09_installers 90_archive; do
-                  do_mkdir_p "PRIVATE_WORLD/$d"
+                  do_mkdir_p "$WORKSPACE_ROOT/PRIVATE_WORLD/$d"
                 done
                 if [ "$DRY_RUN" = true ]; then
                   echo "DRY RUN: would create PRIVATE_WORLD/"

@@ -194,7 +194,7 @@ install_locally() {
     # Verify installation
     if [ -f "$dest" ] && [ -d "$lib_dir" ]; then
         print_success "Local installation verified"
-        echo "✓ Installed to $dest"
+        print_success "Installed to $dest"
     else
         print_error "Installation verification failed"
         return 1
@@ -370,15 +370,21 @@ run_wizard() {
     echo
     echo -e "${GREEN}DirForge is ready to use!${NC}"
     echo
-    echo "Quick start:"
-    echo "  dirforge --help                           Show all commands"
-    echo "  dirforge init                             Create complete workspace"
-    echo "  dirforge init research --title \"My Project\"   Create research project"
-    echo "  dirforge init coding --language python --project mytool"
+    echo "Next steps:"
+    echo "  1. Create your workspace:"
+    echo "     dirforge init ~/Documents --auto"
+    echo
+    echo "  2. Configure workspace environment variable:"
+    echo "     echo 'export DIRFORGE_WORKSPACE_ROOT=\"\$HOME/Documents\"' >> ~/.zshrc"
+    echo "     source ~/.zshrc"
+    echo
+    echo "  3. Use dirforge from anywhere:"
+    echo "     dirforge init research --title \"My Project\""
+    echo "     dirforge init coding --language python --project mytool"
     echo
     
     if [ "$install_mode" = "local" ]; then
-        echo "Restart your shell or run: source $shell_rc"
+        echo "Restart your shell or run: source ~/.zshrc"
     fi
     echo
     return 0
