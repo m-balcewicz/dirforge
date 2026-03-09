@@ -103,6 +103,40 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Detect the user's login shell (not the script's running shell)
+detect_user_shell() {
+    local login_shell="${SHELL:-}"
+    case "$login_shell" in
+        */zsh)  echo "zsh"  ;;
+        */bash) echo "bash" ;;
+        */fish) echo "fish" ;;
+        *)
+            # Fallback: check which rc files exist
+            if [[ -f "$HOME/.zshrc" ]]; then
+                echo "zsh"
+            elif [[ -f "$HOME/.bashrc" ]]; then
+                echo "bash"
+            elif [[ -f "$HOME/.config/fish/config.fish" ]]; then
+                echo "fish"
+            else
+                echo "bash"  # ultimate fallback
+            fi
+            ;;
+    esac
+}
+
+# Get the shell RC file for the user's login shell
+get_shell_rc() {
+    local shell_type
+    shell_type="$(detect_user_shell)"
+    case "$shell_type" in
+        zsh)  echo "$HOME/.zshrc" ;;
+        bash) echo "$HOME/.bashrc" ;;
+        fish) echo "$HOME/.config/fish/config.fish" ;;
+        *)    echo "$HOME/.bashrc" ;;
+    esac
+}
+
 # ============================================================================
 # CORE INSTALLATION FUNCTION
 # ============================================================================
@@ -202,17 +236,22 @@ install_locally() {
     
     # Check PATH
     if ! printf '%s\n' "$PATH" | tr ':' '\n' | grep -xq "$bin_dir"; then
+        local user_shell rc_file source_cmd
+        user_shell="$(detect_user_shell)"
+        rc_file="$(get_shell_rc)"
+
         echo
         print_warning "$bin_dir is not in your PATH"
         echo
         echo "Add to your shell configuration:"
-        if [ -n "${ZSH_VERSION:-}" ]; then
-            echo "  echo 'export PATH=\"\$HOME/bin:\$PATH\"' >> ~/.zshrc && source ~/.zshrc"
-        elif [ -n "${BASH_VERSION:-}" ]; then
-            echo "  echo 'export PATH=\"\$HOME/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
-        else
-            echo "  export PATH=\"\$HOME/bin:\$PATH\""
-        fi
+        case "$user_shell" in
+            fish)
+                echo "  fish_add_path $bin_dir"
+                ;;
+            *)
+                echo "  echo 'export PATH=\"\$HOME/bin:\$PATH\"' >> $rc_file && source $rc_file"
+                ;;
+        esac
         echo
     fi
     
@@ -244,20 +283,10 @@ run_wizard() {
     echo
     print_step "1/5" "System Detection"
     
-    # Detect shell
-    local shell_type="bash"
-    local shell_rc=""
-    
-    if [[ -f ~/.zshrc ]]; then
-        shell_type="zsh"
-        shell_rc="$HOME/.zshrc"
-    elif [[ -f ~/.bashrc ]]; then
-        shell_type="bash"
-        shell_rc="$HOME/.bashrc"
-    elif [[ -f ~/.config/fish/config.fish ]]; then
-        shell_type="fish"
-        shell_rc="$HOME/.config/fish/config.fish"
-    fi
+    # Detect user's login shell (not the script's interpreter)
+    local shell_type shell_rc
+    shell_type="$(detect_user_shell)"
+    shell_rc="$(get_shell_rc)"
     
     print_success "Shell detected: $shell_type"
     [[ -n "$shell_rc" ]] && print_success "Shell config: $shell_rc"
@@ -375,8 +404,8 @@ run_wizard() {
     echo "     dirforge init ~/Documents --auto"
     echo
     echo "  2. Configure workspace environment variable:"
-    echo "     echo 'export DIRFORGE_WORKSPACE_ROOT=\"\$HOME/Documents\"' >> ~/.zshrc"
-    echo "     source ~/.zshrc"
+    echo "     echo 'export DIRFORGE_WORKSPACE_ROOT=\"\$HOME/Documents\"' >> $shell_rc"
+    echo "     source $shell_rc"
     echo
     echo "  3. Use dirforge from anywhere:"
     echo "     dirforge init research --title \"My Project\""
@@ -384,7 +413,7 @@ run_wizard() {
     echo
     
     if [ "$install_mode" = "local" ]; then
-        echo "Restart your shell or run: source ~/.zshrc"
+        echo "Restart your shell or run: source $shell_rc"
     fi
     echo
     return 0
