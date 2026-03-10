@@ -2622,7 +2622,7 @@ Conda env: $CONDA_NAME
 
 ## Project Structure
 
-This research project follows the DirForge Constitution v1.1.0 study-based organization:
+This research project follows the study-based organization:
 
 - \`00_admin/\` - Project contracts, ethics, agreements
 - \`01_project_management/\` - Proposals, reports, budgets
