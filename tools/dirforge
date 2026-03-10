@@ -3568,6 +3568,10 @@ handle_help_request() {
         show_global_help
       fi
       ;;
+    "rename")
+      # Show rename help
+      cmd_rename --help
+      ;;
     "create")
       # Handle create command help routing
       if [ -n "$subcmd" ] && [ "$subcmd" != "help" ]; then
@@ -4136,6 +4140,211 @@ output_json_plan() {
 }
 
 # ============================================================================
+# cmd_rename: Rename a project directory and update its metadata
+# ============================================================================
+# Usage: cmd_rename <old_name_or_path> <new_name> [--dry-run]
+# Examples:
+#   dirforge rename 2025_koenig 2024_koenig
+#   dirforge rename RESEARCH_WORLD/2025_koenig 2024_koenig
+#   dirforge rename /absolute/path/to/2025_koenig 2024_koenig
+#   dirforge --dry-run rename 2025_koenig 2024_koenig
+cmd_rename() {
+  local old_ref=""
+  local new_name=""
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help|-h)
+        echo "Usage: $PROG_NAME rename <project> <new_name> [options]"
+        echo ""
+        echo "Rename a project directory and update its metadata."
+        echo ""
+        echo "ARGUMENTS"
+        echo "  <project>     Project name, relative path, or absolute path."
+        echo "                If a bare name (e.g. 2025_koenig), dirforge searches"
+        echo "                all WORLD directories under WORKSPACE_ROOT."
+        echo "  <new_name>    The new directory name (e.g. 2024_koenig)."
+        echo ""
+        echo "OPTIONS"
+        echo "  --dry-run     Preview changes without renaming anything"
+        echo "  --yes, -y     Skip confirmation prompt"
+        echo "  --help, -h    Show this help message"
+        echo ""
+        echo "WHAT GETS UPDATED"
+        echo "  • Directory name (mv)"
+        echo "  • .integrity/project.yaml  → name field + updated timestamp"
+        echo "  • README.md                → first heading (# old_name → # new_name)"
+        echo ""
+        echo "EXAMPLES"
+        echo "  $PROG_NAME rename 2025_koenig 2024_koenig"
+        echo "  $PROG_NAME --dry-run rename RESEARCH_WORLD/2025_koenig 2024_koenig"
+        echo "  $PROG_NAME rename /Users/me/Documents/RESEARCH_WORLD/2025_koenig 2024_koenig"
+        exit 0
+        ;;
+      -*)
+        echo "Unknown option: $1" >&2
+        echo "Run '$PROG_NAME rename --help' for usage." >&2
+        exit 1
+        ;;
+      *)
+        if [[ -z "$old_ref" ]]; then
+          old_ref="$1"
+        elif [[ -z "$new_name" ]]; then
+          new_name="$1"
+        else
+          echo "Too many arguments." >&2
+          echo "Run '$PROG_NAME rename --help' for usage." >&2
+          exit 1
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  # Validate required arguments
+  if [[ -z "$old_ref" || -z "$new_name" ]]; then
+    echo "❌ Error: Both <project> and <new_name> are required." >&2
+    echo "Usage: $PROG_NAME rename <project> <new_name>" >&2
+    echo "Run '$PROG_NAME rename --help' for details." >&2
+    exit 1
+  fi
+
+  # ── Resolve old_ref to an absolute path ──────────────────────────────────
+  local old_path=""
+  if [[ "$old_ref" == /* ]]; then
+    # Absolute path given
+    old_path="$old_ref"
+  elif [[ "$old_ref" == */* ]]; then
+    # Relative path with slash (e.g. RESEARCH_WORLD/2025_koenig)
+    old_path="$WORKSPACE_ROOT/$old_ref"
+  else
+    # Bare name – search all *_WORLD directories
+    local matches=()
+    for world_dir in "$WORKSPACE_ROOT"/*_WORLD; do
+      [[ -d "$world_dir" ]] || continue
+      if [[ -d "$world_dir/$old_ref" ]]; then
+        matches+=("$world_dir/$old_ref")
+      fi
+    done
+    if [[ ${#matches[@]} -eq 0 ]]; then
+      echo "❌ Error: Project '$old_ref' not found in any WORLD under $WORKSPACE_ROOT" >&2
+      exit 1
+    elif [[ ${#matches[@]} -gt 1 ]]; then
+      echo "❌ Error: Ambiguous – '$old_ref' found in multiple WORLDs:" >&2
+      for m in "${matches[@]}"; do echo "  $m" >&2; done
+      echo "Specify the full path, e.g.: $PROG_NAME rename ${matches[0]} $new_name" >&2
+      exit 1
+    fi
+    old_path="${matches[0]}"
+  fi
+
+  # Strip trailing slash
+  old_path="${old_path%/}"
+
+  # Validate the source exists
+  if [[ ! -d "$old_path" ]]; then
+    echo "❌ Error: Directory does not exist: $old_path" >&2
+    exit 1
+  fi
+
+  # Derive paths
+  local parent_dir
+  parent_dir="$(dirname "$old_path")"
+  local old_name
+  old_name="$(basename "$old_path")"
+  local new_path="$parent_dir/$new_name"
+
+  # Guard: same name
+  if [[ "$old_name" == "$new_name" ]]; then
+    echo "Nothing to do – old and new names are identical ($old_name)."
+    exit 0
+  fi
+
+  # Guard: destination already exists
+  if [[ -d "$new_path" ]]; then
+    echo "❌ Error: Destination already exists: $new_path" >&2
+    exit 1
+  fi
+
+  # ── Show plan ────────────────────────────────────────────────────────────
+  echo ""
+  echo "Rename project"
+  echo "  From: $old_path"
+  echo "  To:   $new_path"
+  echo ""
+  echo "Metadata updates:"
+  if [[ -f "$old_path/.integrity/project.yaml" ]]; then
+    echo "  • .integrity/project.yaml  name: \"$old_name\" → \"$new_name\""
+  else
+    echo "  • .integrity/project.yaml  (not found – will skip)"
+  fi
+  if [[ -f "$old_path/README.md" ]]; then
+    echo "  • README.md                heading: # $old_name → # $new_name"
+  else
+    echo "  • README.md                (not found – will skip)"
+  fi
+
+  # Warn about conda env
+  local conda_hint=""
+  if [[ -f "$old_path/README.md" ]]; then
+    conda_hint=$(grep -i 'Conda env:' "$old_path/README.md" 2>/dev/null | head -1 || true)
+  fi
+  if [[ -n "$conda_hint" ]]; then
+    echo ""
+    echo "⚠️  Note: This project references a conda environment:"
+    echo "   $conda_hint"
+    echo "   Conda environments cannot be renamed automatically."
+    echo "   To rename manually:  conda rename -n OLD_ENV NEW_ENV"
+  fi
+  echo ""
+
+  # ── Dry-run exits here ──────────────────────────────────────────────────
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "DRY RUN: No changes were made."
+    return 0
+  fi
+
+  # ── Confirmation ─────────────────────────────────────────────────────────
+  if [[ "$YES" != true ]]; then
+    printf "Proceed with rename? [y/N] "
+    local answer
+    read -r answer
+    case "$answer" in
+      [yY]|[yY][eE][sS]) ;;
+      *)
+        echo "Aborted."
+        return 0
+        ;;
+    esac
+  fi
+
+  # ── Execute rename ──────────────────────────────────────────────────────
+  # 1. Rename directory
+  mv "$old_path" "$new_path"
+  echo "✅ Renamed directory"
+
+  # 2. Update .integrity/project.yaml
+  if [[ -f "$new_path/.integrity/project.yaml" ]]; then
+    local ts
+    ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    sed -i '' "s/^name: .*/name: \"$new_name\"/" "$new_path/.integrity/project.yaml"
+    sed -i '' "s/^updated: .*/updated: \"$ts\"/"  "$new_path/.integrity/project.yaml"
+    echo "✅ Updated .integrity/project.yaml"
+  fi
+
+  # 3. Update README.md heading
+  if [[ -f "$new_path/README.md" ]]; then
+    # Replace the first H1 heading that matches the old name
+    sed -i '' "1,/^# ${old_name}$/s/^# ${old_name}$/# ${new_name}/" "$new_path/README.md"
+    echo "✅ Updated README.md heading"
+  fi
+
+  echo ""
+  echo "Done. Project renamed to: $new_path"
+}
+
+# ============================================================================
 # cmd_validate_config: Validate YAML config file against schema (T044-T047)
 # ============================================================================
 # Usage: cmd_validate_config [--verbose] [--help] <config_file>
@@ -4404,6 +4613,17 @@ main() {
     create)
       # T004: Route 'create' commands to cmd_create() dispatcher
       cmd_create "$@"
+      exit $?
+      ;;
+    rename)
+      # Check if first argument is a help flag
+      case "${1:-}" in
+        --help|-h)
+          handle_help_request "rename"
+          exit 0
+          ;;
+      esac
+      cmd_rename "$@"
       exit $?
       ;;
     init)
