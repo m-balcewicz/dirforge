@@ -1,6 +1,6 @@
 # DirForge Manual
 
-Version: 1.0 | Constitution: v1.0.16
+Version: 1.1.0 | Constitution: v1.1.0
 
 ## Table of Contents
 
@@ -12,6 +12,7 @@ Version: 1.0 | Constitution: v1.0.16
 6. [Project Types](#project-types)
 7. [Examples](#examples)
 8. [Troubleshooting](#troubleshooting)
+9. [Versioning & Template Updates](#versioning--template-updates)
 
 ---
 
@@ -295,7 +296,7 @@ RESEARCH_WORLD/<YYYY_project_id>/
 ```
 
 **Features:**
-- Constitution v1.0.16 compliant
+- Constitution v1.1.0 compliant
 - Numbered folder convention (01-08)
 - `.integrity/` for data validation
 - Automatic project ID with year prefix
@@ -470,7 +471,7 @@ Script waits for user input when project exists.
 
 ## Related Documentation
 
-- **Constitution**: `.specify/memory/constitution.md` — Governance rules (v1.0.16)
+- **Constitution**: `.specify/memory/constitution.md` — Governance rules (v1.1.0)
 - **Conda Guide**: `docs/CONDA.md` — Conda environment management
 - **Examples**: `examples/README.md` — Example scaffolds
 - **Manifest Validator**: `tools/manifest.sh --help` — YAML validation
@@ -508,6 +509,221 @@ Script waits for user input when project exists.
 | `--force` | Delete and overwrite | ⚠️ |
 | `--yes` | Skip prompts | ⚠️ |
 | `--no-conda` | Skip conda env | ✅ |
+
+---
+
+---
+
+## Versioning & Template Updates
+
+DirForge uses **three version concepts** that work together. Understanding them is essential for maintaining your workspace and propagating template changes to existing projects.
+
+### The Three Versions
+
+| Version | Where it lives | What it tracks | Example |
+|---------|---------------|----------------|----------|
+| **Constitution version** | `tools/dirforge` header, `metadata.version` in each `templates/world-configs/*.yaml` | The overall dirforge release. Bumped when the tool code or its governance rules change. | `1.1.0` |
+| **Template version** | `templates/template_versions.yaml` (manifest), `<WORLD>/.integrity/world.yaml` (deployed stamp) | The structural version of a world-config template. Bumped when you add/rename/remove directories in a template. | `1.1.0` |
+| **Project version** | `<WORLD>/<project>/.integrity/project.yaml` | Records which template version was active when the project was last scaffolded or updated. | `1.1.0` |
+
+### File Locations at a Glance
+
+```
+dirforge repo
+├── templates/
+│   ├── template_versions.yaml          ← manifest (template_version per WORLD)
+│   └── world-configs/
+│       ├── research.world.yaml         ← template (metadata.version = Constitution)
+│       ├── coding.world.yaml
+│       └── ...                         (7 world configs total)
+└── tools/
+    └── dirforge                        ← CONSTITUTION_VERSION constant
+
+Workspace (~/Documents)
+├── RESEARCH_WORLD/
+│   ├── .integrity/
+│   │   └── world.yaml                 ← deployed stamp: template_version
+│   ├── 2025_my_project/
+│   │   ├── .integrity/
+│   │   │   └── project.yaml            ← project stamp: version
+│   │   └── ...
+│   └── ...
+├── CODING_WORLD/
+│   ├── .integrity/world.yaml
+│   └── ...
+└── ... (7 WORLDs total)
+```
+
+### Semantic Versioning Rules for Templates
+
+Template versions follow `<major>.<minor>.<patch>`:
+
+| Bump | When to use | Triggers scaffold? | Example change |
+|------|-------------|--------------------|-----------------|
+| **Patch** (`1.1.0` → `1.1.1`) | Cosmetic / description-only changes | No | Fix a typo in template comments |
+| **Minor** (`1.1.0` → `1.2.0`) | Additive structural changes | **Yes** | Add `05_supervision/` to research template |
+| **Major** (`1.1.0` → `2.0.0`) | Breaking structural changes | **Yes** | Rename `04_data/` to `04_datasets/` |
+
+The update script only creates new directories for **minor** or **major** bumps. Patch bumps update the stamp but do not touch the filesystem.
+
+---
+
+### How to: Add a New Directory to a Template
+
+This is the most common change. Follow these steps **in order**:
+
+#### Step 1 — Edit the template
+
+Open the relevant world-config in `templates/world-configs/` and add the new directory.
+
+```yaml
+# templates/world-configs/research.world.yaml
+subdirectories:
+  01_project_management:
+    children:
+      - 01_timeline
+      - 02_meetings
+      - 03_milestones
+      - 04_budget
+      - 05_supervision          # ← NEW
+```
+
+#### Step 2 — Bump the template version in the manifest
+
+Open `templates/template_versions.yaml` and bump the `template_version` for the affected WORLD. This is a **minor** bump (additive):
+
+```yaml
+# templates/template_versions.yaml
+templates:
+  RESEARCH_WORLD:
+    config_file: "research.world.yaml"
+    template_version: "1.2.0"       # ← was 1.1.0
+    last_updated: "2026-04-15"      # ← today's date
+```
+
+> **Only bump the WORLDs you changed.** Leave others untouched.
+
+#### Step 3 — Update the installed tool
+
+Run the update script to copy the new files to `~/.local/lib/dirforge/`:
+
+```bash
+bash scripts/update_dirforge.sh --tool-only
+```
+
+#### Step 4 — Preview the changes
+
+Dry-run to see what would be scaffolded:
+
+```bash
+bash scripts/update_dirforge.sh --dry-run
+```
+
+Expected output:
+```
+RESEARCH_WORLD  template 1.1.0 → 1.2.0  (structural bump)
+  2025_my_project/01_project_management/05_supervision – would create
+  ...
+1 WORLD(s) with pending changes
+6 WORLD(s) already up to date
+```
+
+#### Step 5 — Apply
+
+```bash
+bash scripts/update_dirforge.sh
+```
+
+New directories are created **additively** — existing files and folders are never deleted or overwritten.
+
+#### Step 6 — Verify
+
+```bash
+bash scripts/update_dirforge.sh --dry-run
+# Should show: 0 WORLD(s) with pending changes
+```
+
+---
+
+### How to: Bump the Constitution Version
+
+A Constitution version bump means a new dirforge release. Update these locations:
+
+| # | File | Field | Example |
+|---|------|-------|---------|
+| 1 | `tools/dirforge` | `CONSTITUTION_VERSION=` constant | `"1.2.0"` |
+| 2 | Each `templates/world-configs/*.yaml` | `metadata.version:` | `"1.2.0"` |
+| 3 | `templates/template_versions.yaml` | `schema_version:` | `"1.2.0"` |
+| 4 | `docs/MANUAL.md` | Header line | `Version: 1.2.0 \| Constitution: v1.2.0` |
+
+If you also changed template structures, bump the per-WORLD `template_version` entries in the manifest (see previous section).
+
+---
+
+### How to: Bootstrap a New Workspace
+
+After a fresh install, or when adding dirforge to an existing workspace that has no `.integrity/` stamps:
+
+```bash
+# Stamps all WORLDs and projects with current manifest version
+bash scripts/update_dirforge.sh --bootstrap
+```
+
+This creates:
+- `<WORLD>/.integrity/world.yaml` (template_version stamp) for each WORLD
+- `<WORLD>/<project>/.integrity/project.yaml` (project metadata) for each project
+
+No directories are added or removed — bootstrap only writes metadata.
+
+---
+
+### Quick-Reference: Version Change Checklist
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  What changed?             │  What to bump              │
+├────────────────────────────┼────────────────────────────┤
+│ Added/renamed dirs in a    │ template_version in        │
+│ world-config template      │ template_versions.yaml     │
+│                            │ (minor or major bump)      │
+├────────────────────────────┼────────────────────────────┤
+│ Tool code / Constitution   │ CONSTITUTION_VERSION in    │
+│ governance rules changed   │ tools/dirforge + metadata  │
+│                            │ .version in world-configs  │
+│                            │ + schema_version in        │
+│                            │ template_versions.yaml     │
+│                            │ + MANUAL.md header         │
+├────────────────────────────┼────────────────────────────┤
+│ Both                       │ All of the above           │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Update Script Reference
+
+```bash
+# Full update (tool + workspace)
+bash scripts/update_dirforge.sh
+
+# Preview only
+bash scripts/update_dirforge.sh --dry-run
+
+# Update tool files only (no workspace changes)
+bash scripts/update_dirforge.sh --tool-only
+
+# Update workspace only (skip tool copy)
+bash scripts/update_dirforge.sh --workspace-only
+
+# Bootstrap (stamp versions, no structural changes)
+bash scripts/update_dirforge.sh --bootstrap
+
+# Force re-scaffold even if versions match
+bash scripts/update_dirforge.sh --force
+
+# Create backups before changes
+bash scripts/update_dirforge.sh --backup
+```
 
 ---
 
