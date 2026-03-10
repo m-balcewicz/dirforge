@@ -72,6 +72,9 @@ subdirectories:
       - name: "04_presentations"
         type: "folder"
         description: "Project-wide slides and presentation materials"
+      - name: "05_supervision"
+        type: "folder"
+        description: "Bachlor, Master, and PhD thesis"
 
 # Study-level structure (within RESEARCH_WORLD/<PROJECT_ID>/02_studies/<study_name>/)
 # Each study directory MUST follow this standard structure

@@ -1,0 +1,57 @@
+################################################################################
+# DirForge Template Version Manifest
+#
+# Tracks the current version of each world-config template. When you modify
+# a template (add/rename directories, restructure subdirectories, etc.),
+# bump its template_version here. The update_dirforge.sh script compares
+# these versions against the template_version recorded in each project's
+# .integrity/world.yaml to detect drift and trigger additive migrations.
+#
+# Version format: <major>.<minor>.<patch>
+#   - patch: cosmetic/description-only changes (no structural effect)
+#   - minor: additive structural changes (new directories, new children)
+#   - major: breaking structural changes (renames, reorganizations)
+#
+# The update script only triggers migration for minor/major bumps.
+# Patch-only bumps are recorded but do not create directories.
+#
+# @last-updated: 2026-03-10
+################################################################################
+
+schema_version: "1.0.0"
+
+templates:
+  CODING_WORLD:
+    config_file: "coding.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  JOURNAL_WORLD:
+    config_file: "journal.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  LECTURE_WORLD:
+    config_file: "lecture.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  LITERATURE_WORLD:
+    config_file: "literature.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  OFFICE_WORLD:
+    config_file: "office.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  PRIVATE_WORLD:
+    config_file: "private.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
+
+  RESEARCH_WORLD:
+    config_file: "research.world.yaml"
+    template_version: "1.0.0"
+    last_updated: "2025-12-23"
