@@ -2943,7 +2943,7 @@ create_coding() {
   fi
 
   case "$language" in
-    python|matlab|fortran|bash)
+    python|matlab|fortran|bash|rust)
       ;; 
     *)
       show_unsupported_language_error "$language" "$PROG_NAME"

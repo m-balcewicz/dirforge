@@ -40,7 +40,7 @@ show_coding_missing_args_error() {
     local prog_name="$6"
     
     # Build user input string
-    local user_input="$prog_name init coding"
+    local user_input="$prog_name create coding"
     local missing_args=""
     
     if [ -n "$language" ]; then
@@ -78,44 +78,49 @@ show_coding_missing_args_error() {
         case "$language" in
             python)
                 echo "Python project examples:" >&2
-                echo "  $prog_name init coding --language python --project \"data_analysis_tool\" --python 3.12" >&2
-                echo "  $prog_name init coding --language python --project \"ml_pipeline\" --no-conda" >&2
+                echo "  $prog_name create coding --language python --project \"data_analysis_tool\" --python 3.12" >&2
+                echo "  $prog_name create coding --language python --project \"ml_pipeline\" --no-conda" >&2
                 ;;
             matlab)
                 echo "MATLAB project examples:" >&2
-                echo "  $prog_name init coding --language matlab --project \"signal_processing\" --preview" >&2
-                echo "  $prog_name init coding --language matlab --project \"finite_element_solver\" --no-git" >&2
+                echo "  $prog_name create coding --language matlab --project \"signal_processing\" --preview" >&2
+                echo "  $prog_name create coding --language matlab --project \"finite_element_solver\" --no-git" >&2
                 ;;
             fortran)
                 echo "Fortran project examples:" >&2
-                echo "  $prog_name init coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
-                echo "  $prog_name init coding --language fortran --project \"physics_simulation\" --no-conda" >&2
+                echo "  $prog_name create coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
+                echo "  $prog_name create coding --language fortran --project \"physics_simulation\" --no-conda" >&2
                 ;;
             bash)
                 echo "Bash project examples:" >&2
-                echo "  $prog_name init coding --language bash --project \"backup_script\" --preview" >&2
-                echo "  $prog_name init coding --language bash --project \"automation_tool\" --no-git" >&2
+                echo "  $prog_name create coding --language bash --project \"backup_script\" --preview" >&2
+                echo "  $prog_name create coding --language bash --project \"automation_tool\" --no-git" >&2
+                ;;
+            rust)
+                echo "Rust project examples:" >&2
+                echo "  $prog_name create coding --language rust --project \"web_server\" --preview" >&2
+                echo "  $prog_name create coding --language rust --project \"cli_tool\" --no-git" >&2
                 ;;
         esac
     elif [ "$py_ver" != "3.11" ]; then
         # Python version specified, show Python examples
         echo "Python project example:" >&2
-        echo "  $prog_name init coding --language python --project \"data_analysis_tool\" --python $py_ver" >&2
+        echo "  $prog_name create coding --language python --project \"data_analysis_tool\" --python $py_ver" >&2
         echo "" >&2
         echo "Supported languages: python, matlab, fortran, bash" >&2
     else
         # No language specified, show one example per language
         echo "Language examples:" >&2
-        echo "  $prog_name init coding --language python --project \"data_analysis_tool\" --python 3.12" >&2
-        echo "  $prog_name init coding --language matlab --project \"signal_processing\" --preview" >&2
-        echo "  $prog_name init coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
-        echo "  $prog_name init coding --language bash --project \"backup_script\" --preview" >&2
+        echo "  $prog_name create coding --language python --project \"data_analysis_tool\" --python 3.12" >&2
+        echo "  $prog_name create coding --language matlab --project \"signal_processing\" --preview" >&2
+        echo "  $prog_name create coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
+        echo "  $prog_name create coding --language bash --project \"backup_script\" --preview" >&2
         echo "" >&2
         echo "Supported languages: python, matlab, fortran, bash" >&2
     fi
     
     echo "" >&2
-    echo "For more help: $prog_name init coding --help" >&2
+    echo "For more help: $prog_name create coding --help" >&2
 }
 
 # Show unsupported language error
@@ -126,7 +131,7 @@ show_unsupported_language_error() {
     
     echo "Error: Unsupported language '$language'" >&2
     echo "Supported languages: python, matlab, fortran, bash" >&2
-    echo "For help: $prog_name init coding --help" >&2
+    echo "For help: $prog_name create coding --help" >&2
 }
 
 # Show template not found error
@@ -146,12 +151,12 @@ show_research_missing_args_error() {
     echo "" >&2
     echo "Examples:" >&2
     echo "  # Create new project" >&2
-    echo "  $prog_name init research --name \"Thermal Analysis\"" >&2
+    echo "  $prog_name create research --name \"Thermal Analysis\"" >&2
     echo "" >&2
     echo "  # Add study to existing project:" >&2
-    echo "  $prog_name init research --project \"2025_thermal_analysis\" --study \"Initial Model\"" >&2
+    echo "  $prog_name create research --project \"2025_thermal_analysis\" --study \"Initial Model\"" >&2
     echo "" >&2
-    echo "For more help: $prog_name init research --help" >&2
+    echo "For more help: $prog_name create research --help" >&2
 }
 
 # Show research project not found error
@@ -163,7 +168,7 @@ show_project_not_found_error() {
     echo "Error: Project '$project_id' does not exist at $project_root" >&2
     echo "" >&2
     echo "To create this project first, run:" >&2
-    echo "  dirforge init research --name \"Project Name\"" >&2
+    echo "  dirforge create research --name \"Project Name\"" >&2
 }
 
 # Show generic required argument error
@@ -174,7 +179,7 @@ show_required_arg_error() {
     local command="$3"
     
     echo "Error: $arg_name is required" >&2
-    echo "For help: $prog_name init $command --help" >&2
+    echo "For help: $prog_name create $command --help" >&2
 }
 
 # Show project already exists error
