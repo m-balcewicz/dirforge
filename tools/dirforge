@@ -2968,6 +2968,8 @@ create_coding() {
     fi
   fi
 
+  ensure_coding_integrity "$WORKSPACE_ROOT/CODING_WORLD/${language}" "$language" "$language" "language"
+
   if [ -d "$ROOT" ]; then
     if [ "$FORCE" = false ] && [ "$BACKUP" = false ]; then
       show_project_exists_error "$proj_id" "$ROOT"
@@ -2995,7 +2997,12 @@ create_coding() {
     bash)
       init_coding_bash "$ROOT" "$proj_id" "$skip_git"
       ;;
+    rust)
+      init_coding_rust "$ROOT" "$proj_id" "$skip_git"
+      ;;
   esac
+
+  ensure_coding_integrity "$ROOT" "$proj_id" "$language" "project"
 
   if [ "$DRY_RUN" = true ]; then
     if [ "$JSON_OUTPUT" = false ]; then
@@ -3008,6 +3015,28 @@ create_coding() {
       echo "Activate with: conda activate coding_${proj_id}"
     fi
   fi
+}
+
+# Coding metadata helpers
+ensure_coding_integrity() {
+  local target_dir="$1"
+  local entry_name="$2"
+  local language="$3"
+  local level="$4"
+  local timestamp
+
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  do_mkdir_p "$target_dir/.integrity/checksums" "$target_dir/.integrity/manifests"
+  write_file "$target_dir/.integrity/project.yaml" <<EOF
+name: "$entry_name"
+world_type: "CODING_WORLD"
+language: "$language"
+level: "$level"
+version: "$CONSTITUTION_VERSION"
+created: "$timestamp"
+updated: "$timestamp"
+EOF
 }
 
 # Language-specific initializers
@@ -3074,14 +3103,6 @@ EOF
   write_file "$project_dir/src/main.m" <<'EOF'
 % Main entry for $PROJECT_NAME
 disp('Hello from MATLAB project')
-EOF
-
-  write_file "$project_dir/project.yaml" <<EOF
-project:
-  name: ${project_name}
-  language: matlab
-  created: $(date +%Y-%m-%d)
-  owner: ${USER}
 EOF
 
   touch "$project_dir/data/.gitkeep" || true
@@ -3166,14 +3187,6 @@ EOF
     chmod +x "$project_dir/bin/${project_name}.sh" || true
   fi
 
-  write_file "$project_dir/project.yaml" <<EOF
-project:
-  name: ${project_name}
-  language: bash
-  created: $(date +%Y-%m-%d)
-  owner: ${USER}
-EOF
-
   if [ "$skip_git" = false ]; then
     if [ "$DRY_RUN" = false ]; then
       (cd "$project_dir" && git init >/dev/null 2>&1 || true)
@@ -3183,6 +3196,50 @@ EOF
 tmp/
 .env
 *.bak
+EOF
+  fi
+}
+
+init_coding_rust() {
+  local project_dir="$1" project_name="$2" skip_git="$3"
+  do_mkdir_p "$project_dir/src" "$project_dir/tests" "$project_dir/docs"
+
+  write_file "$project_dir/README.md" <<EOF
+# $project_name
+
+Created: $(date +%Y-%m-%d)
+Language: Rust
+EOF
+
+  write_file "$project_dir/Cargo.toml" <<EOF
+[package]
+name = "$project_name"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+EOF
+
+  write_file "$project_dir/src/main.rs" <<'EOF'
+fn main() {
+    println!("Hello from Rust project");
+}
+EOF
+
+  write_file "$project_dir/tests/smoke.rs" <<'EOF'
+#[test]
+fn smoke() {
+    assert_eq!(2 + 2, 4);
+}
+EOF
+
+  if [ "$skip_git" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    write_file "$project_dir/.gitignore" <<'EOF'
+target/
+**/*.rs.bk
 EOF
   fi
 }
@@ -3610,6 +3667,7 @@ handle_help_request() {
                 echo "Examples:"
                 echo "  $PROG_NAME create coding --language python --project \"mylib\""
                 echo "  $PROG_NAME create coding --language matlab --project \"analysis\""
+                echo "  $PROG_NAME create coding --language rust --project \"cli_tool\""
                 echo ""
                 echo "For detailed help: $PROG_NAME create coding --help"
               }
@@ -4076,7 +4134,7 @@ Workspace Initialization (init):
 
 Entity Creation (create):
   $PROG_NAME create research [options]     # Research projects and studies
-  $PROG_NAME create coding [options]       # Coding projects (python, matlab, fortran, bash)
+  $PROG_NAME create coding [options]       # Coding projects (python, matlab, fortran, bash, rust)
   $PROG_NAME create lecture [options]      # Lecture materials and courses
   $PROG_NAME create journal [subtype]      # Journal activities (primary, coauthor, service)
 

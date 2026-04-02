@@ -3,25 +3,25 @@
 # Version: 1.1.0
 # Constitution: §III.I Software Development
 
-command: "dirforge init coding"
+command: "dirforge create coding"
 syntax: |
-  dirforge init coding --language <lang> --project "name" [options]
-  dirforge init coding --help
+  dirforge create coding --language <lang> --project "name" [options]
+  dirforge create coding --help
 
 short_help:
   summary: "Create software development project with version control and testing"
-  usage: "dirforge init coding --language python --project \"project-name\""
+  usage: "dirforge create coding --language python --project \"project-name\""
 
 description: |
   Creates standardized software development project with version control, 
   testing framework, and documentation structure for multiple programming languages. 
-  Supports Python, MATLAB, Fortran, and Bash with language-specific tooling.
+  Supports Python, MATLAB, Fortran, Bash, and Rust with language-specific tooling.
 
 sections:
   required_options:
     title: "Required Options"
     content: |
-      --language <lang>              Programming language (python|matlab|fortran|bash)
+      --language <lang>              Programming language (python|matlab|fortran|bash|rust)
       --project "name"               Project name (converted to snake_case)
   
   optional_options:
@@ -38,6 +38,7 @@ sections:
       matlab                         MATLAB project with standard directory structure
       fortran                        Fortran project with Makefile and build system
       bash                           Bash scripting project with modular structure
+      rust                           Rust project with Cargo.toml and src/main.rs
   
   naming_conventions:
     title: "Naming Conventions"
@@ -52,9 +53,11 @@ sections:
     title: "Directory Structure"
     content: |
       CODING_WORLD/<language>/<project_id>/
+      ├── .integrity/                Language/project metadata and validation
       ├── src/                       Source code
       ├── tests/                     Test files
       ├── docs/                      Documentation
+      ├── Cargo.toml                 Rust package manifest (Rust)
       ├── environment.yaml           Conda environment (Python/Fortran)
       ├── pyproject.toml             Python packaging (Python)
       ├── Makefile                   Build system (Fortran)
@@ -62,42 +65,46 @@ sections:
 
 examples:
   - title: "Basic Python project"
-    command: 'dirforge init coding --language python --project "data_processor"'
+    command: 'dirforge create coding --language python --project "data_processor"'
     description: "Creates Python project with conda environment"
   
   - title: "Python project with specific version"
-    command: 'dirforge init coding --language python --project "ml_toolkit" --python 3.12'
+    command: 'dirforge create coding --language python --project "ml_toolkit" --python 3.12'
     description: "Creates Python project with Python 3.12"
   
   - title: "Python without conda"
-    command: 'dirforge init coding --language python --project "simple_script" --no-conda'
+    command: 'dirforge create coding --language python --project "simple_script" --no-conda'
     description: "Creates Python project without environment"
   
   - title: "MATLAB project"
-    command: 'dirforge init coding --language matlab --project "signal_processing"'
+    command: 'dirforge create coding --language matlab --project "signal_processing"'
     description: "Creates MATLAB project structure"
   
   - title: "Fortran project"
-    command: 'dirforge init coding --language fortran --project "numerical_solver"'
+    command: 'dirforge create coding --language fortran --project "numerical_solver"'
     description: "Creates Fortran project with build system"
   
   - title: "Bash scripting project"
-    command: 'dirforge init coding --language bash --project "backup_script"'
+    command: 'dirforge create coding --language bash --project "backup_script"'
     description: "Creates bash project with modular structure"
+
+  - title: "Rust project"
+    command: 'dirforge create coding --language rust --project "claude"'
+    description: "Creates Rust project with Cargo manifest and tests"
 
 error_handling:
   description: |
     The command provides detailed error messages with examples when required 
     arguments are missing.
   examples:
-    - missing_project: 'dirforge init coding --language matlab'
-    - missing_language: 'dirforge init coding --project "my_tool"'
-    - missing_both: 'dirforge init coding --python 3.12'
+    - missing_project: 'dirforge create coding --language matlab'
+    - missing_language: 'dirforge create coding --project "my_tool"'
+    - missing_both: 'dirforge create coding --python 3.12'
 
 related_commands:
+  - "dirforge create research"
+  - "dirforge create lecture"
   - "dirforge init"
-  - "dirforge init research"
-  - "dirforge init lecture"
 
 see_also:
   - "Constitution §III.I - Software Development Projects"

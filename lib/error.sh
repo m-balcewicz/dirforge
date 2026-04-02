@@ -107,7 +107,7 @@ show_coding_missing_args_error() {
         echo "Python project example:" >&2
         echo "  $prog_name create coding --language python --project \"data_analysis_tool\" --python $py_ver" >&2
         echo "" >&2
-        echo "Supported languages: python, matlab, fortran, bash" >&2
+        echo "Supported languages: python, matlab, fortran, bash, rust" >&2
     else
         # No language specified, show one example per language
         echo "Language examples:" >&2
@@ -115,8 +115,9 @@ show_coding_missing_args_error() {
         echo "  $prog_name create coding --language matlab --project \"signal_processing\" --preview" >&2
         echo "  $prog_name create coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
         echo "  $prog_name create coding --language bash --project \"backup_script\" --preview" >&2
+        echo "  $prog_name create coding --language rust --project \"cli_tool\"" >&2
         echo "" >&2
-        echo "Supported languages: python, matlab, fortran, bash" >&2
+        echo "Supported languages: python, matlab, fortran, bash, rust" >&2
     fi
     
     echo "" >&2
@@ -130,7 +131,7 @@ show_unsupported_language_error() {
     local prog_name="$2"
     
     echo "Error: Unsupported language '$language'" >&2
-    echo "Supported languages: python, matlab, fortran, bash" >&2
+    echo "Supported languages: python, matlab, fortran, bash, rust" >&2
     echo "For help: $prog_name create coding --help" >&2
 }
 

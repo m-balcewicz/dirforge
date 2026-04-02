@@ -20,7 +20,7 @@ sections:
   required_options:
     title: "Required Options"
     content: |
-      --language <lang>              Programming language (python, matlab, fortran, bash)
+      --language <lang>              Programming language (python, matlab, fortran, bash, rust)
       --project <name>               Project name (converted to snake_case directory)
 
   language_specific:
@@ -42,6 +42,10 @@ sections:
       Bash:
         --shell-version bash5         Shell version requirement
         --linting shellcheck          Enable ShellCheck linting
+
+      Rust:
+        cargo build                   Standard Cargo build workflow
+        cargo test                    Standard Cargo test workflow
 
   project_structure:
     title: "Project Structure (Constitution §III.I)"
@@ -65,6 +69,8 @@ usage_examples:
     command: 'dirforge create coding --language fortran --project numerical_solver --compiler gfortran'
   - title: "Bash Project"
     command: 'dirforge create coding --language bash --project automation_scripts'
+  - title: "Rust Project"
+    command: 'dirforge create coding --language rust --project claude'
 
 global_options:
   - name: "--dry-run, --preview" 

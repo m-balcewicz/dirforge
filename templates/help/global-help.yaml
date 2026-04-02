@@ -24,7 +24,7 @@ sections:
       
       Entity types:
         research                     Research projects and studies
-        coding                       Coding projects (python, matlab, fortran, bash)
+        coding                       Coding projects (python, matlab, fortran, bash, rust)
         lecture                      Lecture materials and courses
         journal                      Journal activities (primary, coauthor, service)
   
