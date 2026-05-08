@@ -1,0 +1,13 @@
+# {{PROJECT_NAME}} (Rust)
+
+Created: {{DATE}}
+Language: Rust
+
+Structure:
+  - src/main.rs
+  - tests/smoke.rs
+  - docs/
+
+Usage:
+  cargo build
+  cargo test

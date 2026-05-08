@@ -15,13 +15,13 @@ short_help:
 description: |
   Creates standardized software development project with version control, 
   testing framework, and documentation structure for multiple programming languages. 
-  Supports Python, MATLAB, Fortran, Bash, and Rust with language-specific tooling.
+  Supports Python, MATLAB, Fortran, Bash, Rust, and Docker with language-specific tooling.
 
 sections:
   required_options:
     title: "Required Options"
     content: |
-      --language <lang>              Programming language (python|matlab|fortran|bash|rust)
+      --language <lang>              Programming language (python|matlab|fortran|bash|rust|docker)
       --project "name"               Project name (converted to snake_case)
   
   optional_options:
@@ -30,6 +30,10 @@ sections:
       --python 3.11                  Python version for conda (Python only, default: 3.11)
       --no-conda                     Skip conda environment creation
       --no-git                       Skip Git repository initialization
+      --docker-bootstrap             Create Docker dev .env and helper scripts (Docker only)
+      --docker-base-image <image>    Docker base image (Docker only, default: alpine:3.20)
+      --docker-port <port>           Container/service port (Docker only, default: 8080)
+      --docker-service <name>        Compose service name (Docker only, default: app)
   
   supported_languages:
     title: "Supported Languages"
@@ -39,6 +43,7 @@ sections:
       fortran                        Fortran project with Makefile and build system
       bash                           Bash scripting project with modular structure
       rust                           Rust project with Cargo.toml and src/main.rs
+      docker                         Docker project with Dockerfile and compose setup
   
   naming_conventions:
     title: "Naming Conventions"
@@ -58,6 +63,8 @@ sections:
       ├── tests/                     Test files
       ├── docs/                      Documentation
       ├── Cargo.toml                 Rust package manifest (Rust)
+      ├── Dockerfile                 Container build specification (Docker)
+      ├── docker-compose.yml         Multi-container orchestration (Docker)
       ├── environment.yaml           Conda environment (Python/Fortran)
       ├── pyproject.toml             Python packaging (Python)
       ├── Makefile                   Build system (Fortran)
@@ -92,6 +99,14 @@ examples:
     command: 'dirforge create coding --language rust --project "claude"'
     description: "Creates Rust project with Cargo manifest and tests"
 
+  - title: "Docker project"
+    command: 'dirforge create coding --language docker --project "llama"'
+    description: "Creates Docker project with Dockerfile and compose setup"
+
+  - title: "Docker project with custom settings"
+    command: 'dirforge create coding --language docker --project "llama" --docker-base-image python:3.12-slim --docker-port 5000 --docker-service api --docker-bootstrap'
+    description: "Creates Docker project with custom image/service/port and bootstrap scripts"
+
 error_handling:
   description: |
     The command provides detailed error messages with examples when required 
@@ -109,6 +124,7 @@ related_commands:
 see_also:
   - "Constitution §III.I - Software Development Projects"
   - "docs/yaml-config-user-guide.md - Configuration system"
+  - "docs/docker-coding-projects.md - Docker coding project customization"
 
 constitution_section: "§III.I"
 updated: "2025-12-30"

@@ -1146,7 +1146,7 @@ show_coding_world_help() {
     help_content+="$(format_header "Usage" 2)\n"
     help_content+="$(format_command "dirforge init coding [options]")\n"
     help_content+="\n$(format_header "Common Options" 2)\n"
-    help_content+="$(format_command "--language=LANG" "Language: python, matlab, fortran, bash")\n"
+    help_content+="$(format_command "--language=LANG" "Language: python, matlab, fortran, bash, rust, docker")\n"
     help_content+="$(format_command "--project=NAME" "Project name")\n"
     help_content+="\n"
     display_with_pager "$help_content"

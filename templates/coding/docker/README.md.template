@@ -1,0 +1,14 @@
+# {{PROJECT_NAME}} (Docker)
+
+Created: {{DATE}}
+Language: Docker
+
+Structure:
+  - src/
+  - tests/
+  - docs/
+  - Dockerfile
+  - docker-compose.yml
+
+Quick start:
+  docker compose up --build

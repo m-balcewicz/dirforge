@@ -2912,6 +2912,10 @@ EOF
 
 create_coding() {
   local language="" project="" py_ver="${PY:-3.11}" skip_conda=false skip_git=false
+  local docker_bootstrap=false
+  local docker_base_image="alpine:3.20"
+  local docker_port="8080"
+  local docker_service="app"
   local no_git=false no_conda=false
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -2925,6 +2929,14 @@ create_coding() {
         skip_conda=true ;;
       --no-git)
         skip_git=true ;;
+      --docker-bootstrap)
+        docker_bootstrap=true ;;
+      --docker-base-image)
+        shift; docker_base_image="$1" ;;
+      --docker-port)
+        shift; docker_port="$1" ;;
+      --docker-service)
+        shift; docker_service="$1" ;;
       --help)
         if declare -F show_coding_help >/dev/null 2>&1; then
           show_coding_help
@@ -2943,13 +2955,19 @@ create_coding() {
   fi
 
   case "$language" in
-    python|matlab|fortran|bash|rust)
+    python|matlab|fortran|bash|rust|docker)
       ;; 
     *)
       show_unsupported_language_error "$language" "$PROG_NAME"
       return 1
       ;;
   esac
+
+  if [ "$language" != "docker" ] && { [ "$docker_bootstrap" = true ] || [ "$docker_base_image" != "alpine:3.20" ] || [ "$docker_port" != "8080" ] || [ "$docker_service" != "app" ]; }; then
+    echo "Error: Docker-specific options can only be used with --language docker" >&2
+    echo "For help: $PROG_NAME create coding --help" >&2
+    return 1
+  fi
 
   proj_id=$(to_snake_case "$project")
   local ROOT="$WORKSPACE_ROOT/CODING_WORLD/${language}/${proj_id}"
@@ -2999,6 +3017,9 @@ create_coding() {
       ;;
     rust)
       init_coding_rust "$ROOT" "$proj_id" "$skip_git"
+      ;;
+    docker)
+      init_coding_docker "$ROOT" "$proj_id" "$skip_git" "$docker_bootstrap" "$docker_base_image" "$docker_port" "$docker_service"
       ;;
   esac
 
@@ -3202,45 +3223,80 @@ EOF
 
 init_coding_rust() {
   local project_dir="$1" project_name="$2" skip_git="$3"
+  local rust_edition="2021"
+  local today
+  today=$(date +%Y-%m-%d)
   do_mkdir_p "$project_dir/src" "$project_dir/tests" "$project_dir/docs"
 
-  write_file "$project_dir/README.md" <<EOF
-# $project_name
+  render_template "$TEMPLATES_DIR/coding/rust/README.md.template" "$project_dir/README.md" \
+    "PROJECT_NAME=$project_name" \
+    "DATE=$today"
 
-Created: $(date +%Y-%m-%d)
-Language: Rust
-EOF
+  render_template "$TEMPLATES_DIR/coding/rust/Cargo.toml.template" "$project_dir/Cargo.toml" \
+    "PROJECT_NAME=$project_name" \
+    "RUST_EDITION=$rust_edition"
 
-  write_file "$project_dir/Cargo.toml" <<EOF
-[package]
-name = "$project_name"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-EOF
-
-  write_file "$project_dir/src/main.rs" <<'EOF'
-fn main() {
-    println!("Hello from Rust project");
-}
-EOF
-
-  write_file "$project_dir/tests/smoke.rs" <<'EOF'
-#[test]
-fn smoke() {
-    assert_eq!(2 + 2, 4);
-}
-EOF
+  render_template "$TEMPLATES_DIR/coding/rust/main.rs.template" "$project_dir/src/main.rs"
+  render_template "$TEMPLATES_DIR/coding/rust/smoke.rs.template" "$project_dir/tests/smoke.rs"
 
   if [ "$skip_git" = false ]; then
     if [ "$DRY_RUN" = false ]; then
       (cd "$project_dir" && git init >/dev/null 2>&1 || true)
     fi
-    write_file "$project_dir/.gitignore" <<'EOF'
-target/
-**/*.rs.bk
-EOF
+    render_template "$TEMPLATES_DIR/coding/rust/gitignore.template" "$project_dir/.gitignore"
+  fi
+}
+
+init_coding_docker() {
+  local project_dir="$1" project_name="$2" skip_git="$3"
+  local docker_bootstrap="${4:-false}"
+  local docker_base_image="${5:-alpine:3.20}"
+  local docker_port="${6:-8080}"
+  local docker_service="${7:-app}"
+  local today
+  today=$(date +%Y-%m-%d)
+  do_mkdir_p "$project_dir/src" "$project_dir/tests" "$project_dir/docs"
+
+  render_template "$TEMPLATES_DIR/coding/docker/README.md.template" "$project_dir/README.md" \
+    "PROJECT_NAME=$project_name" \
+    "DATE=$today"
+
+  render_template "$TEMPLATES_DIR/coding/docker/Dockerfile.template" "$project_dir/Dockerfile" \
+    "DOCKER_BASE_IMAGE=$docker_base_image" \
+    "DOCKER_PORT=$docker_port"
+
+  render_template "$TEMPLATES_DIR/coding/docker/docker-compose.yml.template" "$project_dir/docker-compose.yml" \
+    "PROJECT_NAME=$project_name" \
+    "DOCKER_SERVICE=$docker_service" \
+    "DOCKER_PORT=$docker_port"
+
+  render_template "$TEMPLATES_DIR/coding/docker/.dockerignore.template" "$project_dir/.dockerignore"
+  render_template "$TEMPLATES_DIR/coding/docker/entrypoint.sh.template" "$project_dir/src/entrypoint.sh"
+
+  if [ "$docker_bootstrap" = true ]; then
+    render_template "$TEMPLATES_DIR/coding/docker/env.template" "$project_dir/.env" \
+      "PROJECT_NAME=$project_name" \
+      "DOCKER_PORT=$docker_port" \
+      "DOCKER_BASE_IMAGE=$docker_base_image" \
+      "DOCKER_SERVICE=$docker_service"
+
+    do_mkdir_p "$project_dir/scripts"
+    render_template "$TEMPLATES_DIR/coding/docker/dev-up.sh.template" "$project_dir/scripts/dev-up.sh"
+    render_template "$TEMPLATES_DIR/coding/docker/dev-down.sh.template" "$project_dir/scripts/dev-down.sh"
+  fi
+
+  if [ "$DRY_RUN" = false ]; then
+    chmod +x "$project_dir/src/entrypoint.sh" || true
+    if [ "$docker_bootstrap" = true ]; then
+      chmod +x "$project_dir/scripts/dev-up.sh" "$project_dir/scripts/dev-down.sh" || true
+    fi
+  fi
+
+  if [ "$skip_git" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      (cd "$project_dir" && git init >/dev/null 2>&1 || true)
+    fi
+    render_template "$TEMPLATES_DIR/coding/docker/gitignore.template" "$project_dir/.gitignore"
   fi
 }
 
@@ -3631,9 +3687,30 @@ handle_help_request() {
       ;;
     "create")
       # Handle create command help routing
-      if [ -n "$subcmd" ] && [ "$subcmd" != "help" ]; then
-        # Entity-specific help: dirforge create research --help, dirforge create journal primary --help
+      local entity_for_help=""
+      local journal_subtype=""
+
+      # Determine entity from parsed context, ignoring option-like tokens.
+      # This makes calls like `dirforge create coding --language docker --help`
+      # resolve to coding help instead of treating `--language` as an entity.
+      if [ -n "$world" ]; then
+        entity_for_help="$world"
+      elif [ -n "$subcmd" ] && [ "$subcmd" != "help" ] && [[ "$subcmd" != -* ]]; then
+        entity_for_help="$subcmd"
+      fi
+
+      # Journal subtype is optional and only valid when explicitly provided.
+      if [ "$entity_for_help" = "journal" ] && [ -n "$subcmd" ] && [ "$subcmd" != "help" ] && [[ "$subcmd" != -* ]]; then
         case "$subcmd" in
+          primary|coauthor|service)
+            journal_subtype="$subcmd"
+            ;;
+        esac
+      fi
+
+      if [ -n "$entity_for_help" ]; then
+        # Entity-specific help: dirforge create research --help, dirforge create journal primary --help
+        case "$entity_for_help" in
           research)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
@@ -3703,27 +3780,27 @@ handle_help_request() {
             ;;
           journal)
             # Handle journal subcommands: dirforge create journal primary --help
-            if [ -n "$world" ]; then
+            if [ -n "$journal_subtype" ]; then
               # Specific journal subcommand help
-              case "$world" in
+              case "$journal_subtype" in
                 primary|coauthor|service)
                   # Try YAML-based help first, fallback to simple help
                   if declare -F get_command_help >/dev/null 2>&1; then
-                    get_command_help "create-journal-$world" "short" 2>/dev/null || {
-                      echo "Usage: $PROG_NAME create journal $world [OPTIONS]"
+                    get_command_help "create-journal-$journal_subtype" "short" 2>/dev/null || {
+                      echo "Usage: $PROG_NAME create journal $journal_subtype [OPTIONS]"
                       echo ""
-                      echo "Create journal $world projects."
+                      echo "Create journal $journal_subtype projects."
                       echo ""
-                      echo "For detailed help: $PROG_NAME create journal $world --help"
+                      echo "For detailed help: $PROG_NAME create journal $journal_subtype --help"
                     }
                   else
-                    echo "Usage: $PROG_NAME create journal $world [OPTIONS]"
+                    echo "Usage: $PROG_NAME create journal $journal_subtype [OPTIONS]"
                     echo ""
-                    echo "Create journal $world projects."
+                    echo "Create journal $journal_subtype projects."
                   fi
                   ;;
                 *)
-                  echo "Unknown journal subtype: $world" >&2
+                  echo "Unknown journal subtype: $journal_subtype" >&2
                   echo "Supported subtypes: primary, coauthor, service" >&2
                   ;;
               esac
@@ -3757,7 +3834,7 @@ handle_help_request() {
             fi
             ;;
           *)
-            echo "Unknown entity type: $subcmd" >&2
+            echo "Unknown entity type: $entity_for_help" >&2
             echo "Supported entity types: research, coding, lecture, journal" >&2
             echo ""
             echo "For help: $PROG_NAME create --help" >&2

@@ -1,0 +1,5 @@
+.git
+.integrity
+docs
+tests
+*.log

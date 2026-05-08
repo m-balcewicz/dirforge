@@ -101,13 +101,18 @@ show_coding_missing_args_error() {
                 echo "  $prog_name create coding --language rust --project \"web_server\" --preview" >&2
                 echo "  $prog_name create coding --language rust --project \"cli_tool\" --no-git" >&2
                 ;;
+            docker)
+                echo "Docker project examples:" >&2
+                echo "  $prog_name create coding --language docker --project \"service_stack\" --preview" >&2
+                echo "  $prog_name create coding --language docker --project \"llama\" --no-git" >&2
+                ;;
         esac
     elif [ "$py_ver" != "3.11" ]; then
         # Python version specified, show Python examples
         echo "Python project example:" >&2
         echo "  $prog_name create coding --language python --project \"data_analysis_tool\" --python $py_ver" >&2
         echo "" >&2
-        echo "Supported languages: python, matlab, fortran, bash, rust" >&2
+        echo "Supported languages: python, matlab, fortran, bash, rust, docker" >&2
     else
         # No language specified, show one example per language
         echo "Language examples:" >&2
@@ -116,8 +121,9 @@ show_coding_missing_args_error() {
         echo "  $prog_name create coding --language fortran --project \"numerical_solver\" --python 3.11" >&2
         echo "  $prog_name create coding --language bash --project \"backup_script\" --preview" >&2
         echo "  $prog_name create coding --language rust --project \"cli_tool\"" >&2
+        echo "  $prog_name create coding --language docker --project \"llama\"" >&2
         echo "" >&2
-        echo "Supported languages: python, matlab, fortran, bash, rust" >&2
+        echo "Supported languages: python, matlab, fortran, bash, rust, docker" >&2
     fi
     
     echo "" >&2
@@ -131,7 +137,7 @@ show_unsupported_language_error() {
     local prog_name="$2"
     
     echo "Error: Unsupported language '$language'" >&2
-    echo "Supported languages: python, matlab, fortran, bash, rust" >&2
+    echo "Supported languages: python, matlab, fortran, bash, rust, docker" >&2
     echo "For help: $prog_name create coding --help" >&2
 }
 

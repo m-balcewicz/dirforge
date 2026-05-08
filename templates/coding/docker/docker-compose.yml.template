@@ -1,0 +1,9 @@
+services:
+  {{DOCKER_SERVICE}}:
+    build: .
+    container_name: {{PROJECT_NAME}}_{{DOCKER_SERVICE}}
+    volumes:
+      - ./src:/app
+    ports:
+      - "{{DOCKER_PORT}}:{{DOCKER_PORT}}"
+    command: ["sh", "-c", "echo Running {{PROJECT_NAME}} && sleep infinity"]
