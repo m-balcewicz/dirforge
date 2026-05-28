@@ -1,6 +1,6 @@
 ---
 # Init Command Help
-# Version: 1.1.0
+# Version: 1.1.1
 # Purpose: Help for 'dirforge init' command with world types and options
 
 command: "dirforge init"
@@ -97,5 +97,5 @@ see_also:
   - "constitution.md - Naming conventions and structure specifications"
   - "dirforge help <world-type> - World-specific detailed help"
 
-constitution_section: "Constitution v1.1.0"
+constitution_section: "Constitution v1.1.1"
 updated: "2025-12-30"

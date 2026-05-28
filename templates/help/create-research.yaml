@@ -1,6 +1,6 @@
 ---
 # Create Research Command Help
-# Version: 1.1.0
+# Version: 1.1.1
 # Constitution: §III.V Research Projects
 
 command: "dirforge create research"

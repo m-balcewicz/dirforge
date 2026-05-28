@@ -857,7 +857,7 @@ EOF
             cat > "$project_integrity" << EOF
 name: "${project_name}"
 world_type: "${world_type}"
-version: "1.1.0"
+version: "1.1.1"
 created: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 updated: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 EOF
@@ -996,7 +996,7 @@ EOF
             cat > "$project_integrity" << EOF
 name: "${project_name}"
 world_type: "${world_type}"
-version: "1.1.0"
+version: "1.1.1"
 created: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 updated: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 EOF
@@ -1276,7 +1276,7 @@ show_help() {
     echo
     echo "  Version semantics:"
     echo "    patch bump (1.0.0 → 1.0.1): description-only, no structural changes"
-    echo "    minor bump (1.0.0 → 1.1.0): new directories/children, triggers scaffold"
+    echo "    minor bump (1.0.0 → 1.1.1): new directories/children, triggers scaffold"
     echo "    major bump (1.0.0 → 2.0.0): breaking changes, triggers scaffold"
     echo
     echo "Examples:"

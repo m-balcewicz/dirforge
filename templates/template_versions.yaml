@@ -15,43 +15,43 @@
 # The update script only triggers migration for minor/major bumps.
 # Patch-only bumps are recorded but do not create directories.
 #
-# @last-updated: 2026-03-10
+# @last-updated: 2026-05-28
 ################################################################################
 
-schema_version: "1.1.0"
+schema_version: "1.1.1"
 
 templates:
   CODING_WORLD:
     config_file: "coding.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   JOURNAL_WORLD:
     config_file: "journal.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   LECTURE_WORLD:
     config_file: "lecture.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   LITERATURE_WORLD:
     config_file: "literature.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   OFFICE_WORLD:
     config_file: "office.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   PRIVATE_WORLD:
     config_file: "private.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"
 
   RESEARCH_WORLD:
     config_file: "research.world.yaml"
-    template_version: "1.1.0"
-    last_updated: "2026-03-10"
+    template_version: "1.1.1"
+    last_updated: "2026-05-28"

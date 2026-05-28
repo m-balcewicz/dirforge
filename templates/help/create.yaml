@@ -1,6 +1,6 @@
 ---
 # Create Command Help
-# Version: 1.1.0
+# Version: 1.1.1
 # Purpose: Help for 'dirforge create' command with entity types and options
 
 command: "dirforge create"
@@ -15,7 +15,7 @@ short_help:
 description: |
   Create new projects and entities within an existing workspace. The create command
   is separated from workspace initialization (init) to provide clear single-responsibility
-  commands following DirForge Constitution v1.1.0.
+  commands following DirForge Constitution v1.1.1.
 
 sections:
   entity_types:

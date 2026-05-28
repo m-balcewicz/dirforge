@@ -1,0 +1,58 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "editor.formatOnSave": true,
+  "workbench.preferredLightColorTheme": "Solarized Light",
+  "workbench.preferredDarkColorTheme": "Solarized Dark",
+  "python.defaultInterpreterPath": "python3",
+  "python.terminal.activateEnvironment": true,
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-pdf",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "pdflatex",
+      "command": "pdflatex",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "bibtex",
+      "command": "bibtex",
+      "args": ["%DOCFILE%"]
+    },
+    {
+      "name": "biber",
+      "command": "biber",
+      "args": ["%DOCFILE%"]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk",
+      "tools": ["latexmk"]
+    },
+    {
+      "name": "pdflatex -> bibtex -> pdflatex x2",
+      "tools": ["pdflatex", "bibtex", "pdflatex", "pdflatex"]
+    },
+    {
+      "name": "pdflatex -> biber -> pdflatex x2",
+      "tools": ["pdflatex", "biber", "pdflatex", "pdflatex"]
+    }
+  ],
+  "latex-workshop.latex.recipe.default": "latexmk"
+}

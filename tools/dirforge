@@ -388,8 +388,8 @@ cmd_update() {
     fi
   fi
 
-  # Target version is always the latest (v1.1.0 with init/create command separation)
-  local target_version="1.1.0"
+  # Target version is always the latest (v1.1.1 with init/create command separation)
+  local target_version="1.1.1"
 
   # Handle detection failures with consistent error handling
   # Pattern matching handles "unknown" with or without trailing newlines from detection functions
@@ -642,7 +642,7 @@ cmd_update() {
       return 5
     fi
     
-    # Create .integrity directory structure (v1.1.0) based on organizational level
+    # Create .integrity directory structure (v1.1.1) based on organizational level
     if ! has_integrity_structure "$target_dir" 2>/dev/null; then
       if [[ "$json_flag" != true ]]; then
         echo "📁 Creating .integrity directory structure ($org_level level)..."
@@ -715,7 +715,7 @@ cmd_update() {
       fi
     fi
     
-    # Update version in .integrity/*.yaml files to v1.1.0 (Init/Create Command Separation: always update version)
+    # Update version in .integrity/*.yaml files to v1.1.1 (Init/Create Command Separation: always update version)
     if [[ -d "$target_dir/.integrity" ]]; then
       if [[ "$json_flag" != true ]]; then
         echo "📝 Updating version tracking in .integrity metadata..."
@@ -912,6 +912,13 @@ else
     TEMPLATES_DIR="$SCRIPT_DIR/../templates"
 fi
 
+# Baseline template bundle sources (shared across project/study/lecture scaffolds)
+BASELINE_GITIGNORE_TEMPLATE="$TEMPLATES_DIR/git_template/.gitignore.template"
+BASELINE_VSCODE_SETTINGS_TEMPLATE="$TEMPLATES_DIR/vscode_template/settings.json.template"
+BASELINE_VSCODE_WORKSPACE_TEMPLATE="$TEMPLATES_DIR/vscode_template/vscode.code-workspace.template"
+BASELINE_TEX_PUBLICATION_TEMPLATE_DIR="$TEMPLATES_DIR/TeX_template/04_publication"
+BASELINE_TEX_PRESENTATIONS_TEMPLATE_DIR="$TEMPLATES_DIR/TeX_template/05_presentations"
+
 # Source help system libraries if available
 if [ -f "$LIB_DIR/terminal.sh" ]; then
     source "$LIB_DIR/terminal.sh"
@@ -933,7 +940,7 @@ if [ -f "$LIB_DIR/help_yaml_parser.sh" ]; then
     source "$LIB_DIR/help_yaml_parser.sh"
 fi
 
-CONSTITUTION_VERSION="v1.1.0"
+CONSTITUTION_VERSION="v1.1.1"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -1014,6 +1021,192 @@ render_template() {
     content=$(printf "%s" "$content" | sed "s|{{${name}}}|${esc}|g")
   done
   write_file "$dest" <<< "$content"
+}
+
+validate_template_sources() {
+  # usage: validate_template_sources <source> [<source> ...]
+  # Returns non-zero if any required source is missing.
+  local src
+  local missing=0
+  local templates_root="${TEMPLATES_DIR%/}/"
+
+  for src in "$@"; do
+    case "$src" in
+      "$templates_root"*)
+        ;;
+      *)
+        echo "Error: Template source must be under templates directory: $src" >&2
+        missing=1
+        continue
+        ;;
+    esac
+
+    if [ ! -e "$src" ]; then
+      echo "Error: Missing required template source: $src" >&2
+      missing=1
+    fi
+  done
+
+  return "$missing"
+}
+
+copy_template_directory_safe() {
+  # usage: copy_template_directory_safe <src_dir> <dest_dir>
+  # DRY_RUN-aware recursive copy helper for template directories.
+  local src_dir="$1"
+  local dest_dir="$2"
+
+  if [ ! -d "$src_dir" ]; then
+    echo "Error: Template directory not found: $src_dir" >&2
+    return 1
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    if [ "$JSON_OUTPUT" = false ]; then
+      echo "DRY RUN: would copy directory: $src_dir -> $dest_dir"
+    fi
+    return 0
+  fi
+
+  mkdir -p "$dest_dir"
+  cp -R "$src_dir"/. "$dest_dir"/
+}
+
+render_template_file_safe() {
+  # usage: render_template_file_safe <template_file> <dest_file> [VAR=value ...]
+  # Thin wrapper for render_template with a clearer intent at call sites.
+  local template_file="$1"
+  local dest_file="$2"
+  shift 2
+
+  render_template "$template_file" "$dest_file" "$@"
+}
+
+build_baseline_target_mappings() {
+  # usage: build_baseline_target_mappings <target_type> <target_root> <target_name>
+  # Output format per line: mode|required|source|destination
+  local target_type="$1"
+  local target_root="$2"
+  local target_name="${3:-workspace}"
+
+  case "$target_type" in
+    project)
+      ;;
+    study)
+      ;;
+    lecture)
+      ;;
+    *)
+      echo "Error: Unsupported template target type: $target_type" >&2
+      return 1
+      ;;
+  esac
+
+  # Common baseline for all target types
+  printf 'render|1|%s|%s\n' "$BASELINE_GITIGNORE_TEMPLATE" "$target_root/.gitignore"
+  printf 'render|1|%s|%s\n' "$BASELINE_VSCODE_SETTINGS_TEMPLATE" "$target_root/.vscode/settings.json"
+  printf 'render|1|%s|%s\n' "$BASELINE_VSCODE_WORKSPACE_TEMPLATE" "$target_root/.vscode/${target_name}.code-workspace"
+
+  case "$target_type" in
+    project)
+      # Keep project-level templates under 02_studies as a reusable study starter.
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PUBLICATION_TEMPLATE_DIR" "$target_root/02_studies/.template_study/04_publication"
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PRESENTATIONS_TEMPLATE_DIR" "$target_root/02_studies/.template_study/05_presentations"
+      ;;
+    study)
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PUBLICATION_TEMPLATE_DIR" "$target_root/04_publication"
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PRESENTATIONS_TEMPLATE_DIR" "$target_root/05_presentations"
+      ;;
+    lecture)
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PUBLICATION_TEMPLATE_DIR" "$target_root/04_manuscript"
+      printf 'dir|1|%s|%s\n' "$BASELINE_TEX_PRESENTATIONS_TEMPLATE_DIR" "$target_root/03_slides"
+      ;;
+  esac
+}
+
+apply_baseline_template_bundle() {
+  # usage: apply_baseline_template_bundle <target_type> <target_root> [target_name]
+  local target_type="$1"
+  local target_root="$2"
+  local target_name="${3:-workspace}"
+  local mapping_lines line
+  local sources_to_validate=()
+
+  if [ -z "$target_type" ] || [ -z "$target_root" ]; then
+    echo "Error: apply_baseline_template_bundle requires <target_type> and <target_root>" >&2
+    return 1
+  fi
+
+  mapping_lines=$(build_baseline_target_mappings "$target_type" "$target_root" "$target_name") || return 1
+
+  # Validate all required template sources first to fail fast.
+  while IFS='|' read -r _mode _required src _dest; do
+    [ -z "$src" ] && continue
+    sources_to_validate+=("$src")
+  done <<< "$mapping_lines"
+
+  validate_template_sources "${sources_to_validate[@]}" || return 1
+
+  while IFS='|' read -r mode _required src dest; do
+    [ -z "$mode" ] && continue
+
+    # Guardrails: keep writes confined to the requested target root and away from metadata paths.
+    case "$dest" in
+      "$target_root"/*)
+        ;;
+      *)
+        echo "Error: Unsafe template destination outside target root: $dest" >&2
+        return 1
+        ;;
+    esac
+    case "$dest" in
+      */.integrity/*|*/.integrity)
+        echo "Error: Template propagation to .integrity paths is not allowed: $dest" >&2
+        return 1
+        ;;
+    esac
+
+    if [ -e "$dest" ] && [ "$FORCE" != true ]; then
+      if [ "$JSON_OUTPUT" = false ]; then
+        echo "Skipping existing template target (use --force to overwrite): $dest"
+      fi
+      continue
+    fi
+
+    case "$mode" in
+      render)
+        if [ "$FORCE" = true ] && [ "$DRY_RUN" = false ] && [ -f "$dest" ]; then
+          rm -f "$dest"
+        fi
+        render_template_file_safe "$src" "$dest" "TARGET_NAME=$target_name" || return 1
+        ;;
+      dir)
+        if [ -d "$dest" ]; then
+          if [ "$FORCE" = true ]; then
+            if [ "$DRY_RUN" = true ]; then
+              if [ "$JSON_OUTPUT" = false ]; then
+                echo "DRY RUN: would remove directory before template copy: $dest"
+              fi
+            else
+              rm -rf "$dest"
+            fi
+          else
+            if [ "$JSON_OUTPUT" = false ]; then
+              echo "Skipping existing template directory (use --force to overwrite): $dest"
+            fi
+            continue
+          fi
+        fi
+        copy_template_directory_safe "$src" "$dest" || return 1
+        ;;
+      *)
+        echo "Error: Unknown baseline template mapping mode: $mode" >&2
+        return 1
+        ;;
+    esac
+  done <<< "$mapping_lines"
+
+  return 0
 }
 
 to_snake_case() {
@@ -2195,7 +2388,7 @@ cmd_create() {
   # Check for help flags first
   case "$entity_type" in
     --help|-h)
-      # Use YAML-based help system (Constitution v1.1.0)
+      # Use YAML-based help system (Constitution v1.1.1)
       if declare -F get_command_help >/dev/null 2>&1; then
         get_command_help "create" "short" 2>/dev/null || {
           echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]"
@@ -2265,7 +2458,7 @@ create_journal() {
   # Check for help flags first
   case "$subtype" in
     --help|-h)
-      # Use YAML-based help system (Constitution v1.1.0)
+      # Use YAML-based help system (Constitution v1.1.1)
       if declare -F get_command_help >/dev/null 2>&1; then
         get_command_help "create-journal" "short" 2>/dev/null || {
           echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
@@ -2599,16 +2792,16 @@ create_research_project() {
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/MSc_Thesis"
   do_mkdir_p "$RESEARCH_ROOT/01_project_management/05_supervision/PhD_Supervision"
 
-  # Create .integrity directories (constitution v1.1.0 with metadata files)
+  # Create .integrity directories (constitution v1.1.1 with metadata files)
   do_mkdir_p "$RESEARCH_ROOT/.integrity/checksums"
   do_mkdir_p "$RESEARCH_ROOT/.integrity/manifests"
 
-  # Create .integrity/project.yaml for v1.1.0 compliance
+  # Create .integrity/project.yaml for v1.1.1 compliance
   local integrity_yaml="$RESEARCH_ROOT/.integrity/project.yaml"
   write_file "$integrity_yaml" <<EOF
 name: "$title"
 world_type: "RESEARCH_WORLD"
-version: "1.1.0"
+version: "1.1.1"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2644,6 +2837,9 @@ EOF
   render_template "$TEMPLATES_DIR/research/01_project_management/03_reports/README.md.template" "$RESEARCH_ROOT/01_project_management/03_reports/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/04_presentations/README.md.template" "$RESEARCH_ROOT/01_project_management/04_presentations/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
   render_template "$TEMPLATES_DIR/research/01_project_management/05_supervision/README.md.template" "$RESEARCH_ROOT/01_project_management/05_supervision/README.md" "PROJECT_NAME=$title" "PROJECT_ID=$PROJECT_ID"
+
+  # Apply baseline template bundle (git/vscode/TeX starter assets)
+  apply_baseline_template_bundle "project" "$RESEARCH_ROOT" "$PROJECT_ID" || exit 1
 
   # Conda
   if [ "$no_conda" = false ]; then
@@ -2722,8 +2918,8 @@ create_research_study() {
   
   do_mkdir_p "$STUDY_ROOT"
   
-  # Create study subdirectories
-  for d in 00_protocols 01_code 02_data 03_outputs 04_publication 05_presentations; do
+  # Create study subdirectories (publication/presentations are created from templates)
+  for d in 00_protocols 01_code 02_data 03_outputs; do
     do_mkdir_p "$STUDY_ROOT/$d"
   done
   
@@ -2731,11 +2927,11 @@ create_research_study() {
   do_mkdir_p "$STUDY_ROOT/.integrity/checksums"
   do_mkdir_p "$STUDY_ROOT/.integrity/manifests"
 
-  # Create .integrity/study.yaml for v1.1.0 compliance
+  # Create .integrity/study.yaml for v1.1.1 compliance
   local study_integrity_yaml="$STUDY_ROOT/.integrity/study.yaml"
   write_file "$study_integrity_yaml" <<EOF
 name: "$study_name"
-version: "1.1.0"
+version: "1.1.1"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2765,6 +2961,9 @@ Project: $project_id
 - \`05_presentations/\` - Slides and presentations for conferences, meetings
 - \`.integrity/\` - Checksums and manifest validation files
 EOF
+
+  # Apply baseline template bundle (git/vscode/TeX assets)
+  apply_baseline_template_bundle "study" "$STUDY_ROOT" "$study_id" || exit 1
 
   if [ "$DRY_RUN" = true ]; then
     if [ "$JSON_OUTPUT" = false ]; then
@@ -2845,20 +3044,20 @@ create_lecture() {
     echo "Created lecture directory: $LECTURE_ROOT"
   fi
 
-  for d in 00_admin 01_code 02_data/experimental_recordings 02_data/reference 03_slides 04_manuscript 05_exercises/problems 05_exercises/solutions 05_exercises/submissions 05_exercises/graded 06_exams/problems 06_exams/solutions 06_exams/submissions 06_exams/graded 07_grades; do
+  for d in 00_admin 01_code 02_data/experimental_recordings 02_data/reference 05_exercises/problems 05_exercises/solutions 05_exercises/submissions 05_exercises/graded 06_exams/problems 06_exams/solutions 06_exams/submissions 06_exams/graded 07_grades; do
     do_mkdir_p "$LECTURE_ROOT/$d"
   done
 
-  # Create .integrity directories (constitution v1.1.0 with metadata files)
+  # Create .integrity directories (constitution v1.1.1 with metadata files)
   do_mkdir_p "$LECTURE_ROOT/.integrity/checksums"
   do_mkdir_p "$LECTURE_ROOT/.integrity/manifests"
 
-  # Create .integrity/lecture.yaml for v1.1.0 compliance
+  # Create .integrity/lecture.yaml for v1.1.1 compliance
   local lecture_integrity_yaml="$LECTURE_ROOT/.integrity/lecture.yaml"
   write_file "$lecture_integrity_yaml" <<EOF
 name: "$name"
 world_type: "LECTURE_WORLD"
-version: "1.1.0"
+version: "1.1.1"
 created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -2882,6 +3081,9 @@ conda_env: "lecture_$lecture_id"
 project_id: "$lecture_id"
 created: "$(date +%Y-%m-%d)"
 EOF
+
+  # Apply baseline template bundle (git/vscode/TeX assets)
+  apply_baseline_template_bundle "lecture" "$LECTURE_ROOT" "$lecture_id" || exit 1
 
   # Conda
   if [ "$no_conda" = false ]; then
@@ -4064,7 +4266,7 @@ init_all_worlds() {
   # Create base directory if it doesn't exist
   do_mkdir_p "$target_path"
   
-  # Define all world types - per DirForge Constitution v1.1.0
+  # Define all world types - per DirForge Constitution v1.1.1
   local worlds=(
     "CODING_WORLD"
     "JOURNAL_WORLD" 
@@ -4131,7 +4333,7 @@ init_all_worlds() {
     echo "DRY RUN: would create complete DirForge workspace at $target_path"
   else
     # Create workspace-level integrity metadata
-    create_workspace_integrity_metadata "$target_path" "1.1.0" || {
+    create_workspace_integrity_metadata "$target_path" "1.1.1" || {
       echo "Warning: Could not create workspace metadata" >&2
     }
     
@@ -4147,7 +4349,7 @@ init_all_worlds() {
     echo "  PRIVATE_WORLD/          (with 10 subfolders)"
     echo "  RESEARCH_WORLD/         (empty - use 'dirforge create research' to create projects)"
     echo
-    echo "Constitution version: v1.1.0"
+    echo "Constitution version: v1.1.1"
     echo
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "⚡ WORKSPACE SETUP: Configure environment variable"
@@ -5070,7 +5272,7 @@ main() {
               echo "YAML STRUCTURE"
               echo "  world:"
               echo "    type: CUSTOM_WORLD"
-              echo "    version: '1.1.0'"
+              echo "    version: '1.1.1'"
               echo "  parent_directories:"
               echo "    - name: 01_projects"
               echo "      subdirectories:"

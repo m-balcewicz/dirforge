@@ -349,8 +349,8 @@ bootstrap_workspace() {
 
     echo
     print_info "Found ${#found_worlds[@]} existing WORLD(s) in $workspace_root"
-    print_info "Bootstrap will create .integrity/ metadata (world.yaml + project.yaml)"
-    print_info "WITHOUT modifying any project directories."
+    print_info "Bootstrap will create only .integrity metadata files/directories (world.yaml + project.yaml)."
+    print_info "It does NOT modify existing project source/content files."
     echo
 
     if ! confirm "Bootstrap existing workspace?" "y"; then
@@ -407,7 +407,7 @@ EOF
             cat > "$project_integrity" << EOF
 name: "${project_name}"
 world_type: "${world_type}"
-version: "1.1.0"
+version: "1.1.1"
 created: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 updated: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 EOF

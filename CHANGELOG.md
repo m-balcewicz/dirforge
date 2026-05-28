@@ -1,3 +1,26 @@
+## [1.1.1] - 2026-05-28
+
+### Added
+- **Baseline Template Bundle Automation** for new scaffolds
+  - New shared template propagation for `create research`, `create research --project ... --study ...`, and `create lecture`
+  - Baseline templates now sourced from:
+    - `templates/git_template/.gitignore.template`
+    - `templates/vscode_template/settings.json.template`
+    - `templates/vscode_template/vscode.code-workspace.template`
+    - `templates/TeX_template/04_publication/`
+    - `templates/TeX_template/05_presentations/`
+  - New integration test: `tests/test-functions/test_template_propagation_v1.1.0.sh`
+
+### Changed
+- **Workspace template naming**: switched to generic `vscode.code-workspace.template`
+- **VS Code templates**: removed machine-specific absolute paths and kept user workbench preferences
+- **TeX template Makefiles**: normalized to portable command defaults (`latexmk`, `pdflatex`, `bibtex`, `biber` via PATH)
+- **Propagation safety**:
+  - Template sources must resolve under `templates/`
+  - Destination writes are restricted to target roots
+  - Writes to `.integrity/` paths are blocked
+  - Missing template sources fail fast with explicit errors
+
 ## [1.1.0] - 2025-12-31
 
 ### Added

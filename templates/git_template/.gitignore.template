@@ -1,0 +1,51 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Build and coverage artifacts
+build/
+dist/
+coverage/
+*.log
+*.tmp
+
+# Local config and secrets
+.env
+.env.*
+!.env.example
+
+# LaTeX build artifacts (keep .tex source files)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.spl
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+*.dvi
+*.ps

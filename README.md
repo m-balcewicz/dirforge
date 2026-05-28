@@ -1,8 +1,8 @@
 # dirforge — workspace scaffolder (DirForge)
 
-This repository contains a small Bash-first CLI, `dirforge`, which scaffolds standardized directory structures according to the DirForge Constitution v1.1.0.
+This repository contains a small Bash-first CLI, `dirforge`, which scaffolds standardized directory structures according to the DirForge Constitution v1.1.1.
 
-> **⚡ New in v1.1.0**: Clear separation between workspace setup (`dirforge init`) and entity creation (`dirforge create <entity>`). Backward compatibility maintained with helpful migration guidance.
+> **⚡ New in v1.1.1**: Clear separation between workspace setup (`dirforge init`) and entity creation (`dirforge create <entity>`). Backward compatibility maintained with helpful migration guidance.
 
 ## Key Features
 - **Clear Command Structure**: Separate workspace initialization (`dirforge init`) from entity creation (`dirforge create <entity>`)
@@ -15,9 +15,9 @@ This repository contains a small Bash-first CLI, `dirforge`, which scaffolds sta
 - **Interactive and automated modes**: Prompts or automatic creation with flags; safe handling of unknown versions
 - **Dry-run preview**: See what will be created or updated before making changes
 - **JSON output**: Machine-readable plans for automation
-- **YAML-based configuration system** (v1.1.0+): Define custom world structures using declarative YAML configs
+- **YAML-based configuration system** (v1.1.1+): Define custom world structures using declarative YAML configs
 - **Atomic operations**: All-or-nothing scaffold generation with automatic rollback on error
-- **Constitution compliance**: All structures follow DirForge Constitution v1.1.0
+- **Constitution compliance**: All structures follow DirForge Constitution v1.1.1
 
 ## Installation
 
@@ -104,7 +104,7 @@ dirforge --help
 
 ## Command Structure
 
-DirForge v1.1.0 uses a clear separation between workspace setup and entity creation:
+DirForge v1.1.1 uses a clear separation between workspace setup and entity creation:
 
 ```bash
 # Workspace initialization (creates all world directories)
@@ -168,7 +168,7 @@ dirforge --version
 
 ## YAML Configuration System
 
-DirForge v1.1.0 introduces a declarative YAML-based configuration system for defining custom workspace structures. Instead of hard-coded directory layouts, you can now create reusable configuration files that define your workspace organization.
+DirForge v1.1.1 introduces a declarative YAML-based configuration system for defining custom workspace structures. Instead of hard-coded directory layouts, you can now create reusable configuration files that define your workspace organization.
 
 ### Quick Start
 
@@ -222,7 +222,7 @@ world:
 
 metadata:
   version: "1.0.0"
-  constitution_version: "1.1.0"
+  constitution_version: "1.1.1"
   created_by: "${USER}"
   created_at: "${DATE}"
 
@@ -282,7 +282,7 @@ Help System
 The `dirforge` tool includes a comprehensive help system with progressive disclosure:
 - **Progressive disclosure**: More detailed help as you specify context
 - **ANSI color formatting**: Enhanced readability with terminal color support
-- **Constitution compliance**: Direct references to DirForge Constitution v1.1.0
+- **Constitution compliance**: Direct references to DirForge Constitution v1.1.1
 - **Directory structure previews**: ASCII tree views of generated structures
 - **Copy-pasteable examples**: Real-world usage patterns for each world type
 - **Terminal adaptation**: Automatic paging for long content, NO_COLOR support
@@ -684,7 +684,7 @@ dirforge init ~/workspace --backup --force
 **Help System Architecture:**
 - Progressive disclosure: `dirforge --help` → `dirforge create --help` → `dirforge create <entity> --help`
 - Terminal adaptation: Auto-detects color support, terminal width, paging capability
-- **Constitution integration**: Dynamic references to DirForge Constitution v1.1.0
+- **Constitution integration**: Dynamic references to DirForge Constitution v1.1.1
 - Performance optimization: Cached content generation for repeated calls (<200ms target)
 
 Notes & future directions

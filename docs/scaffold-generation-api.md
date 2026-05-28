@@ -755,6 +755,45 @@ Rollback Order:
 
 ---
 
+## Baseline Template Bundle Automation
+
+DirForge also applies a baseline template bundle during entity creation for:
+
+- `create research` (project)
+- `create research --project ... --study ...` (study)
+- `create lecture`
+
+### Source Templates
+
+All sources are resolved from `templates/`:
+
+- `templates/git_template/.gitignore.template`
+- `templates/vscode_template/settings.json.template`
+- `templates/vscode_template/vscode.code-workspace.template`
+- `templates/TeX_template/04_publication/`
+- `templates/TeX_template/05_presentations/`
+
+### Internal Helpers (tools/dirforge)
+
+- `validate_template_sources`: verifies sources exist and enforces templates-only source roots
+- `build_baseline_target_mappings`: generates deterministic destination mappings per target type
+- `apply_baseline_template_bundle`: orchestrates propagation with overwrite and dry-run semantics
+
+### Safety and Policy
+
+- Sources must be under the resolved templates root.
+- Destinations must remain within the requested scaffold target root.
+- Writes to `.integrity/` are blocked for template propagation.
+- If required template sources are missing, creation fails with explicit error output.
+
+### Overwrite and Dry-Run Behavior
+
+- Existing targets are skipped unless `--force` is provided.
+- With `--force`, existing mapped files/directories are replaced.
+- In `--dry-run`, template operations are reported and no filesystem writes occur.
+
+---
+
 **Document:** scaffold-generation-api.md  
 **Created:** 2025-12-30  
 **Status:** Complete  

@@ -1,6 +1,6 @@
 # DirForge Manual
 
-Version: 1.1.0 | Constitution: v1.1.0
+Version: 1.1.1 | Constitution: v1.1.1
 
 ## Table of Contents
 
@@ -296,7 +296,7 @@ RESEARCH_WORLD/<YYYY_project_id>/
 ```
 
 **Features:**
-- Constitution v1.1.0 compliant
+- Constitution v1.1.1 compliant
 - Numbered folder convention (01-08)
 - `.integrity/` for data validation
 - Automatic project ID with year prefix
@@ -471,7 +471,7 @@ Script waits for user input when project exists.
 
 ## Related Documentation
 
-- **Constitution**: `.specify/memory/constitution.md` — Governance rules (v1.1.0)
+- **Constitution**: `.specify/memory/constitution.md` — Governance rules (v1.1.1)
 - **Conda Guide**: `docs/CONDA.md` — Conda environment management
 - **Examples**: `examples/README.md` — Example scaffolds
 - **Manifest Validator**: `tools/manifest.sh --help` — YAML validation
@@ -512,6 +512,51 @@ Script waits for user input when project exists.
 
 ---
 
+## Baseline Template Bundle Mapping
+
+Newly created research projects, studies, and lectures receive a baseline template bundle from `templates/`.
+
+### Source templates
+
+- `templates/git_template/.gitignore.template`
+- `templates/vscode_template/settings.json.template`
+- `templates/vscode_template/vscode.code-workspace.template`
+- `templates/TeX_template/04_publication/`
+- `templates/TeX_template/05_presentations/`
+
+### Deterministic destination mapping
+
+Research project (`create research --name ...`):
+- `.gitignore`
+- `.vscode/settings.json`
+- `.vscode/<project_id>.code-workspace`
+- `02_studies/.template_study/04_publication/`
+- `02_studies/.template_study/05_presentations/`
+
+Research study (`create research --project ... --study ...`):
+- `.gitignore`
+- `.vscode/settings.json`
+- `.vscode/<study_id>.code-workspace`
+- `04_publication/`
+- `05_presentations/`
+
+Lecture (`create lecture --name ...`):
+- `.gitignore`
+- `.vscode/settings.json`
+- `.vscode/<lecture_id>.code-workspace`
+- `04_manuscript/`
+- `03_slides/`
+
+### Safety semantics
+
+- Template propagation never writes into `.integrity/` paths.
+- Template sources must come from the `templates/` tree.
+- Existing mapped targets are skipped unless `--force` is supplied.
+- Missing required template sources fail fast with explicit error output.
+- `--dry-run` prints template actions without writing files.
+
+---
+
 ---
 
 ## Versioning & Template Updates
@@ -522,9 +567,9 @@ DirForge uses **three version concepts** that work together. Understanding them 
 
 | Version | Where it lives | What it tracks | Example |
 |---------|---------------|----------------|----------|
-| **Constitution version** | `tools/dirforge` header, `metadata.version` in each `templates/world-configs/*.yaml` | The overall dirforge release. Bumped when the tool code or its governance rules change. | `1.1.0` |
-| **Template version** | `templates/template_versions.yaml` (manifest), `<WORLD>/.integrity/world.yaml` (deployed stamp) | The structural version of a world-config template. Bumped when you add/rename/remove directories in a template. | `1.1.0` |
-| **Project version** | `<WORLD>/<project>/.integrity/project.yaml` | Records which template version was active when the project was last scaffolded or updated. | `1.1.0` |
+| **Constitution version** | `tools/dirforge` header, `metadata.version` in each `templates/world-configs/*.yaml` | The overall dirforge release. Bumped when the tool code or its governance rules change. | `1.1.1` |
+| **Template version** | `templates/template_versions.yaml` (manifest), `<WORLD>/.integrity/world.yaml` (deployed stamp) | The structural version of a world-config template. Bumped when you add/rename/remove directories in a template. | `1.1.1` |
+| **Project version** | `<WORLD>/<project>/.integrity/project.yaml` | Records which template version was active when the project was last scaffolded or updated. | `1.1.1` |
 
 ### File Locations at a Glance
 
@@ -560,9 +605,9 @@ Template versions follow `<major>.<minor>.<patch>`:
 
 | Bump | When to use | Triggers scaffold? | Example change |
 |------|-------------|--------------------|-----------------|
-| **Patch** (`1.1.0` → `1.1.1`) | Cosmetic / description-only changes | No | Fix a typo in template comments |
-| **Minor** (`1.1.0` → `1.2.0`) | Additive structural changes | **Yes** | Add `05_supervision/` to research template |
-| **Major** (`1.1.0` → `2.0.0`) | Breaking structural changes | **Yes** | Rename `04_data/` to `04_datasets/` |
+| **Patch** (`1.1.1` → `1.1.1`) | Cosmetic / description-only changes | No | Fix a typo in template comments |
+| **Minor** (`1.1.1` → `1.2.0`) | Additive structural changes | **Yes** | Add `05_supervision/` to research template |
+| **Major** (`1.1.1` → `2.0.0`) | Breaking structural changes | **Yes** | Rename `04_data/` to `04_datasets/` |
 
 The update script only creates new directories for **minor** or **major** bumps. Patch bumps update the stamp but do not touch the filesystem.
 
@@ -597,7 +642,7 @@ Open `templates/template_versions.yaml` and bump the `template_version` for the 
 templates:
   RESEARCH_WORLD:
     config_file: "research.world.yaml"
-    template_version: "1.2.0"       # ← was 1.1.0
+    template_version: "1.2.0"       # ← was 1.1.1
     last_updated: "2026-04-15"      # ← today's date
 ```
 
@@ -621,7 +666,7 @@ bash scripts/update_dirforge.sh --dry-run
 
 Expected output:
 ```
-RESEARCH_WORLD  template 1.1.0 → 1.2.0  (structural bump)
+RESEARCH_WORLD  template 1.1.1 → 1.2.0  (structural bump)
   2025_my_project/01_project_management/05_supervision – would create
   ...
 1 WORLD(s) with pending changes

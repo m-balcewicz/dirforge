@@ -11,6 +11,7 @@ TESTS_DIR=./tests
 help:
 	@echo "\n\033[1mDirForge Project - Make Targets\033[0m\n"
 	@printf "  \033[36m%-28s\033[0m %s\n" "install [ARGS=...]" "Install DirForge (default: --local)"
+	@printf "  \033[36m%-28s\033[0m %s\n" "wizard" "Unified interactive install/update/uninstall wizard"
 	@printf "  \033[36m%-28s\033[0m %s\n" "update [ARGS=...]" "Update DirForge or workspace"
 	@printf "  \033[36m%-28s\033[0m %s\n" "uninstall [ARGS=...]" "Uninstall DirForge"
 	@printf "  \033[36m%-28s\033[0m %s\n" "lint" "Lint all shell scripts"
@@ -21,6 +22,7 @@ help:
 	@printf "  \033[36m%-28s\033[0m %s\n" "comprehensive-test-update" "Update all test files with deprecated syntax"
 	@echo "\n\033[1mUsage Examples:\033[0m"
 	@echo "  make install ARGS=\"--local\""
+	@echo "  make wizard"
 	@echo "  make update ARGS=\"--dry-run\""
 	@echo "  make uninstall ARGS=\"--all\""
 	@echo "  make test"
@@ -29,6 +31,10 @@ help:
 .PHONY: install
 install:
 	@bash $(SCRIPTS_DIR)/install_dirforge.sh $(ARGS)
+
+.PHONY: wizard
+wizard:
+	@bash $(SCRIPTS_DIR)/dirforge_wizard.sh
 
 .PHONY: update
 update:
