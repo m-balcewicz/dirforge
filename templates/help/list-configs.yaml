@@ -7,24 +7,12 @@ syntax:
   usage: "dirforge list-configs [options]"
   arguments: []
   options:
-    - flag: --filter <world-type>
-      description: "Show only configs matching world-type (CODING, RESEARCH, JOURNAL, etc.)"
-      required: false
-      example: "CODING_WORLD"
-    - flag: --verbose, -v
-      description: "Show detailed information about each configuration"
-      required: false
-    - flag: --json
-      description: "Output configuration list as JSON for automation"
-      required: false
-    - flag: --quiet, -q
-      description: "Show only file paths, no descriptions"
+    - flag: --show-invalid
+      description: "Show detailed validation errors for invalid configs"
       required: false
   variants:
     - "dirforge list-configs --help"
-    - "dirforge list-configs --filter RESEARCH_WORLD"
-    - "dirforge list-configs --verbose"
-    - "dirforge list-configs --json"
+    - "dirforge list-configs --show-invalid"
 
 usage:
   patterns:
@@ -32,14 +20,14 @@ usage:
       description: "Show all available world configurations"
       command: "dirforge list-configs"
     - name: filter-by-world-type
-      description: "Find all CODING_WORLD configurations"
-      command: "dirforge list-configs --filter CODING_WORLD"
+      description: "Find all configs and inspect reported world type values"
+      command: "dirforge list-configs"
     - name: detailed-listing
-      description: "Show all configs with descriptions and metadata"
-      command: "dirforge list-configs --verbose"
+      description: "Show invalid details when validation fails"
+      command: "dirforge list-configs --show-invalid"
     - name: json-output
-      description: "Get configuration list in JSON format for scripting"
-      command: "dirforge list-configs --json"
+      description: "JSON output is not currently supported by list-configs"
+      command: "dirforge list-configs"
   common_workflows:
     - name: choose-world-type
       description: "List configs to find the right world type for your project"
@@ -54,52 +42,52 @@ examples:
     command: "dirforge list-configs"
     description: "Display all world configuration files in the system"
     output: |
-      CODING_WORLD      templates/world-configs/coding.yaml
-      RESEARCH_WORLD    templates/world-configs/research.yaml
-      JOURNAL_WORLD     templates/world-configs/journal.yaml
-      LECTURE_WORLD     templates/world-configs/lecture.yaml
-      OFFICE_WORLD      templates/world-configs/office.yaml
-      PRIVATE_WORLD     templates/world-configs/private.yaml
-      LITERATURE_WORLD  templates/world-configs/literature.yaml
+      CODING_WORLD      templates/world-configs/coding.world.yaml
+      RESEARCH_WORLD    templates/world-configs/research.world.yaml
+      JOURNAL_WORLD     templates/world-configs/journal.world.yaml
+      LECTURE_WORLD     templates/world-configs/lecture.world.yaml
+      OFFICE_WORLD      templates/world-configs/office.world.yaml
+      PRIVATE_WORLD     templates/world-configs/private.world.yaml
+      LITERATURE_WORLD  templates/world-configs/literature.world.yaml
 
   - title: "Filter by specific world type"
-    command: "dirforge list-configs --filter RESEARCH_WORLD"
-    description: "Show only research world configurations"
+    command: "dirforge list-configs"
+    description: "Show all available configurations with detected world types"
     output: |
-      RESEARCH_WORLD    templates/world-configs/research.yaml
+      RESEARCH_WORLD    templates/world-configs/research.world.yaml
 
   - title: "Show detailed configuration information"
-    command: "dirforge list-configs --verbose"
-    description: "Display complete information about each configuration"
+    command: "dirforge list-configs --show-invalid"
+    description: "Display validation details for invalid configurations"
     output: |
       World Type: CODING_WORLD
-      File: templates/world-configs/coding.yaml
+      File: templates/world-configs/coding.world.yaml
       Description: Programming world with 8 languages
       Version: 1.1.1
       Status: Valid
       
       World Type: RESEARCH_WORLD
-      File: templates/world-configs/research.yaml
+      File: templates/world-configs/research.world.yaml
       Description: Research project and study organization
       Version: 1.1.1
       Status: Valid
 
   - title: "Get configuration list as JSON"
-    command: "dirforge list-configs --json"
-    description: "Export configuration list in JSON format for automation"
+    command: "dirforge list-configs"
+    description: "List configurations in terminal output format"
     output: |
       {
         "configs": [
           {
             "world_type": "CODING_WORLD",
-            "file": "templates/world-configs/coding.yaml",
+            "file": "templates/world-configs/coding.world.yaml",
             "description": "Programming world with 8 languages",
             "version": "1.1.1",
             "valid": true
           },
           {
             "world_type": "RESEARCH_WORLD",
-            "file": "templates/world-configs/research.yaml",
+            "file": "templates/world-configs/research.world.yaml",
             "description": "Research project and study organization",
             "version": "1.1.1",
             "valid": true
@@ -116,9 +104,9 @@ output:
     - name: "Config File"
       description: "Path to the .yaml configuration file"
   example: |
-    CODING_WORLD      templates/world-configs/coding.yaml
-    RESEARCH_WORLD    templates/world-configs/research.yaml
-    JOURNAL_WORLD     templates/world-configs/journal.yaml
+    CODING_WORLD      templates/world-configs/coding.world.yaml
+    RESEARCH_WORLD    templates/world-configs/research.world.yaml
+    JOURNAL_WORLD     templates/world-configs/journal.world.yaml
 
 related:
   - command: validate-config
@@ -141,15 +129,11 @@ see_also:
 
 short_help:
   summary: "List all available YAML configuration files for world types"
-  synopsis: "dirforge list-configs [--filter WORLD_TYPE] [--json] [--verbose]"
+  synopsis: "dirforge list-configs [--show-invalid]"
   quick_options:
-    - flag: --filter WORLD_TYPE
-      description: "Show only configs matching world-type"
-    - flag: --verbose
-      description: "Show detailed configuration information"
-    - flag: --json
-      description: "Output as JSON for automation"
-  hint: "Use --filter to find specific world types, or --verbose to see full details"
+    - flag: --show-invalid
+      description: "Show detailed validation errors for invalid configs"
+  hint: "Use --show-invalid to inspect why a configuration failed validation"
 
 long_help:
   summary: |
@@ -179,13 +163,7 @@ long_help:
     - "Exit code: 0 always (listing succeeds even with invalid configs)"
     
   all_options:
-    - flag: --filter WORLD_TYPE
-      description: "Show only configurations matching WORLD_TYPE (e.g., CODING_WORLD)"
-    - flag: --verbose, -v
-      description: "Show detailed information: description, version, validation status"
-    - flag: --json
-      description: "Output configuration list as JSON object for automation"
-    - flag: --quiet, -q
-      description: "Show only file paths without descriptions"
+    - flag: --show-invalid
+      description: "Show detailed validation error output for each invalid config"
     - flag: --help
       description: "Show this help message"

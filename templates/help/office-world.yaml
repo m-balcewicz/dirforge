@@ -10,7 +10,8 @@ type: "world-help"
 category: "world"
 
 syntax: |
-  dirforge init office [options]
+  dirforge init office
+  dirforge office --help
   dirforge init office --help
 
 short_help:
@@ -36,8 +37,7 @@ sections:
   optional_options:
     title: "Optional Options"
     content: |
-      --dry-run                      Preview structure without creating files
-      --force                        Overwrite existing structure when applicable
+      No world-specific options. Use global flags such as --dry-run or --force.
 
   naming_conventions:
     title: "Naming Conventions"
@@ -56,7 +56,7 @@ sections:
       ├── 04_inventory_equipment/     Equipment and inventory
       ├── 05_software_licenses/       Software licensing
       ├── 06_public_relations/        PR and communications
-      └── 90_archive/                 Archived documents
+      └── (no default archive folder) Add custom archives as needed
 
 examples:
   - title: "Budget tracking"

@@ -22,7 +22,7 @@ usage:
     - name: create-custom-world-from-scratch
       description: "Step-by-step guide to creating a custom world"
       steps:
-        - "Copy a built-in config: cp templates/world-configs/coding.yaml my-world.yaml"
+        - "Copy a built-in config: cp templates/world-configs/coding.world.yaml my-world.yaml"
         - "Edit my-world.yaml to customize structure"
         - "Validate: dirforge validate-config my-world.yaml"
         - "Initialize: dirforge init world --config my-world.yaml"
@@ -32,14 +32,14 @@ usage:
       steps:
         - "Analyze project needs and folder structure"
         - "Select base world type (CODING, RESEARCH, etc.)"
-        - "Copy base config: cp templates/world-configs/base.yaml my-specialized.yaml"
+        - "Copy base config: cp templates/world-configs/research.world.yaml my-specialized.yaml"
         - "Customize for your needs"
         - "Validate and test"
         - "Share with team (commit to git)"
 
 examples:
   - title: "Copy and customize a built-in configuration"
-    command: "cp templates/world-configs/coding.yaml my-coding-world.yaml"
+    command: "cp templates/world-configs/coding.world.yaml my-coding-world.yaml"
     description: "Start with a built-in configuration and customize it"
     output: |
       # File created: my-coding-world.yaml
@@ -163,7 +163,7 @@ short_help:
   summary: "Guide to creating custom world configurations"
   synopsis: "dirforge help custom-world"
   quick_options: []
-  hint: "Start with an existing config: cp templates/world-configs/coding.yaml my-world.yaml"
+  hint: "Start with an existing config: cp templates/world-configs/coding.world.yaml my-world.yaml"
 
 long_help:
   summary: |
@@ -190,7 +190,7 @@ long_help:
     STEP 2: Copy the Configuration
     
     Copy the base configuration to your custom file:
-    $ cp templates/world-configs/coding.yaml my-world.yaml
+    $ cp templates/world-configs/coding.world.yaml my-world.yaml
     
     STEP 3: Edit the Configuration
     

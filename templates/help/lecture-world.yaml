@@ -11,7 +11,9 @@ category: "world"
 
 syntax: |
   dirforge init lecture --name "Course Name" [options]
+  dirforge create lecture --name "Course Name" [options]
   dirforge create lecture --course <code> --title <name> [options]
+  dirforge lecture --help
   dirforge init lecture --help
   dirforge create lecture --help
 
@@ -45,9 +47,11 @@ sections:
   optional_options:
     title: "Optional Options"
     content: |
-      --term "2025-spring"             Academic term (default: current year-semester)
-      --code "PHYS101"                 Course code for institutional tracking
-      --no-gradebook                   Skip gradebook template creation
+      --course "PHYS101"               Course code
+      --title "Intro Course"           Course title
+      --python 3.11                     Python version for lecture environment
+      --no-conda                        Skip conda environment creation
+      --conda-packages "pkg1 pkg2"     Additional conda packages
   
   naming_conventions:
     title: "Naming Conventions"
@@ -96,19 +100,19 @@ sections:
 examples:
   - title: "Create lecture with interactive prompts"
     command: "dirforge init lecture"
-    description: "Prompts for course name, term, and code"
+    description: "Prompts for lecture/course name"
   
   - title: "Create specific course"
     command: 'dirforge init lecture --name "Digital Rock Physics"'
     description: "Creates 2025-spring_digital_rock_physics"
   
   - title: "Lecture with course code and term"
-    command: 'dirforge init lecture --name "Intro Physics" --code "PHYS101" --term "2025-fall"'
-    description: "Specifies term and institutional code"
+    command: 'dirforge create lecture --course "PHYS101" --title "Intro Physics"'
+    description: "Creates lecture name from course and title"
   
   - title: "Skip gradebook"
-    command: 'dirforge init lecture --name "Workshop" --no-gradebook'
-    description: "Creates structure without gradebook template"
+    command: 'dirforge create lecture --name "Workshop" --no-conda'
+    description: "Creates structure and skips conda environment creation"
   
   - title: "Preview structure"
     command: 'dirforge init lecture --name "Test Course" --dry-run'

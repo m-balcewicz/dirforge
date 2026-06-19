@@ -10,14 +10,16 @@ type: "world-help"
 category: "world"
 
 syntax: |
-  dirforge init research --title "Project Name" [options]
-  dirforge create research --project "Project Name" [options]
+  dirforge init research --name "Project Name" [options]
+  dirforge create research --name "Project Name" [options]
+  dirforge create research --project <project_id> --study "Study Name" [options]
+  dirforge research --help
   dirforge init research --help
   dirforge create research --help
 
 short_help:
   summary: "Create research project with data management and reproducible workflow"
-  usage: 'dirforge init research --title "Project Name"'
+  usage: 'dirforge create research --name "Project Name"'
 
 long_help:
   summary: |
@@ -41,7 +43,7 @@ sections:
   required_options:
     title: "Required Options"
     content: |
-      --title "Project Title"         Human-readable project title (converted to PROJECT-ID)
+      --name "Project Title"          Human-readable project title (converted to PROJECT-ID)
   
   optional_options:
     title: "Optional Options"
@@ -95,19 +97,19 @@ sections:
 
 examples:
   - title: "Create research project with title"
-    command: 'dirforge init research --title "Thermal Analysis"'
+    command: 'dirforge create research --name "Thermal Analysis"'
     description: "Creates 2025_thermal_analysis project"
   
   - title: "Research project with custom Python version"
-    command: 'dirforge init research --title "ML Study" --python 3.12'
+    command: 'dirforge create research --name "ML Study" --python 3.12'
     description: "Uses Python 3.12 for conda environment"
   
   - title: "Theory-only project without conda"
-    command: 'dirforge init research --title "Theory Work" --no-conda'
+    command: 'dirforge create research --name "Theory Work" --no-conda'
     description: "Skips environment creation for non-computational work"
   
   - title: "Preview structure"
-    command: 'dirforge init research --title "Test Project" --dry-run'
+    command: 'dirforge create research --name "Test Project" --dry-run'
     description: "Shows structure without creating files"
   
   - title: "Create with backup"

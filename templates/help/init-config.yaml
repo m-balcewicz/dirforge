@@ -1,19 +1,15 @@
 command: init-config
-description: "Initialize a workspace using YAML configuration-driven approach"
-type: command
+description: "Reference topic for YAML configuration-driven initialization"
+type: topic
 category: yaml
 
 syntax:
-  usage: "dirforge init [world|project|study] [options]"
+  usage: "dirforge help init-config"
   arguments:
-    - name: subcommand
-      description: "Initialization target: world, project, or study"
-      required: true
-      example: "world"
-    - name: project-name
-      description: "Project name (for project and study initialization)"
+    - name: topic
+      description: "Help topic identifier"
       required: false
-      example: "my-project"
+      example: "init-config"
   options:
     - flag: --config <file>
       description: "Use custom YAML configuration file"
@@ -24,11 +20,8 @@ syntax:
       required: false
       example: "CODING_WORLD"
   variants:
-    - "dirforge init world"
-    - "dirforge init coding"
-    - "dirforge init world --config templates/world-configs/coding.yaml"
-    - "dirforge init research --project my-project"
-    - "dirforge init research --project my-project --study study_1 --config custom-research.yaml"
+    - "dirforge help init-config"
+    - "dirforge help yaml-config-system"
 
 usage:
   patterns:
@@ -37,7 +30,7 @@ usage:
       command: "dirforge init coding"
     - name: init-with-explicit-config
       description: "Initialize using a specific configuration file"
-      command: "dirforge init world --config templates/world-configs/research.yaml"
+      command: "dirforge init world --config templates/world-configs/research.world.yaml"
     - name: init-research-project
       description: "Create a research world with project structure"
       command: "dirforge init research --project my-project"
@@ -73,7 +66,7 @@ examples:
     description: "Create a CODING_WORLD workspace with all language directories"
     output: |
       ✓ Initializing CODING_WORLD
-        Using config: templates/world-configs/coding.yaml
+        Using config: templates/world-configs/coding.world.yaml
         Creating directories:
           - python/
           - bash/
@@ -91,7 +84,7 @@ examples:
     description: "Create a research world with a specific project"
     output: |
       ✓ Initializing RESEARCH_WORLD
-        Using config: templates/world-configs/research.yaml
+        Using config: templates/world-configs/research.world.yaml
         Creating project structure:
           - quantum-computing/
         Creating metadata:
@@ -104,7 +97,7 @@ examples:
     description: "Create a study structure within an existing research project"
     output: |
       ✓ Initializing study in RESEARCH_WORLD
-        Using config: templates/world-configs/research.yaml
+        Using config: templates/world-configs/research.world.yaml
         Creating study structure:
           - quantum-computing/entanglement-2025/
         Creating metadata:
@@ -127,7 +120,7 @@ output:
   description: "Initialization progress with created directory structure and metadata"
   example: |
     ✓ Initializing CODING_WORLD
-      Using config: templates/world-configs/coding.yaml
+      Using config: templates/world-configs/coding.world.yaml
       Creating directories...
       Creating metadata: .integrity/world.yaml
     ✓ CODING_WORLD initialized successfully
@@ -153,7 +146,7 @@ see_also:
 
 short_help:
   summary: "Initialize a workspace using YAML configuration-driven approach"
-  synopsis: "dirforge init <world|project|study> [--config FILE] [--project NAME] [--study NAME]"
+  synopsis: "dirforge help init-config"
   quick_options:
     - flag: --config FILE
       description: "Use custom YAML configuration file"

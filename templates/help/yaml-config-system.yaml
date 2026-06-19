@@ -24,7 +24,7 @@ usage:
       steps:
         - "Read this help: dirforge help yaml-config-system"
         - "List available configs: dirforge list-configs"
-        - "View a config file: cat templates/world-configs/coding.yaml"
+        - "View a config file: cat templates/world-configs/coding.world.yaml"
         - "Learn about custom configs: dirforge help custom-world"
 
 examples:
@@ -42,7 +42,7 @@ examples:
       SCHEMA.md               (configuration schema documentation)
 
   - title: "Examine a configuration file structure"
-    command: "head -30 templates/world-configs/coding.yaml"
+    command: "head -30 templates/world-configs/coding.world.yaml"
     description: "See how YAML configuration defines directory structure"
     output: |
       world_type: CODING_WORLD
@@ -62,13 +62,13 @@ examples:
     command: "dirforge list-configs"
     description: "See all world types and their configuration files"
     output: |
-      CODING_WORLD      templates/world-configs/coding.yaml
-      RESEARCH_WORLD    templates/world-configs/research.yaml
-      JOURNAL_WORLD     templates/world-configs/journal.yaml
-      LECTURE_WORLD     templates/world-configs/lecture.yaml
-      OFFICE_WORLD      templates/world-configs/office.yaml
-      PRIVATE_WORLD     templates/world-configs/private.yaml
-      LITERATURE_WORLD  templates/world-configs/literature.yaml
+      CODING_WORLD      templates/world-configs/coding.world.yaml
+      RESEARCH_WORLD    templates/world-configs/research.world.yaml
+      JOURNAL_WORLD     templates/world-configs/journal.world.yaml
+      LECTURE_WORLD     templates/world-configs/lecture.world.yaml
+      OFFICE_WORLD      templates/world-configs/office.world.yaml
+      PRIVATE_WORLD     templates/world-configs/private.world.yaml
+      LITERATURE_WORLD  templates/world-configs/literature.world.yaml
 
 related:
   - command: list-configs

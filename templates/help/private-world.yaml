@@ -10,7 +10,8 @@ type: "world-help"
 category: "world"
 
 syntax: |
-  dirforge init private [options]
+  dirforge init private
+  dirforge private --help
   dirforge init private --help
 
 short_help:
@@ -36,8 +37,7 @@ sections:
   optional_options:
     title: "Optional Options"
     content: |
-      --encrypted                    Enable encrypted storage workflow if supported
-      --dry-run                      Preview structure without creating files
+      No world-specific options. Use global flags such as --dry-run or --force.
 
   naming_conventions:
     title: "Naming Conventions"
@@ -49,27 +49,29 @@ sections:
     title: "Directory Structures"
     content: |
       PRIVATE_WORLD/
-      ├── 00_personal_finance/        Financial records and budgets
-      ├── 01_health_records/          Medical and health documentation
-      ├── 02_legal_documents/         Legal and official paperwork
-      ├── 03_photo_archive/           Photo collections and media
-      ├── 04_personal_projects/       Personal hobby and learning projects
-      ├── 05_family_records/          Family history and documents
-      ├── 06_notes_ideas/             Personal notes and ideas
-      └── 90_archive/                 Archived personal documents
+      ├── 00_admin/                   Private administration
+      ├── 01_credentials/             Credentials and account records
+      ├── 02_id_contracts/            Identity and contract documents
+      ├── 03_finance/                 Financial records and budgets
+      ├── 04_documents/               General documents
+      ├── 05_photos/                  Photo collections
+      ├── 06_movies/                  Media collections
+      ├── 07_hiking/                  Outdoor and activity content
+      ├── 09_installers/              Software installers and packages
+      └── 90_archive/                 Archived private documents
 
 examples:
   - title: "Personal finance"
     command: "dirforge init private"
-    description: "Use 00_personal_finance/ for budget tracking and financial records"
+    description: "Use 03_finance/ for budget tracking and financial records"
   
   - title: "Photo archive"
     command: "dirforge init private"
-    description: "Organize photo collections in 03_photo_archive/"
+    description: "Organize photo collections in 05_photos/"
   
   - title: "Personal learning"
     command: "dirforge init private"
-    description: "Use 04_personal_projects/ for personal learning projects"
+    description: "Use 04_documents/ and 07_hiking/ based on project type"
 
 related_commands:
   - "dirforge init"

@@ -140,25 +140,53 @@ run_test "Research world help" \
     "'$DIRFORGE' init research --help" \
     "standardized research project"
 
+run_test "Research direct world help alias" \
+    "'$DIRFORGE' research --help" \
+    "standardized research project"
+
 run_test "Lecture world help" \
     "'$DIRFORGE' init lecture --help" \
+    "standardized lecture project"
+
+run_test "Lecture direct world help alias" \
+    "'$DIRFORGE' lecture --help" \
     "standardized lecture project"
 
 run_test "Journal world help" \
     "'$DIRFORGE' init journal --help" \
     "managing all aspects of academic publishing"
 
+run_test "Journal direct world help alias" \
+    "'$DIRFORGE' journal --help" \
+    "managing all aspects of academic publishing"
+
 run_test "Coding world help" \
     "'$DIRFORGE' init coding --help" \
+    "standardized software development projects"
+
+run_test "Coding direct world help alias" \
+    "'$DIRFORGE' coding --help" \
     "standardized software development projects"
 
 run_test "Office world help" \
     "'$DIRFORGE' init office --help" \
     "administrative project for business documents"
 
+run_test "Office direct world help alias" \
+    "'$DIRFORGE' office --help" \
+    "administrative project for business documents"
+
 run_test "Private world help" \
     "'$DIRFORGE' init private --help" \
     "private project for personal documents"
+
+run_test "Private direct world help alias" \
+    "'$DIRFORGE' private --help" \
+    "private project for personal documents"
+
+run_test "Create journal help renders full sections" \
+    "'$DIRFORGE' create journal --help" \
+    "OVERVIEW\|IMPORTANT NOTES\|DIRECTORY STRUCTURES"
 
 # Test 5: Help Context Awareness
 info "Testing context-aware help routing..."

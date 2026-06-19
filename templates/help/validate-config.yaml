@@ -9,27 +9,21 @@ syntax:
     - name: config-file
       description: "Path to .yaml configuration file to validate"
       required: true
-      example: "templates/world-configs/coding.yaml"
+      example: "templates/world-configs/coding.world.yaml"
   options:
-    - flag: --quiet, -q
-      description: "Suppress output (exit code indicates result)"
-      required: false
-    - flag: --json
-      description: "Output validation errors as JSON for automation"
-      required: false
     - flag: --verbose, -v
       description: "Show detailed validation trace with all field checks"
       required: false
   variants:
     - "dirforge validate-config --help"
-    - "dirforge validate-config templates/world-configs/research.yaml"
-    - "dirforge validate-config custom-world.yaml --json"
+    - "dirforge validate-config templates/world-configs/research.world.yaml"
+    - "dirforge validate-config custom-world.yaml --verbose"
 
 usage:
   patterns:
     - name: validate-built-in-config
       description: "Validate one of the provided world configurations"
-      command: "dirforge validate-config templates/world-configs/coding.yaml"
+      command: "dirforge validate-config templates/world-configs/coding.world.yaml"
     - name: validate-custom-config
       description: "Validate a custom world configuration before using it"
       command: "dirforge validate-config ~/my-world.yaml"
@@ -47,7 +41,7 @@ usage:
 
 examples:
   - title: "Validate a built-in configuration"
-    command: "dirforge validate-config templates/world-configs/coding.yaml"
+    command: "dirforge validate-config templates/world-configs/coding.world.yaml"
     description: "Check if the CODING_WORLD configuration is valid"
     output: |
       ✓ Config validation passed
@@ -66,8 +60,8 @@ examples:
         - Nested structures: OK
 
   - title: "Check validation errors with JSON output"
-    command: "dirforge validate-config invalid-config.yaml --json"
-    description: "View validation errors in JSON format for processing"
+    command: "dirforge validate-config invalid-config.yaml --verbose"
+    description: "View validation errors with detailed tracing"
     output: |
       {
         "status": "invalid",
@@ -114,12 +108,10 @@ see_also:
 
 short_help:
   summary: "Validate a YAML configuration file against the DirForge schema"
-  synopsis: "dirforge validate-config <config-file> [--quiet] [--json]"
+  synopsis: "dirforge validate-config <config-file> [--verbose]"
   quick_options:
-    - flag: --json
-      description: "Output validation errors as JSON"
-    - flag: --quiet
-      description: "Suppress output"
+    - flag: --verbose
+      description: "Output detailed validation trace"
   hint: "Always validate custom configurations before using them with 'dirforge init --config'"
 
 long_help:
@@ -149,10 +141,6 @@ long_help:
     - "Exit code: 0 for valid config, 1+ for validation errors"
     
   all_options:
-    - flag: --quiet, -q
-      description: "Suppress validation output (exit code indicates result: 0=valid, 1+=invalid)"
-    - flag: --json
-      description: "Output validation errors as JSON object for automation"
     - flag: --verbose, -v
       description: "Show detailed validation trace with all field checks and sub-validations"
     - flag: --help

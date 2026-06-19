@@ -10,14 +10,17 @@ type: "world-help"
 category: "world"
 
 syntax: |
-  dirforge init journal --journal "Journal Name" --id "identifier" [options]
+  dirforge init journal --name "Paper Name" --first [--year YYYY]
+  dirforge init journal --name "Paper Name" --coauthor [--year YYYY]
+  dirforge init journal --name "Journal Name" --id "MANUSCRIPT_ID" --service
   dirforge create journal <subtype> [options]
+  dirforge journal --help
   dirforge init journal --help
   dirforge create journal --help
 
 short_help:
   summary: "Create journal workflows for authorship, review, and editorial service"
-  usage: 'dirforge init journal --journal "Journal Name" --id "ID"'
+  usage: 'dirforge init journal --name "Paper Name" --first'
 
 long_help:
   summary: |
@@ -41,9 +44,12 @@ sections:
   optional_options:
     title: "Options"
     content: |
-      --journal "Journal Name"        Name of the journal
-      --id "identifier"               Project identifier (manuscript ID, reviewer code, etc.)
-      --encrypted                     Enable encryption for sensitive documents
+      --name "name"                   Paper name (authorship) or journal name (service)
+      --id "identifier"               Manuscript identifier (required with --service)
+      --first                          Primary authorship workflow
+      --coauthor                       Co-author workflow
+      --service                        Journal service workflow
+      --year YYYY                      Year for authorship workflows
   
   directory_structures:
     title: "Directory Structures"
@@ -62,19 +68,19 @@ sections:
 
 examples:
   - title: "Your manuscript submission"
-    command: 'dirforge init journal --journal "Geophysics" --id "GEO-2025-0451"'
+    command: 'dirforge init journal --name "thermal_analysis" --first --year 2025'
     description: "Tracks your manuscript submission progress"
   
   - title: "Reviewer work"
-    command: 'dirforge init journal --journal "Nature Geoscience" --id "REVIEWER_2024_Q4"'
+    command: 'dirforge init journal --name "joint_study" --coauthor --year 2024'
     description: "Organizes batch of papers to review"
   
   - title: "Editorial responsibilities"
-    command: 'dirforge init journal --journal "JGR Solid Earth" --id "ASSOC_EDITOR_2024"'
+    command: 'dirforge init journal --name "JGR Solid Earth" --id "EDITORIAL_BOARD_2024" --service'
     description: "Manages associate editor duties"
   
   - title: "Special issue coordination"
-    command: 'dirforge init journal --journal "IEEE TGRS" --id "SPECIAL_ISSUE_ML"'
+    command: 'dirforge create journal service --journal "IEEE TGRS" --id "SPECIAL_ISSUE_ML"'
     description: "Coordinates special issue editing"
 
 use_cases:

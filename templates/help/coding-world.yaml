@@ -12,6 +12,7 @@ category: "world"
 syntax: |
   dirforge init coding --language <lang> --project "name" [options]
   dirforge create coding --language <lang> --project "name" [options]
+  dirforge coding --help
   dirforge init coding --help
   dirforge create coding --help
 
@@ -26,8 +27,7 @@ long_help:
     reproducible directory layout so generated projects remain consistent.
   details: |
     Use this help file as the single source of truth for coding-world semantics.
-    Compatibility aliases such as create-coding.yaml point here and should remain
-    minimal during migration.
+    This file is the canonical source for coding-world command usage and options.
   important_notes:
     - Python and Fortran can bootstrap conda environments.
     - Docker options are only applied when language is docker.

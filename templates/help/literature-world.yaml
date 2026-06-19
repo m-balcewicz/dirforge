@@ -10,14 +10,12 @@ type: "world-help"
 category: "world"
 
 syntax: |
-  dirforge init literature [options]
-  dirforge create literature [options]
-  dirforge init literature --help
-  dirforge create literature --help
+  dirforge literature --help
+  dirforge help literature
 
 short_help:
   summary: "Create literature workspace for references, notes, and citation workflows"
-  usage: "dirforge init literature"
+  usage: "dirforge literature --help"
 
 long_help:
   summary: |
@@ -65,16 +63,16 @@ sections:
 
 examples:
   - title: "Initialize literature workspace"
-    command: "dirforge init literature"
-    description: "Creates base literature organization structure"
+    command: "dirforge literature --help"
+    description: "Shows literature world guidance and structure"
 
   - title: "Preview literature structure"
-    command: "dirforge init literature --dry-run"
-    description: "Shows folder plan without filesystem writes"
+    command: "dirforge help yaml-config-system"
+    description: "Review world-config architecture for literature workflows"
 
   - title: "Create with bibliography preference"
-    command: 'dirforge create literature --manager "bibtex"'
-    description: "Sets up literature workflow with BibTeX-oriented defaults"
+    command: 'cp templates/world-configs/literature.world.yaml my-literature.world.yaml'
+    description: "Start a custom literature configuration from the base template"
 
 related_commands:
   - "dirforge init research"
