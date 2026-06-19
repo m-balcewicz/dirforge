@@ -2390,7 +2390,7 @@ cmd_create() {
     --help|-h)
       # Use YAML-based help system (Constitution v1.1.1)
       if declare -F get_command_help >/dev/null 2>&1; then
-        get_command_help "create" "short" 2>/dev/null || {
+        get_command_help "create" "long" 2>/dev/null || {
           echo "Usage: $PROG_NAME create <entity_type> [OPTIONS]"
           echo "Entity types: research, coding, lecture, journal"
         }
@@ -2460,7 +2460,7 @@ create_journal() {
     --help|-h)
       # Use YAML-based help system (Constitution v1.1.1)
       if declare -F get_command_help >/dev/null 2>&1; then
-        get_command_help "journal-world" "short" 2>/dev/null || {
+        get_command_help "journal-world" "long" 2>/dev/null || {
           echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
           echo "Subtypes: primary, coauthor, service"
         }
@@ -3815,7 +3815,7 @@ handle_help_request() {
   local subcmd=""
   
   case "$arg2" in
-    research|lecture|coding|journal|office|private)
+    research|lecture|coding|journal|office|private|literature)
       # arg2 is a world type
       world="$arg2"
       subcmd="${arg3:-}"
@@ -3873,6 +3873,14 @@ handle_help_request() {
         fi
       fi
       ;;
+    "research"|"lecture"|"coding"|"journal"|"office"|"private"|"literature")
+      # Direct world help aliases: dirforge <world> --help
+      if declare -F show_world_help >/dev/null 2>&1; then
+        show_world_help "$cmd"
+      else
+        show_command_help "init"
+      fi
+      ;;
     "update")
       # Command help: dirforge update --help
       if declare -F show_update_command_help >/dev/null 2>&1; then
@@ -3916,7 +3924,7 @@ handle_help_request() {
           research)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "research-world" "short" 2>/dev/null || {
+              get_command_help "research-world" "long" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create research [OPTIONS]"
                 echo ""
                 echo "Create research projects and studies using the new create command syntax."
@@ -3938,7 +3946,7 @@ handle_help_request() {
           coding)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "coding-world" "short" 2>/dev/null || {
+              get_command_help "coding-world" "long" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create coding [OPTIONS]"
                 echo ""
                 echo "Create coding projects with language support."
@@ -3961,7 +3969,7 @@ handle_help_request() {
           lecture)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "lecture-world" "short" 2>/dev/null || {
+              get_command_help "lecture-world" "long" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create lecture [OPTIONS]"
                 echo ""
                 echo "Create lecture materials and course content."
@@ -3988,7 +3996,7 @@ handle_help_request() {
                 primary|coauthor|service)
                   # Try YAML-based help first, fallback to simple help
                   if declare -F get_command_help >/dev/null 2>&1; then
-                    get_command_help "journal-world" "short" 2>/dev/null || {
+                    get_command_help "journal-world" "long" 2>/dev/null || {
                       echo "Usage: $PROG_NAME create journal $journal_subtype [OPTIONS]"
                       echo ""
                       echo "Create journal $journal_subtype projects."
@@ -4009,7 +4017,7 @@ handle_help_request() {
             else
               # General journal help: dirforge create journal --help
               if declare -F get_command_help >/dev/null 2>&1; then
-                get_command_help "journal-world" "short" 2>/dev/null || {
+                get_command_help "journal-world" "long" 2>/dev/null || {
                   echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
                   echo ""
                   echo "Create journal projects with role-based structure."
@@ -4065,7 +4073,7 @@ handle_help_request() {
       # Command help: dirforge validate-config --help (short variant) or dirforge help validate-config (long variant)
       # Try YAML-based help first (Phase 8c integration)
       if declare -F get_command_help >/dev/null 2>&1; then
-        get_command_help "validate-config" "short" 2>/dev/null || {
+        get_command_help "validate-config" "long" 2>/dev/null || {
           # Fallback if YAML help unavailable
           if declare -F show_command_help >/dev/null 2>&1; then
             show_command_help "validate-config"
@@ -4104,7 +4112,7 @@ handle_help_request() {
       # Command help: dirforge list-configs --help (short variant) or dirforge help list-configs (long variant)
       # Try YAML-based help first (Phase 8c integration)
       if declare -F get_command_help >/dev/null 2>&1; then
-        get_command_help "list-configs" "short" 2>/dev/null || {
+        get_command_help "list-configs" "long" 2>/dev/null || {
           # Fallback if YAML help unavailable
           if declare -F show_command_help >/dev/null 2>&1; then
             show_command_help "list-configs"
