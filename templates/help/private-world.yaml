@@ -1,9 +1,14 @@
 ---
-# Private World Help
-# Version: 1.1.1
+# Private World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.IV Personal Projects
 
 command: "dirforge init private"
+world_type: "PRIVATE_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
   dirforge init private [options]
   dirforge init private --help
@@ -12,13 +17,36 @@ short_help:
   summary: "Create private project for personal documents and projects with privacy controls"
   usage: "dirforge init private"
 
+long_help:
+  summary: |
+    PRIVATE_WORLD help defines a privacy-first structure for personal archives,
+    finance, legal records, family information, and personal project material.
+  details: |
+    Use this world for local-only organization with controlled sharing and backup
+    practices tailored to sensitive personal information.
+  important_notes:
+    - Use encrypted storage for medical, legal, and financial records.
+    - Keep personally identifiable data out of shared repositories.
+
 description: |
   Creates private project for personal documents, financial records, photo 
   archives, and personal projects with privacy controls and local storage.
 
 sections:
-  directory_structure:
-    title: "Directory Structure"
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --encrypted                    Enable encrypted storage workflow if supported
+      --dry-run                      Preview structure without creating files
+
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Use lowercase snake_case for folders and filenames.
+      Suggested file prefix format: YYYY-MM-DD_subject
+
+  directory_structures:
+    title: "Directory Structures"
     content: |
       PRIVATE_WORLD/
       ├── 00_personal_finance/        Financial records and budgets
@@ -52,4 +80,4 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system"
 
 constitution_section: "§III.IV"
-updated: "2025-12-30"
+updated: "2026-06-19"

@@ -1,16 +1,35 @@
 ---
-# Lecture World Help
-# Version: 1.1.1
+# Lecture World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.IV Educational Content
 
-command: "dirforge init lecture"
+command: "dirforge init lecture | dirforge create lecture"
+world_type: "LECTURE_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
   dirforge init lecture --name "Course Name" [options]
+  dirforge create lecture --course <code> --title <name> [options]
   dirforge init lecture --help
+  dirforge create lecture --help
 
 short_help:
   summary: "Create lecture project with grading workflows and academic integrity"
   usage: 'dirforge init lecture --name "Course Name"'
+
+long_help:
+  summary: |
+    LECTURE_WORLD help is canonical for both init and create pathways.
+    It defines a consistent teaching-content structure with admin, code,
+    data, slides, exercises, exams, and gradebook workflows.
+  details: |
+    Use create lecture for explicit course-code style creation and init lecture
+    for direct world initialization with prompts or flags.
+  important_notes:
+    - Recordings should be tracked via manifests when stored externally.
+    - Keep student submissions and graded outputs access-controlled.
 
 description: |
   Creates standardized lecture project for course materials, assignments, and 
@@ -39,8 +58,8 @@ sections:
       Course Code:                     Optional institutional identifier
       Rules:                           ASCII lowercase [a-z0-9_-] with term prefix
   
-  directory_structure:
-    title: "Directory Structure"
+  directory_structures:
+    title: "Directory Structures"
     content: |
       LECTURE_WORLD/2025-spring_course_name/
       ├── 00_admin/                    Syllabus and policies
@@ -113,4 +132,4 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system"
 
 constitution_section: "§III.IV"
-updated: "2025-12-30"
+updated: "2026-06-19"

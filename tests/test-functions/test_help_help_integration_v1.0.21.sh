@@ -118,47 +118,47 @@ run_test "Global help with help" \
 info "Testing version information..."
 run_test "Version with --version" \
     "'$DIRFORGE' --version" \
-    "DirForge Constitution v1\\.0\\.16"
+    "DirForge Constitution v1\\.1\\.1"
 
 run_test "Version with -v" \
     "'$DIRFORGE' -v" \
-    "DirForge Constitution v1\\.0\\.16"
+    "DirForge Constitution v1\\.1\\.1"
 
 # Test 3: Command Help
 info "Testing command-specific help..."
 run_test "Init command help" \
     "'$DIRFORGE' init --help" \
-    "Create new project structure"
+    "Initialize a complete workspace"
 
 run_test "Init help shows world types" \
     "'$DIRFORGE' init --help" \
-    "Create new project structure"
+    "RESEARCH_WORLD/"
 
 # Test 4: World-Specific Help
 info "Testing world-specific help..."
 run_test "Research world help" \
     "'$DIRFORGE' init research --help" \
-    "Academic research projects with data management"
+    "standardized research project"
 
 run_test "Lecture world help" \
     "'$DIRFORGE' init lecture --help" \
-    "Educational content with grading workflows"
+    "standardized lecture project"
 
 run_test "Journal world help" \
     "'$DIRFORGE' init journal --help" \
-    "All journal-related activities: submissions, reviews, editorial work"
+    "managing all aspects of academic publishing"
 
 run_test "Coding world help" \
     "'$DIRFORGE' init coding --help" \
-    "Coding Project Creation\\|Software development projects"
+    "standardized software development projects"
 
 run_test "Office world help" \
     "'$DIRFORGE' init office --help" \
-    "Office Project Creation\\|Administrative.*business documents"
+    "administrative project for business documents"
 
 run_test "Private world help" \
     "'$DIRFORGE' init private --help" \
-    "Private Project Creation\\|Personal projects.*privacy"
+    "private project for personal documents"
 
 # Test 5: Help Context Awareness
 info "Testing context-aware help routing..."
@@ -166,9 +166,9 @@ run_test_exit_code "Unknown command exits with error" \
     "'$DIRFORGE' unknowncmd" \
     1
 
-run_test_exit_code "Help with unknown world type shows suggestions" \
+run_test_exit_code "Init with non-world token treated as path" \
     "'$DIRFORGE' init unknownworld" \
-    1
+    0
 
 # Test 6: Constitution Compliance
 info "Testing constitution compliance in help content..."
@@ -178,11 +178,11 @@ run_test "Global help includes constitution version" \
 
 run_test "Research help shows correct directory structure" \
     "'$DIRFORGE' init research --help" \
-    "Academic research projects"
+    "DIRECTORY STRUCTURES"
 
 run_test "Research help shows integrity directories" \
     "'$DIRFORGE' init research --help" \
-    "Academic research projects"
+    "\\.integrity"
 
 run_test "Lecture help shows grading workflow" \
     "'$DIRFORGE' init lecture --help" \
@@ -190,13 +190,13 @@ run_test "Lecture help shows grading workflow" \
 
 run_test "Journal help shows flexible ID examples" \
     "'$DIRFORGE' init journal --help" \
-    "journal-related activities"
+    "Project identifier"
 
 # Test 7: Example Validation
 info "Testing example syntax and copy-paste readiness..."
 run_test "Research help includes copy-pasteable examples" \
     "'$DIRFORGE' init research --help" \
-    'dirforge create research --title ".*"'
+    'dirforge init research --title ".*"'
 
 run_test "Global help includes practical examples" \
     "'$DIRFORGE' --help" \
@@ -216,15 +216,15 @@ run_test "Help handles narrow terminal width gracefully" \
 info "Testing help content quality..."
 run_test "Help includes practical usage guidance" \
     "'$DIRFORGE' init research --help" \
-    "Examples.*Best Practices\\|Common Usage"
+    "OVERVIEW\\|IMPORTANT NOTES\\|Quick Examples"
 
 run_test "Help includes naming conventions" \
     "'$DIRFORGE' init research --help" \
-    "Academic research projects"
+    "NAMING CONVENTIONS"
 
 run_test "Help explains conda environment naming" \
     "'$DIRFORGE' init research --help" \
-    "Academic research projects"
+    "Conda Environment"
 
 # Test 10: Error Handling and Fallbacks
 info "Testing error handling and fallbacks..."

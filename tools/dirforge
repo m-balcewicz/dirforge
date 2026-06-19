@@ -2460,7 +2460,7 @@ create_journal() {
     --help|-h)
       # Use YAML-based help system (Constitution v1.1.1)
       if declare -F get_command_help >/dev/null 2>&1; then
-        get_command_help "create-journal" "short" 2>/dev/null || {
+        get_command_help "journal-world" "short" 2>/dev/null || {
           echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
           echo "Subtypes: primary, coauthor, service"
         }
@@ -2510,7 +2510,7 @@ create_journal_primary() {
       --year|-y) shift; year="$1";;
       --help|-h)
         if declare -F get_command_help >/dev/null 2>&1; then
-          get_command_help "create-journal-primary" "short" 2>/dev/null || {
+          get_command_help "journal-world" "short" 2>/dev/null || {
             echo "Usage: $PROG_NAME create journal primary --paper <name> [--year <YYYY>]"
             echo "Create a journal project for primary authorship (your papers as lead author)"
           }
@@ -2561,7 +2561,7 @@ create_journal_coauthor() {
       --year|-y) shift; year="$1";;
       --help|-h)
         if declare -F get_command_help >/dev/null 2>&1; then
-          get_command_help "create-journal-coauthor" "short" 2>/dev/null || {
+          get_command_help "journal-world" "short" 2>/dev/null || {
             echo "Usage: $PROG_NAME create journal coauthor --paper <name> [--year <YYYY>]"
             echo "Create a journal project for co-author collaboration"
           }
@@ -2612,7 +2612,7 @@ create_journal_service() {
       --id|--manuscript-id|-m) shift; manuscript_id="$1";;
       --help|-h)
         if declare -F get_command_help >/dev/null 2>&1; then
-          get_command_help "create-journal-service" "short" 2>/dev/null || {
+          get_command_help "journal-world" "short" 2>/dev/null || {
             echo "Usage: $PROG_NAME create journal service --journal <name> --id <manuscript_id>"
             echo "Create a journal project for service activities (reviews, editorial work)"
           }
@@ -3916,7 +3916,7 @@ handle_help_request() {
           research)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "create-research" "short" 2>/dev/null || {
+              get_command_help "research-world" "short" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create research [OPTIONS]"
                 echo ""
                 echo "Create research projects and studies using the new create command syntax."
@@ -3938,7 +3938,7 @@ handle_help_request() {
           coding)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "create-coding" "short" 2>/dev/null || {
+              get_command_help "coding-world" "short" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create coding [OPTIONS]"
                 echo ""
                 echo "Create coding projects with language support."
@@ -3961,7 +3961,7 @@ handle_help_request() {
           lecture)
             # Try YAML-based help first, fallback to simple help
             if declare -F get_command_help >/dev/null 2>&1; then
-              get_command_help "create-lecture" "short" 2>/dev/null || {
+              get_command_help "lecture-world" "short" 2>/dev/null || {
                 echo "Usage: $PROG_NAME create lecture [OPTIONS]"
                 echo ""
                 echo "Create lecture materials and course content."
@@ -3988,7 +3988,7 @@ handle_help_request() {
                 primary|coauthor|service)
                   # Try YAML-based help first, fallback to simple help
                   if declare -F get_command_help >/dev/null 2>&1; then
-                    get_command_help "create-journal-$journal_subtype" "short" 2>/dev/null || {
+                    get_command_help "journal-world" "short" 2>/dev/null || {
                       echo "Usage: $PROG_NAME create journal $journal_subtype [OPTIONS]"
                       echo ""
                       echo "Create journal $journal_subtype projects."
@@ -4009,7 +4009,7 @@ handle_help_request() {
             else
               # General journal help: dirforge create journal --help
               if declare -F get_command_help >/dev/null 2>&1; then
-                get_command_help "create-journal" "short" 2>/dev/null || {
+                get_command_help "journal-world" "short" 2>/dev/null || {
                   echo "Usage: $PROG_NAME create journal <subtype> [OPTIONS]"
                   echo ""
                   echo "Create journal projects with role-based structure."

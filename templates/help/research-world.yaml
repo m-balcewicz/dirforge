@@ -1,16 +1,36 @@
 ---
-# Research World Help
-# Version: 1.1.1
+# Research World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.V Research Projects
 
-command: "dirforge init research"
+command: "dirforge init research | dirforge create research"
+world_type: "RESEARCH_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
   dirforge init research --title "Project Name" [options]
+  dirforge create research --project "Project Name" [options]
   dirforge init research --help
+  dirforge create research --help
 
 short_help:
   summary: "Create research project with data management and reproducible workflow"
   usage: 'dirforge init research --title "Project Name"'
+
+long_help:
+  summary: |
+    RESEARCH_WORLD help is canonical for init and create entry points.
+    It emphasizes reproducibility, provenance, and project-by-activity organization
+    across management artifacts, studies, data, analysis, and results.
+  details: |
+    Use init research for world/project setup and create research for explicit
+    project or study creation flows in existing workspaces.
+  important_notes:
+    - Use year-prefixed IDs for chronological grouping.
+    - Keep large datasets under managed storage with manifests.
+    - Version-control analysis code and methods.
 
 description: |
   Creates standardized research project with data analysis workflow. Follows 
@@ -39,8 +59,8 @@ sections:
       Conda Environment:              research_thermal_model_analysis
       Rules:                          ASCII lowercase [a-z0-9_-] with year prefix
   
-  directory_structure:
-    title: "Directory Structure"
+  directory_structures:
+    title: "Directory Structures"
     content: |
       RESEARCH_WORLD/2025_project_name/
       ├── 00_admin/                   Contracts, ethics agreements
@@ -112,4 +132,4 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system"
 
 constitution_section: "§III.V"
-updated: "2025-12-30"
+updated: "2026-06-19"

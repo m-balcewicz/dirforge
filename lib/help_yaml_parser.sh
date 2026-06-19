@@ -119,6 +119,61 @@ load_help_yaml() {
     return 0
 }
 
+# Resolve base directory for help templates.
+_get_help_base_dir() {
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    if [[ -d "$script_dir/../templates/help" ]]; then
+        printf "%s\n" "$script_dir/.."
+    elif [[ -d "$script_dir/templates/help" ]]; then
+        printf "%s\n" "$script_dir"
+    elif [[ -n "${DIRFORGE_HOME:-}" && -d "$DIRFORGE_HOME/templates/help" ]]; then
+        printf "%s\n" "$DIRFORGE_HOME"
+    else
+        printf "%s\n" "$script_dir/.."
+    fi
+}
+
+_get_help_file_path() {
+    local help_name="${1:?Error: help_name required}"
+    local base_dir
+    base_dir="$(_get_help_base_dir)"
+    printf "%s\n" "$base_dir/templates/help/${help_name}.yaml"
+}
+
+# Resolve compatibility aliases (e.g. create-coding -> coding-world).
+_resolve_help_name() {
+    local requested_name="${1:?Error: requested_name required}"
+    local resolved_name="$requested_name"
+    local max_hops=5
+    local hop=0
+
+    if ! command -v yq &>/dev/null; then
+        printf "%s\n" "$resolved_name"
+        return 0
+    fi
+
+    while [[ $hop -lt $max_hops ]]; do
+        local help_file
+        help_file="$(_get_help_file_path "$resolved_name")"
+
+        [[ -f "$help_file" ]] || break
+
+        local alias_of
+        alias_of=$(yq e '.alias_of // ""' "$help_file" 2>/dev/null)
+
+        if [[ -z "$alias_of" || "$alias_of" == "null" || "$alias_of" == "$resolved_name" ]]; then
+            break
+        fi
+
+        resolved_name="$alias_of"
+        hop=$((hop + 1))
+    done
+
+    printf "%s\n" "$resolved_name"
+}
+
 ################################################################################
 # get_help_section()
 #
@@ -291,12 +346,22 @@ get_global_help() {
     while IFS= read -r help_file; do
         local command_name
         local description
+        local deprecated
         
         command_name=$(basename "$help_file" .yaml)
-        
-        # Extract description field (simple grep approach for global help)
-        description=$(grep "^description:" "$help_file" 2>/dev/null | sed 's/^description: "\(.*\)"/\1/' | head -1)
-        description="${description:-(No description available)}"
+
+        # Hide deprecated compatibility aliases from global listing.
+        if command -v yq &>/dev/null; then
+            deprecated=$(yq e '.deprecated // false' "$help_file" 2>/dev/null)
+            if [[ "$deprecated" == "true" ]]; then
+                continue
+            fi
+            description=$(yq e '.short_help.summary // .description // "(No description available)"' "$help_file" 2>/dev/null | head -1)
+        else
+            # Extract description field (simple grep approach for global help)
+            description=$(grep "^description:" "$help_file" 2>/dev/null | sed 's/^description: "\(.*\)"/\1/' | head -1)
+            description="${description:-(No description available)}"
+        fi
         
         printf "  %-25s %s\n" "$command_name" "$description"
     done <<< "$help_files"
@@ -364,19 +429,11 @@ _format_short_help() {
         return 1
     fi
     
-    # Detect the correct base directory
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local base_dir
-    
-    if [[ -d "$script_dir/../templates/help" ]]; then
-        base_dir="$script_dir/.."
-    elif [[ -d "$script_dir/templates/help" ]]; then
-        base_dir="$script_dir"
-    else
-        base_dir="$script_dir/.."
-    fi
-    
-    local help_file="$base_dir/templates/help/${help_name}.yaml"
+    local resolved_help_name
+    resolved_help_name="$(_resolve_help_name "$help_name")"
+
+    local help_file
+    help_file="$(_get_help_file_path "$resolved_help_name")"
     
     if [[ ! -f "$help_file" ]]; then
         printf "%s\n" "Help file not found: $help_file" >&2
@@ -384,6 +441,8 @@ _format_short_help() {
     fi
     
     # Source formatting functions from help.sh if available
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -f "$script_dir/help.sh" ]]; then
         source "$script_dir/colors.sh" 2>/dev/null || true
         source "$script_dir/terminal.sh" 2>/dev/null || true
@@ -399,6 +458,9 @@ _format_short_help() {
     printf "\n%s — %s\n" "$command" "$summary"
     printf "%s\n" "================================================================================"
     [[ -n "$version" && "$version" != "null" ]] && printf "Constitution Version: %s\n" "$version"
+    if [[ "$resolved_help_name" != "$help_name" ]]; then
+        printf "Canonical Help: %s\n" "$resolved_help_name"
+    fi
     printf "\n"
     
     # Usage section
@@ -462,19 +524,11 @@ _format_long_help() {
         return 1
     fi
     
-    # Detect the correct base directory
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local base_dir
-    
-    if [[ -d "$script_dir/../templates/help" ]]; then
-        base_dir="$script_dir/.."
-    elif [[ -d "$script_dir/templates/help" ]]; then
-        base_dir="$script_dir"
-    else
-        base_dir="$script_dir/.."
-    fi
-    
-    local help_file="$base_dir/templates/help/${help_name}.yaml"
+    local resolved_help_name
+    resolved_help_name="$(_resolve_help_name "$help_name")"
+
+    local help_file
+    help_file="$(_get_help_file_path "$resolved_help_name")"
     
     if [[ ! -f "$help_file" ]]; then
         printf "%s\n" "Help file not found: $help_file" >&2
@@ -492,8 +546,39 @@ _format_long_help() {
     printf "%s\n" "$command"
     printf "%s\n" "================================================================================"
     [[ -n "$version" && "$version" != "null" ]] && printf "Constitution Version: %s\n" "$version"
+    if [[ "$resolved_help_name" != "$help_name" ]]; then
+        printf "Canonical Help: %s\n" "$resolved_help_name"
+    fi
     printf "\n"
     [[ -n "$description" && "$description" != "null" ]] && printf "%s\n\n" "$description"
+
+    # Optional long-help detail block
+    local long_summary long_details
+    long_summary=$(yq e '.long_help.summary' "$help_file" 2>/dev/null)
+    long_details=$(yq e '.long_help.details' "$help_file" 2>/dev/null)
+    if [[ -n "$long_summary" && "$long_summary" != "null" ]]; then
+        echo "OVERVIEW"
+        echo "--------"
+        echo "$long_summary"
+        echo ""
+    fi
+    if [[ -n "$long_details" && "$long_details" != "null" ]]; then
+        echo "DETAILS"
+        echo "-------"
+        echo "$long_details"
+        echo ""
+    fi
+
+    local note_count
+    note_count=$(yq e '.long_help.important_notes | length' "$help_file" 2>/dev/null)
+    if [[ "$note_count" != "0" && "$note_count" != "null" ]]; then
+        echo "IMPORTANT NOTES"
+        echo "---------------"
+        yq e '.long_help.important_notes[]' "$help_file" 2>/dev/null | while read -r note; do
+            [[ -n "$note" && "$note" != "null" ]] && echo "  - $note"
+        done
+        echo ""
+    fi
     
     # Syntax
     local syntax=$(yq e '.syntax' "$help_file" 2>/dev/null)

@@ -1066,6 +1066,9 @@ show_world_help() {
         "journal")
             help_file="journal-world.yaml"
             ;;
+        "literature")
+            help_file="literature-world.yaml"
+            ;;
         "office")
             help_file="office-world.yaml"
             ;;
@@ -1098,6 +1101,9 @@ show_world_help() {
             ;;
         "journal")
             show_journal_world_help
+            ;;
+        "literature")
+            show_literature_world_help
             ;;
         "office")
             show_office_world_help
@@ -1196,4 +1202,19 @@ show_private_world_help() {
     help_content+="\n"
     display_with_pager "$help_content"
 
+}
+
+# Fallback: Show detailed help for literature world
+show_literature_world_help() {
+    local help_content=""
+    help_content+="$(format_header "dirforge init literature" 1)\n"
+    help_content+="\nCreate literature/reference workspace with citation organization\n\n"
+    help_content+="$(format_header "Usage" 2)\n"
+    help_content+="$(format_command "dirforge init literature")\n"
+    help_content+="\n$(format_header "Use Cases" 2)\n"
+    help_content+="- Literature notes and summaries\n"
+    help_content+="- Bibliography and citation exports\n"
+    help_content+="- Reading workflow and archive tracking\n"
+    help_content+="\n"
+    display_with_pager "$help_content"
 }

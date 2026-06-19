@@ -1,9 +1,14 @@
 ---
-# Office World Help
-# Version: 1.1.1
+# Office World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.III Administrative Documents
 
 command: "dirforge init office"
+world_type: "OFFICE_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
   dirforge init office [options]
   dirforge init office --help
@@ -12,13 +17,36 @@ short_help:
   summary: "Create administrative project for business documents and management"
   usage: "dirforge init office"
 
+long_help:
+  summary: |
+    OFFICE_WORLD help defines standardized administrative structure for finance,
+    HR, equipment, software licensing, and communication workflows.
+  details: |
+    Use this world for institution-facing operations where auditability,
+    document lifecycle control, and stable folder conventions are needed.
+  important_notes:
+    - Place sensitive records under restricted filesystem permissions.
+    - Keep archival documents in 90_archive with clear date prefixes.
+
 description: |
   Creates administrative project for business documents, contracts, finance 
   tracking, equipment management, and organizational workflows.
 
 sections:
-  directory_structure:
-    title: "Directory Structure"
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --dry-run                      Preview structure without creating files
+      --force                        Overwrite existing structure when applicable
+
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Use lowercase snake_case for subfolders and document names.
+      Suggested file prefix format: YYYY-MM-DD_subject
+
+  directory_structures:
+    title: "Directory Structures"
     content: |
       OFFICE_WORLD/
       ├── 00_admin/                   Administrative files
@@ -52,4 +80,4 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system"
 
 constitution_section: "§III.III"
-updated: "2025-12-30"
+updated: "2026-06-19"

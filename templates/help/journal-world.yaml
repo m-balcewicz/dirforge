@@ -1,16 +1,35 @@
 ---
-# Journal World Help
-# Version: 1.1.1
+# Journal World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.VI Journal Activities
 
-command: "dirforge init journal"
+command: "dirforge init journal | dirforge create journal"
+world_type: "JOURNAL_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
   dirforge init journal --journal "Journal Name" --id "identifier" [options]
+  dirforge create journal <subtype> [options]
   dirforge init journal --help
+  dirforge create journal --help
 
 short_help:
-  summary: "Create journal project for submissions, reviews, and editorial work"
+  summary: "Create journal workflows for authorship, review, and editorial service"
   usage: 'dirforge init journal --journal "Journal Name" --id "ID"'
+
+long_help:
+  summary: |
+    JOURNAL_WORLD help is canonical for both init and create entry points.
+    It covers publication lifecycle workflows from manuscript drafting through
+    service duties such as peer review and editorial communication.
+  details: |
+    Use journal subtypes for role-based creation with create journal, while
+    init journal remains available for direct workflow initialization.
+  important_notes:
+    - Journal IDs should be stable and searchable.
+    - Sensitive peer-review files should use restricted access.
 
 description: |
   Creates journal project for managing all aspects of academic publishing: your own 
@@ -26,13 +45,20 @@ sections:
       --id "identifier"               Project identifier (manuscript ID, reviewer code, etc.)
       --encrypted                     Enable encryption for sensitive documents
   
-  directory_structure:
-    title: "Directory Structure"
+  directory_structures:
+    title: "Directory Structures"
     content: |
       JOURNAL_WORLD/JOURNAL_NAME/ID/
       ├── manuscript/                 Papers, drafts, revisions
       ├── reviews/                    Peer reviews, comments, responses
       └── correspondence/             Editorial communications
+
+  role_subtypes:
+    title: "Role Subtypes"
+    content: |
+      primary                         Lead/corresponding authorship workflows
+      coauthor                        Collaborative writing workflows
+      service                         Reviewer/editorial service workflows
 
 examples:
   - title: "Your manuscript submission"
@@ -66,4 +92,4 @@ see_also:
   - "docs/yaml-config-user-guide.md - Configuration system"
 
 constitution_section: "§III.VI"
-updated: "2025-12-30"
+updated: "2026-06-19"

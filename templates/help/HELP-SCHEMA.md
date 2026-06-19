@@ -49,7 +49,29 @@ see_also: [ ... ]            # Optional: documentation links
 # Help variants
 short_help: { ... }          # Required: concise essential help
 long_help: { ... }           # Required: complete detailed help
+
+# Compatibility alias support (optional)
+alias_of: <help-file-name>   # Optional: canonical help ID without .yaml
+deprecated: <true|false>     # Optional: hide alias from global listing when true
+
+# World-help metadata (recommended for *-world.yaml)
+world_type: <WORLD_TYPE>     # Optional: e.g., CODING_WORLD
+schema_version: <version>    # Optional: help schema revision
 ```
+
+### Canonical World-Help Convention
+
+For consolidated world help files (e.g., coding-world.yaml, research-world.yaml),
+use this section model consistently:
+
+- `syntax`
+- `short_help`
+- `long_help`
+- `description`
+- `sections.directory_structures`
+- `examples`
+
+Compatibility helper files may be reduced to aliases with `alias_of` and `deprecated: true`.
 
 ---
 

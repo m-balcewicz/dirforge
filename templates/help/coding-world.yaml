@@ -1,20 +1,41 @@
 ---
-# Coding World Help
-# Version: 1.1.1
+# Coding World Help (Canonical)
+# Version: 1.2.0
 # Constitution: §III.I Software Development
 
-command: "dirforge create coding"
+command: "dirforge init coding | dirforge create coding"
+world_type: "CODING_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
 syntax: |
+  dirforge init coding --language <lang> --project "name" [options]
   dirforge create coding --language <lang> --project "name" [options]
+  dirforge init coding --help
   dirforge create coding --help
 
 short_help:
-  summary: "Create software development project with version control and testing"
+  summary: "Create coding projects with language-aware scaffolding, tests, and docs"
   usage: "dirforge create coding --language python --project \"project-name\""
 
+long_help:
+  summary: |
+    CODING_WORLD help is canonical for coding project creation across both init and
+    create command paths. It defines language-specific defaults, naming rules, and
+    reproducible directory layout so generated projects remain consistent.
+  details: |
+    Use this help file as the single source of truth for coding-world semantics.
+    Compatibility aliases such as create-coding.yaml point here and should remain
+    minimal during migration.
+  important_notes:
+    - Python and Fortran can bootstrap conda environments.
+    - Docker options are only applied when language is docker.
+    - Project names are normalized to snake_case IDs.
+
 description: |
-  Creates standardized software development project with version control, 
-  testing framework, and documentation structure for multiple programming languages. 
+  Creates standardized software development projects with version control,
+  testing, and documentation structure for multiple programming languages.
   Supports Python, MATLAB, Fortran, Bash, Rust, and Docker with language-specific tooling.
 
 sections:
@@ -54,8 +75,8 @@ sections:
       Conda Environment:             coding_data_analysis_tool (Python/Fortran)
       Rules:                         ASCII lowercase [a-z0-9_-] only
   
-  directory_structure:
-    title: "Directory Structure"
+  directory_structures:
+    title: "Directory Structures"
     content: |
       CODING_WORLD/<language>/<project_id>/
       ├── .integrity/                Language/project metadata and validation
@@ -127,4 +148,4 @@ see_also:
   - "docs/docker-coding-projects.md - Docker coding project customization"
 
 constitution_section: "§III.I"
-updated: "2025-12-30"
+updated: "2026-06-19"

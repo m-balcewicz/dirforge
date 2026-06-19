@@ -1,0 +1,89 @@
+---
+# Literature World Help (Canonical)
+# Version: 1.2.0
+# Constitution: §III (Literature placeholder)
+
+command: "dirforge init literature | dirforge create literature"
+world_type: "LITERATURE_WORLD"
+schema_version: "1.2.0"
+type: "world-help"
+category: "world"
+
+syntax: |
+  dirforge init literature [options]
+  dirforge create literature [options]
+  dirforge init literature --help
+  dirforge create literature --help
+
+short_help:
+  summary: "Create literature workspace for references, notes, and citation workflows"
+  usage: "dirforge init literature"
+
+long_help:
+  summary: |
+    LITERATURE_WORLD help provides a canonical structure for literature management,
+    reading workflows, bibliographic data, and publication reference archives.
+  details: |
+    This world is intentionally extensible. Start with base folders and evolve
+    project-specific conventions without breaking global world semantics.
+  important_notes:
+    - Keep bibliography exports and source PDFs synchronized with notes.
+    - Preserve citation keys across manuscript projects.
+
+description: |
+  Creates literature workspace for organizing references, reading notes, citation
+  exports, and thematic collections. Designed for long-term discoverability and
+  reproducible citation usage across research and writing projects.
+
+sections:
+  optional_options:
+    title: "Optional Options"
+    content: |
+      --theme "topic"                Create an initial topic namespace
+      --manager "zotero|bibtex"      Preferred bibliography source format
+      --dry-run                       Preview structure without creating files
+
+  naming_conventions:
+    title: "Naming Conventions"
+    content: |
+      Topic folders:                  snake_case topic labels
+      Paper folders:                  YYYY_firstauthor_shorttitle
+      Bibliography files:             references_<topic>.bib
+      Notes files:                    YYYY-MM-DD_note_title.md
+
+  directory_structures:
+    title: "Directory Structures"
+    content: |
+      LITERATURE_WORLD/
+      ├── 00_inbox/                   Newly collected references
+      ├── 01_topics/                  Topic-based literature groups
+      ├── 02_annotations/             Reading notes and highlights
+      ├── 03_bibliographies/          BibTeX/CSL exports
+      ├── 04_summaries/               Synthesis notes and reviews
+      ├── 90_archive/                 Retired or superseded references
+      └── .integrity/                 Metadata and manifests
+
+examples:
+  - title: "Initialize literature workspace"
+    command: "dirforge init literature"
+    description: "Creates base literature organization structure"
+
+  - title: "Preview literature structure"
+    command: "dirforge init literature --dry-run"
+    description: "Shows folder plan without filesystem writes"
+
+  - title: "Create with bibliography preference"
+    command: 'dirforge create literature --manager "bibtex"'
+    description: "Sets up literature workflow with BibTeX-oriented defaults"
+
+related_commands:
+  - "dirforge init research"
+  - "dirforge create research"
+  - "dirforge list-configs"
+
+see_also:
+  - "templates/world-configs/literature.world.yaml"
+  - "docs/yaml-config-user-guide.md"
+
+constitution_section: "§III"
+updated: "2026-06-19"
