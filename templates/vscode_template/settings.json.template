@@ -4,53 +4,53 @@
   "workbench.preferredDarkColorTheme": "Solarized Dark",
   "python.defaultInterpreterPath": "path/to/your/conda/env/bin/python",
   "python.terminal.activateEnvironment": true,
+
+  "latex-workshop.latex.outDir": "%DIR%/build",
+
   "latex-workshop.latex.tools": [
     {
-      "name": "latexmk",
-      "command": "latexmk",
-      "args": [
-        "-synctex=1",
-        "-interaction=nonstopmode",
-        "-file-line-error",
-        "-pdf",
-        "-outdir=%OUTDIR%",
-        "%DOC%"
-      ]
-    },
-    {
       "name": "pdflatex",
-      "command": "pdflatex",
+      "command": "/usr/local/texlive/2026/bin/universal-darwin/pdflatex",
       "args": [
         "-synctex=1",
         "-interaction=nonstopmode",
         "-file-line-error",
+        "-halt-on-error",
+        "-output-directory=%OUTDIR%",
         "%DOC%"
-      ]
-    },
-    {
-      "name": "bibtex",
-      "command": "bibtex",
-      "args": ["%DOCFILE%"]
+      ],
+      "env": {
+        "PATH": "/usr/local/texlive/2026/bin/universal-darwin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
     },
     {
       "name": "biber",
-      "command": "biber",
-      "args": ["%DOCFILE%"]
+      "command": "/usr/local/texlive/2026/bin/universal-darwin/biber",
+      "args": [
+        "--output-directory=%OUTDIR%",
+        "%DOCFILE%"
+      ],
+      "env": {
+        "PATH": "/usr/local/texlive/2026/bin/universal-darwin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
     }
   ],
+
   "latex-workshop.latex.recipes": [
     {
-      "name": "latexmk",
-      "tools": ["latexmk"]
+      "name": "quick (biber)",
+      "tools": ["pdflatex", "biber", "pdflatex"]
     },
     {
-      "name": "pdflatex -> bibtex -> pdflatex x2",
-      "tools": ["pdflatex", "bibtex", "pdflatex", "pdflatex"]
-    },
-    {
-      "name": "pdflatex -> biber -> pdflatex x2",
+      "name": "full (biber)",
       "tools": ["pdflatex", "biber", "pdflatex", "pdflatex"]
+    },
+    {
+      "name": "draft",
+      "tools": ["pdflatex"]
     }
   ],
-  "latex-workshop.latex.recipe.default": "latexmk"
+
+  "latex-workshop.latex.recipe.default": "full (biber)",
+  "latex-workshop.intellisense.citation.backend": "biblatex"
 }
