@@ -24,6 +24,7 @@ Track feature requests and enhancement ideas for DirForge. Quick notes that can 
    - Make sure not to delete existing files
 8. Set and define some proper testing definitions in the constitution.md
 9. Consider adding [DVC](https://doc.dvc.org) to the workflow
+10. Implementing a new journal service is creating wrong subfolders with numerous entries: `dirforge create journal service --journal "J NONDESTRUCT EVAL" --id "f1e53c49"`
 ---
 
 ## Under Review
