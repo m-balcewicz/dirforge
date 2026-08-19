@@ -429,6 +429,34 @@ TEST_COUNT=$((TEST_COUNT + 1))
 
 cleanup_temp_workspace
 
+# Test 18: New Service Subtype Syntax Regression (stdout path pollution)
+echo
+echo "Test 18: New Service Subtype Syntax Regression"
+echo "==============================================="
+
+TEMP_WORKSPACE=$(create_temp_workspace "journal_service_new_syntax_regression_test")
+cd "$TEMP_WORKSPACE"
+
+assert_success "run_dirforge create journal service --journal 'gji' --id 'GJI-25-0988.R1'" \
+  "Create journal service project with new subtype syntax"
+
+assert_dir_exists "JOURNAL_WORLD/03_journal_service/gji/GJI-25-0988.R1" \
+  "Service manuscript directory created at expected path"
+
+assert_dir_exists "JOURNAL_WORLD/03_journal_service/gji/GJI-25-0988.R1/01_manuscript" \
+  "Service manuscript subdirectory"
+
+assert_dir_exists "JOURNAL_WORLD/03_journal_service/gji/GJI-25-0988.R1/02_reviews" \
+  "Service reviews subdirectory"
+
+assert_dir_exists "JOURNAL_WORLD/03_journal_service/gji/GJI-25-0988.R1/03_correspondence" \
+  "Service correspondence subdirectory"
+
+assert_dir_not_exists "JOURNAL_WORLD/03_journal_service/Created journal directory:" \
+  "No malformed folder from stdout leakage"
+
+cleanup_temp_workspace
+
 # Test Summary
 echo
 echo "==============================================================================="
