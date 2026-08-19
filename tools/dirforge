@@ -2086,15 +2086,15 @@ construct_service_path() {
     if [ "$DRY_RUN" = false ]; then
       if [ ! -d "$WORKSPACE_ROOT/JOURNAL_WORLD" ]; then
         do_mkdir_p "$WORKSPACE_ROOT/JOURNAL_WORLD"
-        echo "Created parent directory: $WORKSPACE_ROOT/JOURNAL_WORLD"
+        echo "Created parent directory: $WORKSPACE_ROOT/JOURNAL_WORLD" >&2
       fi
       if [ ! -d "$journal_root/03_journal_service" ]; then
         do_mkdir_p "$journal_root/03_journal_service"
-        echo "Created category directory: $journal_root/03_journal_service"
+        echo "Created category directory: $journal_root/03_journal_service" >&2
       fi
       if [ ! -d "$journal_root/03_journal_service/${sanitized_journal}" ]; then
         do_mkdir_p "$journal_root/03_journal_service/${sanitized_journal}"
-        echo "Created journal directory: $journal_root/03_journal_service/${sanitized_journal}"
+        echo "Created journal directory: $journal_root/03_journal_service/${sanitized_journal}" >&2
       fi
     fi
   fi
@@ -2164,9 +2164,14 @@ create_standard_subdirectories() {
   fi
   
   # Get standard subdirectory paths
-  local subdirs
-  subdirs=($(construct_standard_subdirs "$project_path"))
-  if [ $? -ne 0 ]; then
+  local subdirs=()
+  local subdir_line=""
+  while IFS= read -r subdir_line; do
+    subdirs+=("$subdir_line")
+  done < <(construct_standard_subdirs "$project_path")
+
+  if [ ${#subdirs[@]} -eq 0 ]; then
+    echo "Error: Failed to resolve standard subdirectories for: $project_path" >&2
     return 1
   fi
   
