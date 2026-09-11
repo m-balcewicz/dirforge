@@ -21,6 +21,7 @@ specs/
 examples/
 .backup/
 .cache/
+.opencode
 
 # Test structure - track test functions and runner, ignore temporary workspaces
 !tests/
