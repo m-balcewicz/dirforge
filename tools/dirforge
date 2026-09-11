@@ -255,18 +255,19 @@ cmd_update() {
   world_type=$(detect_world_type "$target_dir" || echo "unknown")
   org_level=$(detect_organizational_level "$target_dir" || echo "unknown")
   
-  # If we're inside a project subdirectory (version is unknown), find the project root
-  if [[ "$current_version" == "unknown" ]]; then
-    local project_root=""
-    project_root=$(find_project_root "$target_dir" || echo "")
-    if [[ -n "$project_root" && "$project_root" != "$target_dir" ]]; then
-      # We found a project root above this directory, use that instead
-      target_dir="$project_root"
-      current_version=$(detect_version "$target_dir" || echo "unknown")
-      world_type=$(detect_world_type "$target_dir" || echo "unknown")
-      org_level=$(detect_organizational_level "$target_dir" || echo "unknown")
-    fi
+  # Save original target for journal project detection
+  local original_target_dir="$target_dir"
+  
+  # Normalize target_dir to project root if we are in a subdirectory
+  local project_root
+  project_root=$(find_project_root "$target_dir" || echo "")
+  if [[ -n "$project_root" && "$project_root" != "$target_dir" ]]; then
+    target_dir="$project_root"
+    current_version=$(detect_version "$target_dir" || echo "unknown")
+    world_type=$(detect_world_type "$target_dir" || echo "unknown")
+    org_level=$(detect_organizational_level "$target_dir" || echo "unknown")
   fi
+
 
   # Prompt user if version is still unknown (not in JSON mode)
   if [[ "$current_version" == "unknown" && "$json_flag" != true ]]; then
@@ -388,8 +389,8 @@ cmd_update() {
     fi
   fi
 
-  # Target version is always the latest (v1.1.1 with init/create command separation)
-  local target_version="1.1.1"
+  # Target version is always the latest (v1.1.2 with journal review template integration)
+  local target_version="1.1.2"
 
   # Handle detection failures with consistent error handling
   # Pattern matching handles "unknown" with or without trailing newlines from detection functions
@@ -461,7 +462,35 @@ cmd_update() {
     needs_study_metadata=true
   fi
   
-  if [[ "$current_version" == "$target_version" && "$needs_legacy_migration" == false && "$needs_study_metadata" == false ]]; then
+    # Ensure journal review template exists for JOURNAL_WORLD projects
+    # Find the actual journal project root (has 01_manuscript + 03_correspondence)
+    local journal_project_root=""
+    if [[ -d "$target_dir/01_manuscript" && -d "$target_dir/03_correspondence" ]]; then
+      journal_project_root="$target_dir"
+    elif [[ -d "$original_target_dir/01_manuscript" && -d "$original_target_dir/03_correspondence" ]]; then
+      journal_project_root="$original_target_dir"
+    elif [[ -d "$(dirname "$original_target_dir")/01_manuscript" && -d "$(dirname "$original_target_dir")/03_correspondence" ]]; then
+      journal_project_root="$(dirname "$original_target_dir")"
+    fi
+    if [[ "$world_type" == "JOURNAL_WORLD" && -n "$journal_project_root" ]]; then
+      local review_dest="$journal_project_root/03_correspondence/review.tex"
+      if [[ ! -f "$review_dest" ]]; then
+        if [[ "$dry_run_flag" == true ]]; then
+          if [[ "$json_flag" == true ]]; then
+            JSON_FILES+=("$review_dest")
+          else
+            echo "DRY RUN: would copy missing journal review template to: $review_dest"
+          fi
+        else
+          if cp "$BASELINE_JOURNAL_REVIEW_TEMPLATE" "$review_dest"; then
+            echo "✓ Restored missing journal review template to: $review_dest"
+          fi
+        fi
+      fi
+    fi
+
+    if [[ "$current_version" == "$target_version" && "$needs_legacy_migration" == false && "$needs_study_metadata" == false ]]; then
+
     if [[ "$json_flag" == true ]]; then
       echo ',"already_up_to_date":true,"changes":[]}' >> "$target_dir/.dirforge_update_tmp.json"
       cat "$target_dir/.dirforge_update_tmp.json"
@@ -838,6 +867,7 @@ cmd_update() {
     if [[ "$new_version" == "$target_version" ]]; then
       echo
       echo "✅ Update successful. Structure is now at $target_version."
+
     else
       echo
       echo "⚠️  Warning: Structure may not be fully updated. Detected version: $new_version"
@@ -918,6 +948,7 @@ BASELINE_VSCODE_SETTINGS_TEMPLATE="$TEMPLATES_DIR/vscode_template/settings.json.
 BASELINE_VSCODE_WORKSPACE_TEMPLATE="$TEMPLATES_DIR/vscode_template/vscode.code-workspace.template"
 BASELINE_TEX_PUBLICATION_TEMPLATE_DIR="$TEMPLATES_DIR/TeX_template/04_publication"
 BASELINE_TEX_PRESENTATIONS_TEMPLATE_DIR="$TEMPLATES_DIR/TeX_template/05_presentations"
+BASELINE_JOURNAL_REVIEW_TEMPLATE="$TEMPLATES_DIR/TeX_template/JOURNAL_templates/review.tex"
 
 # Source help system libraries if available
 if [ -f "$LIB_DIR/terminal.sh" ]; then
@@ -940,7 +971,7 @@ if [ -f "$LIB_DIR/help_yaml_parser.sh" ]; then
     source "$LIB_DIR/help_yaml_parser.sh"
 fi
 
-CONSTITUTION_VERSION="v1.1.1"
+CONSTITUTION_VERSION="v1.1.2"
 
 # Dry-run flag (preview mode). When true, filesystem changes are not written; actions are printed.
 DRY_RUN=false
@@ -2259,6 +2290,20 @@ create_standard_subdirectories() {
         echo "  $failure (check read/write permissions)" >&2
       done
       # Don't return error for this - it's a warning
+    fi
+
+    # Copy journal review template to correspondence directory if applicable
+    if [[ "$project_path" == *"JOURNAL_WORLD"* ]]; then
+      local review_dest="$project_path/03_correspondence/review.tex"
+      if [ "$DRY_RUN" = true ]; then
+        if [ "$JSON_OUTPUT" = true ]; then
+          JSON_FILES+=("$review_dest")
+        else
+          echo "DRY RUN: would copy journal review template to: $review_dest"
+        fi
+      else
+          cp "$BASELINE_JOURNAL_REVIEW_TEMPLATE" "$review_dest" || true
+      fi
     fi
   fi
   
