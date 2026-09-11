@@ -1,0 +1,103 @@
+% ============================================================
+% Reviewer Response Letter Template
+% Point-by-point response to authors / editor
+% ============================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{siunitx}
+
+% ---------- Custom colors ----------
+\definecolor{reviewercolor}{RGB}{20,20,20}
+\definecolor{authorcolor}{RGB}{0,90,160}
+\definecolor{actioncolor}{RGB}{150,0,0}
+
+% ---------- Custom commands ----------
+% \reviewercomment{text} : the original reviewer comment (verbatim)
+\newcommand{\reviewercomment}[1]{%
+  \par\noindent\textbf{\textcolor{reviewercolor}{Comment:}}\par
+  \noindent #1\par\vspace{4pt}
+}
+
+% \authorresponse{text} : the authors' response
+\newcommand{\authorresponse}[1]{%
+  \par\noindent\textbf{\textcolor{authorcolor}{Authors' response:}}\par
+  \noindent #1\par\vspace{4pt}
+}
+
+% \actionrequired{text} : explicit action requested from authors
+\newcommand{\actionrequired}[1]{%
+  \par\noindent\textbf{\textcolor{actioncolor}{Action required:}}\par
+  \noindent #1\par\vspace{8pt}
+}
+
+\newcommand{\linecomment}[2]{%
+  \par\noindent\textbf{\textcolor{reviewercolor}{Line #1:}}\quad #2\par\vspace{4pt}
+}
+
+
+% Section numbering style for comments: M1, M2, ... (Major) and m1, m2, ... (minor)
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.5em}{}
+
+\title{Reviewer Report}
+\author{Manuscript ID: [Manuscript ID] \\
+Title: [Manuscript Title]}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+[Insert a brief summary of the manuscript's goals, methods, and key findings here. Describe the overall quality and the main contribution to the field.]
+
+The topic is timely and relevant. [Add further general evaluation of the work].
+
+However, the manuscript contains some [minor/major] imprecisions, as well as notational and presentational issues, that must be addressed before it can be considered for publication.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+% MAJOR COMMENTS
+% ============================================================
+\section*{Main Comments}
+
+% ---------------- M1 ----------------
+\subsection*{M1. [Summary of Comment]}
+
+\reviewercomment{%
+[Insert the original reviewer comment here verbatim.]
+}
+
+% \authorresponse{%
+% [Insert authors' response.]
+% }
+
+\actionrequired{%
+[State clearly what action is required from the authors.]
+}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+% LINE-BY-LINE COMMENTS
+% ============================================================
+\section*{Line-by-Line Comments}
+
+\linecomment{[Line #]}{%
+[Insert specific comment regarding the text at this line.]
+}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\end{document}
