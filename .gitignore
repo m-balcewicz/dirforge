@@ -75,3 +75,4 @@ project.yaml
 # OS-specific
 Thumbs.db
 Desktop.ini
+.aider*
