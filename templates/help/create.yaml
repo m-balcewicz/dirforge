@@ -1,6 +1,6 @@
 ---
 # Create Command Help
-# Version: 1.1.1
+# Version: 1.1.2
 # Purpose: Help for 'dirforge create' command with entity types and options
 
 command: "dirforge create"
@@ -15,7 +15,7 @@ short_help:
 description: |
   Create new projects and entities within an existing workspace. The create command
   is separated from workspace initialization (init) to provide clear single-responsibility
-  commands following DirForge Constitution v1.1.1.
+  commands following DirForge Constitution v1.1.2.
 
 sections:
   entity_types:
@@ -24,13 +24,16 @@ sections:
       research          Create research projects and studies
       coding            Create coding projects with language support
       lecture           Create lecture materials and course content
-      journal           Create journal projects with role-based structure
+      journal           Create journal projects (primary, coauthor, service)
 
   usage_examples:
     title: "Usage Examples"
     content: |
       # Create research project
-      dirforge create research --project "Thermal Analysis" --python 3.11
+      dirforge create research --name "Thermal Analysis" --python 3.11
+      
+      # Create research project with study
+      dirforge create research --name "My Project" --study "Experiment 1" --python 3.11
       
       # Create coding project  
       dirforge create coding --language python --project mylib
@@ -38,14 +41,24 @@ sections:
       # Create lecture materials
       dirforge create lecture --course CS101 --title "Intro Course"
       
-      # Create journal projects
+      # Create journal primary authorship project
       dirforge create journal primary --paper "Paper Title" --year 2025
+      
+      # Create journal coauthor project
+      dirforge create journal coauthor --paper "Collaborative Study" --year 2025
+      
+      # Create journal service project
+      dirforge create journal service --journal "Nature" --id "manuscript-123"
 
   detailed_help:
     title: "Detailed Help"
     content: |
       For detailed help on a specific entity type:
         dirforge create <entity-type> --help
+      For journal subtypes:
+        dirforge create journal primary --help
+        dirforge create journal coauthor --help
+        dirforge create journal service --help
 
 global_options:
   - name: "--dry-run, --preview"
