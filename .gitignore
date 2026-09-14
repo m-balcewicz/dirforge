@@ -21,7 +21,8 @@ specs/
 examples/
 .backup/
 .cache/
-.opencode
+.opencode/
+.aider*
 
 # Test structure - track test functions and runner, ignore temporary workspaces
 !tests/
@@ -75,4 +76,3 @@ project.yaml
 # OS-specific
 Thumbs.db
 Desktop.ini
-.aider*
