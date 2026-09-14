@@ -6,11 +6,15 @@ set -euo pipefail
 WORLD_TYPES=("coding" "research" "office")
 SUBDIR_TYPES=("journal" "recordings" "report")
 
+VERSION="1.1.1"
+
 # --- Helper Functions ---
 
 usage() {
   cat <<EOF
 Usage: dirforge <command> [options]
+
+DirForge v$VERSION — workspace scaffolder
 
 Commands:
   init [path] [--auto]
@@ -24,6 +28,13 @@ Options:
   --auto           Skip interactive prompts.
   --name <name>    Name of the subdirectory instance (required).
   --first          Mark this as the primary/default instance.
+
+Examples:
+  dirforge init              # Initialize workspace
+  dirforge create coding     # Create coding project
+  dirforge --version         # Show version
+
+For more help: dirforge <command> --help
 EOF
 }
 
@@ -200,6 +211,9 @@ main() {
       ;;
     help|--help|-h)
       usage
+      ;;
+    version|--version|-v)
+      echo "dirforge version $VERSION"
       ;;
     *)
       echo "Unknown command: $cmd" >&2
