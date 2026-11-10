@@ -24,6 +24,7 @@ Track feature requests and enhancement ideas for DirForge. Quick notes that can 
    - Make sure not to delete existing files
 8. Set and define some proper testing definitions in the constitution.md
 9. Consider adding [DVC](https://doc.dvc.org) to the workflow
+10. creating a new coding env for python is not copying the vscode templates in place
 ---
 
 ## Under Review

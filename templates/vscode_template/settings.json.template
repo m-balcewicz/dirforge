@@ -24,11 +24,10 @@
       }
     },
     {
-      "name": "biber",
-      "command": "/usr/local/texlive/2026/bin/universal-darwin/biber",
+      "name": "bibtex",
+      "command": "/usr/local/texlive/2026/bin/universal-darwin/bibtex",
       "args": [
-        "--output-directory=%OUTDIR%",
-        "%DOCFILE%"
+        "build/%DOCFILE%"
       ],
       "env": {
         "PATH": "/usr/local/texlive/2026/bin/universal-darwin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
@@ -38,19 +37,31 @@
 
   "latex-workshop.latex.recipes": [
     {
-      "name": "quick (biber)",
-      "tools": ["pdflatex", "biber", "pdflatex"]
+      "name": "quick (bibtex)",
+      "tools": [
+        "pdflatex",
+        "bibtex",
+        "pdflatex",
+        "pdflatex"
+      ]
     },
     {
-      "name": "full (biber)",
-      "tools": ["pdflatex", "biber", "pdflatex", "pdflatex"]
+      "name": "full (bibtex)",
+      "tools": [
+        "pdflatex",
+        "bibtex",
+        "pdflatex",
+        "pdflatex"
+      ]
     },
     {
       "name": "draft",
-      "tools": ["pdflatex"]
+      "tools": [
+        "pdflatex"
+      ]
     }
   ],
 
-  "latex-workshop.latex.recipe.default": "full (biber)",
-  "latex-workshop.intellisense.citation.backend": "biblatex"
+  "latex-workshop.latex.recipe.default": "full (bibtex)",
+  "latex-workshop.intellisense.citation.backend": "bibtex"
 }

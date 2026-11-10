@@ -1,0 +1,254 @@
+% Master's laboratory report assessment template
+% Keep the original review.tex preamble from \documentclass through
+% \usepackage{siunitx}. Replace EVERYTHING after that package line
+% with this file. Do not retain the old custom commands or document body.
+% Suggested assessment weights below are editable, not institutional rules.
+
+\definecolor{feedbackblue}{RGB}{0,75,125}
+\definecolor{feedbackred}{RGB}{135,35,25}
+
+\newcommand{\placeholder}[1]{\textit{[#1]}}
+\newcommand{\strength}[1]{%
+  \par\noindent\textbf{Strength:} #1\par\smallskip}
+\newcommand{\observation}[1]{%
+  \par\noindent\textbf{Observation:} #1\par\smallskip}
+\newcommand{\requiredrevision}[1]{%
+  \par\noindent\textbf{\textcolor{feedbackred}{Required revision:}} #1\par\smallskip}
+\newcommand{\suggestion}[1]{%
+  \par\noindent\textbf{\textcolor{feedbackblue}{Suggested improvement:}} #1\par\smallskip}
+\newcommand{\studentresponse}[1]{%
+  \par\noindent\textbf{Student response and location of changes:} #1\par\smallskip}
+\newcommand{\revisioncheck}[1]{%
+  \par\noindent\textbf{Assessor's revision check:} #1\par\medskip}
+
+\newcounter{mainfeedback}
+\newcommand{\mainfeedback}[1]{%
+  \refstepcounter{mainfeedback}%
+  \subsection*{M\arabic{mainfeedback}. #1}}
+\newcounter{specificfeedback}
+\newcommand{\specificfeedback}[2]{%
+  \refstepcounter{specificfeedback}%
+  \par\medskip\noindent\textbf{D\arabic{specificfeedback}. #1}\par
+  #2\par\smallskip}
+
+\title{Master's Laboratory Report\\Assessment and Revision Feedback}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\section*{Report information}
+\begin{description}[style=nextline,leftmargin=0pt]
+  \item[Course / module] \placeholder{Course or module title}
+  \item[Experiment / report title] \placeholder{Experiment and report title}
+  \item[Student(s) / group] \placeholder{Names; student IDs if required; group}
+  \item[Assessor] \placeholder{Name}
+  \item[Submission] \placeholder{Date and report version}
+  \item[Assessment round] \placeholder{Initial submission / revised submission}
+\end{description}
+
+\section*{Overall assessment}
+\placeholder{Briefly assess how well the report addresses the experimental
+objectives and demonstrates Master's-level scientific understanding.
+Summarise the reliability of the results, quality of interpretation,
+and the most important strengths and limitations. Assess achievement
+of the learning objectives rather than novelty suitable for publication.}
+
+\strength{\placeholder{Identify a specific scientific or methodological strength.}}
+\strength{\placeholder{Identify a second strength, where appropriate.}}
+
+\noindent\textbf{Main priorities for improvement:}
+\begin{enumerate}[label=\arabic*.]
+  \item \placeholder{Highest-priority scientific or methodological issue.}
+  \item \placeholder{Second priority.}
+  \item \placeholder{Third priority, if applicable.}
+\end{enumerate}
+
+\section*{Assessment criteria and points}
+\noindent\textit{The categories and weights below are suggested for a reusable
+laboratory-report rubric; they are not taken from the supplied grade scale.
+Adapt them to the module's learning outcomes and communicate them before
+assessment. Award points within each category and justify deductions in the
+comments.}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.69\linewidth}rr@{}}
+\hline
+\textbf{Criterion} & \textbf{Maximum} & \textbf{Awarded} \\
+\hline
+Scientific background, objectives, and hypotheses & 15 & \placeholder{--} \\
+Experimental methods and reproducibility & 20 & \placeholder{--} \\
+Data processing and presentation of results & 20 & \placeholder{--} \\
+Uncertainty analysis and critical quality control & 15 & \placeholder{--} \\
+Discussion, physical interpretation, and conclusions & 20 & \placeholder{--} \\
+Structure, scientific language, figures, and references & 10 & \placeholder{--} \\
+\hline
+\textbf{Total} & \textbf{100} & \placeholder{--} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection*{Criterion-specific justification}
+\begin{description}[style=nextline,leftmargin=0pt]
+  \item[Scientific background, objectives, and hypotheses]
+  \placeholder{Assess relevant theory, definitions, assumptions, and clarity
+  of objectives; refer to main comments where appropriate.}
+  \item[Experimental methods and reproducibility]
+  \placeholder{Assess apparatus, calibration, measurement procedure, sample
+  description, experimental conditions, and sufficient detail to reproduce
+  the work. Assess safety documentation where relevant to the assignment.}
+  \item[Data processing and presentation of results]
+  \placeholder{Assess processing steps, equations, units, numerical accuracy,
+  traceability of derived quantities, and effective tables and figures.}
+  \item[Uncertainty analysis and critical quality control]
+  \placeholder{Assess uncertainty estimates and propagation, repeatability,
+  systematic effects, outlier treatment, and limitations of the measurements.}
+  \item[Discussion, physical interpretation, and conclusions]
+  \placeholder{Assess the physical reasoning, comparison with theory or
+  reference data, interpretation of discrepancies, limitations, and whether
+  the conclusions are supported by the results.}
+  \item[Structure, scientific language, figures, and references]
+  \placeholder{Assess organisation, clarity, notation, captions, axis labels,
+  citation practice, and attribution of external material. Avoid counting
+  the same deficiency again under another criterion without justification.}
+\end{description}
+
+\section*{Percentage-to-grade scale}
+\noindent The following conversion reproduces the thresholds and evaluation
+categories in the supplied HSBO grading sheet. The percentage is the points
+awarded divided by the available points, multiplied by 100. With the
+100-point rubric above, the total points equal the percentage.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lll@{}}
+\hline
+\textbf{Percentage} & \textbf{Grade} & \textbf{Evaluation} \\
+\hline
+\(95 \leq p \leq 100\) & 1.0 & Very good (sehr gut) \\
+\(90 \leq p < 95\) & 1.3 & Very good (sehr gut) \\
+\(85 \leq p < 90\) & 1.7 & Good (gut) \\
+\(80 \leq p < 85\) & 2.0 & Good (gut) \\
+\(75 \leq p < 80\) & 2.3 & Good (gut) \\
+\(70 \leq p < 75\) & 2.7 & Satisfactory (befriedigend) \\
+\(65 \leq p < 70\) & 3.0 & Satisfactory (befriedigend) \\
+\(60 \leq p < 65\) & 3.3 & Satisfactory (befriedigend) \\
+\(55 \leq p < 60\) & 3.7 & Sufficient (ausreichend) \\
+\(50 \leq p < 55\) & 4.0 & Sufficient (ausreichend) \\
+\(0 \leq p < 50\) & 5.0 & Insufficient (nicht ausreichend) \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Rounding convention:}
+\placeholder{State the applicable module rule. The supplied grading sheet
+specifies thresholds but does not specify a rounding convention.}
+
+\section*{Main comments}
+\noindent\textit{Use one numbered comment per substantive issue. Explain the
+issue, why it matters, and what constitutes an adequate revision. Clearly
+distinguish required corrections from optional improvements. Duplicate the
+comment blocks below as needed.}
+
+\mainfeedback{\placeholder{Scientific understanding or interpretation}}
+\observation{\placeholder{Describe the issue, cite the relevant report
+location, and explain its scientific significance.}}
+\requiredrevision{\placeholder{State a concrete, achievable correction and
+what evidence or explanation is needed.}}
+\studentresponse{\placeholder{Explain the change and give the page, section,
+figure, equation, or line in the revised report; justify any disagreement.}}
+\revisioncheck{\placeholder{Resolved / partly resolved / unresolved;
+brief justification and any remaining action.}}
+
+\mainfeedback{\placeholder{Methods, data processing, or uncertainty}}
+\observation{\placeholder{Identify the affected measurement, calculation,
+assumption, or uncertainty estimate and explain its effect on the results.}}
+\requiredrevision{\placeholder{Specify the required clarification,
+recalculation, uncertainty analysis, or limitation statement.}}
+\studentresponse{\placeholder{Response and location of changes.}}
+\revisioncheck{\placeholder{Resolution status and assessor's comment.}}
+
+\mainfeedback{\placeholder{Further improvement}}
+\observation{\placeholder{Describe a further issue where applicable.}}
+\suggestion{\placeholder{Explain an optional improvement that would make the
+report clearer or more informative.}}
+\studentresponse{\placeholder{Response, if applicable.}}
+\revisioncheck{\placeholder{Assessor's comment, if applicable.}}
+
+\section*{Detailed comments}
+\noindent\textit{Reference the assessed version explicitly. Use page,
+section, figure, table, equation, or line numbers. Duplicate each block
+as needed; numbering is automatic.}
+
+\specificfeedback{Page \placeholder{X}, Section \placeholder{Y}}{%
+  \observation{\placeholder{Specific issue in the text or reasoning.}}
+  \requiredrevision{\placeholder{Required correction.}}
+  \studentresponse{\placeholder{Response and revised location.}}
+  \revisioncheck{\placeholder{Resolution status.}}
+}
+
+\specificfeedback{Figure \placeholder{X}, page \placeholder{Y}}{%
+  \observation{\placeholder{Specific issue with the plotted data, units,
+  uncertainty information, legend, or caption.}}
+  \requiredrevision{\placeholder{Required correction.}}
+  \studentresponse{\placeholder{Response and revised location.}}
+  \revisioncheck{\placeholder{Resolution status.}}
+}
+
+\specificfeedback{Equation \placeholder{X}, page \placeholder{Y}}{%
+  \observation{\placeholder{Specific issue with a definition, assumption,
+  equation, notation, dimensional consistency, or numerical substitution.}}
+  \suggestion{\placeholder{Suggested improvement; change to
+  required revision if the issue affects scientific correctness.}}
+  \studentresponse{\placeholder{Response and revised location.}}
+  \revisioncheck{\placeholder{Assessor's comment.}}
+}
+
+\section*{Revision arrangements}
+\begin{description}[style=nextline,leftmargin=0pt]
+  \item[Assessment status]
+  \placeholder{Final assessment / provisional assessment pending revision /
+  formative feedback without a grade.}
+  \item[Revision opportunity and deadline]
+  \placeholder{State whether resubmission is available, the deadline,
+  and any restrictions under the module rules.}
+  \item[Required submission material]
+  \placeholder{For example: revised report and point-by-point responses
+  referencing comment IDs M1, M2, D1, etc.; indicate whether a marked-up
+  version or processing files are required.}
+  \item[Scope of reassessment]
+  \placeholder{State whether the entire report or only specified criteria
+  will be reassessed and whether any grade cap applies. Do not assume
+  that revision automatically changes the grade.}
+\end{description}
+
+\section*{Assessment record}
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{0.40\linewidth}p{0.25\linewidth}p{0.25\linewidth}@{}}
+\hline
+ & \textbf{Initial submission} & \textbf{Revised submission} \\
+\hline
+Assessment date & \placeholder{Date} & \placeholder{Date / N/A} \\
+Total points / available points & \placeholder{-- / 100} & \placeholder{-- / 100} \\
+Percentage & \placeholder{--\%} & \placeholder{--\%} \\
+Grade & \placeholder{Grade / provisional} & \placeholder{Grade / N/A} \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Final recorded grade:} \placeholder{Grade / not yet assigned}
+
+\medskip
+\noindent\textbf{Final assessor's comment:}
+\placeholder{Record the extent to which the required revisions were
+addressed and justify the final assessment. If relevant, identify one or
+two priorities for future laboratory work.}
+
+\medskip
+\noindent\textbf{Assessor / date:} \placeholder{Name and date}
+
+\end{document}
